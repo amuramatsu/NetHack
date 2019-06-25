@@ -2,6 +2,11 @@
 /* Copyright (C) 2001 by Alex Kompel 	 */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2016            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "winMS.h"
 #include <commdlg.h>
 #include "date.h"
@@ -194,6 +199,9 @@ LRESULT CALLBACK
 MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PNHMainWindow data;
+#if 1 /*JP*/
+    static int doublebyte = 0;
+#endif
 
     switch (message) {
     case WM_CREATE:
@@ -381,6 +389,21 @@ MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         } /* end switch */
     } break;
 
+#if 1 /*JP*//*全角文字対応*/
+    case WM_CHAR:
+    {
+        if (doublebyte == 1) {
+            NHEVENT_KBD(wParam & 0xFF);
+            doublebyte = 0;
+            return 0;
+        } else if (is_kanji(wParam)) {
+            NHEVENT_KBD(wParam & 0xFF);
+            doublebyte = 1;
+            return 0;
+        }
+    } break;
+
+#endif
     case WM_SYSCHAR: /* Alt-char pressed */
     {
         /*
@@ -458,7 +481,10 @@ MainWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             bail((char *) 0);
         } else {
             /* prompt user for action */
+/*JP
             switch (NHMessageBox(hWnd, TEXT("Save?"),
+*/
+            switch (NHMessageBox(hWnd, TEXT("保存して終了しますか？"),
                                  MB_YESNOCANCEL | MB_ICONQUESTION)) {
             case IDYES:
 #ifdef SAFERHANGUP

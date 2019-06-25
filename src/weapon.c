@@ -3,11 +3,17 @@
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 /*
  *      This module contains code for calculation of "to hit" and damage
  *      bonuses for any given weapon used, as well as weapons selection
  *      code for monsters.
  */
+
 #include "hack.h"
 
 /* Categories whose names don't come from OBJ_NAME(objects[type])
@@ -41,26 +47,46 @@ STATIC_VAR NEARDATA const short skill_names_indices[P_NUM_SKILLS] = {
 
 /* note: entry [0] isn't used */
 STATIC_VAR NEARDATA const char *const odd_skill_names[] = {
+#if 0 /*JP*/
     "no skill", "bare hands", /* use barehands_or_martial[] instead */
     "two weapon combat", "riding", "polearms", "saber", "hammer", "whip",
     "attack spells", "healing spells", "divination spells",
     "enchantment spells", "clerical spells", "escape spells", "matter spells",
+#else
+    "no skill", "素手", /* use barehands_or_martial[] instead */
+    "二刀流", "騎乗", "長斧", "サーベル", "ハンマー", "鞭",
+    "攻撃", "治癒", "予知",
+    "補助", "僧侶", "脱出", "物質",
+#endif
 };
 /* indexed vis `is_martial() */
 STATIC_VAR NEARDATA const char *const barehands_or_martial[] = {
+#if 0 /*JP*/
     "bare handed combat", "martial arts"
+#else
+    "素手", "体術"
+#endif
 };
 
 STATIC_OVL void
 give_may_advance_msg(skill)
 int skill;
 {
+#if 0 /*JP*/
     You_feel("more confident in your %sskills.",
              skill == P_NONE ? "" : skill <= P_LAST_WEAPON
                                         ? "weapon "
                                         : skill <= P_LAST_SPELL
                                               ? "spell casting "
                                               : "fighting ");
+#else
+    You("%sスキルを高める自信が湧いてきた．",
+        skill == P_NONE ? "" : skill <= P_LAST_WEAPON
+            ? "武器の"
+            : skill <= P_LAST_SPELL
+                  ? "魔法の"
+                  : "戦いの");
+#endif
 }
 
 STATIC_DCL boolean FDECL(can_advance, (int, BOOLEAN_P));
@@ -105,29 +131,47 @@ struct obj *obj;
     case P_SLING:
         if (is_ammo(obj))
             descr = (obj->otyp == ROCK || is_graystone(obj))
+/*JP
                         ? "stone"
+*/
+                        ? "石"
                         /* avoid "rock"; what about known glass? */
                         : (obj->oclass == GEM_CLASS)
+/*JP
                             ? "gem"
+*/
+                            ? "宝石"
                             /* in case somebody adds odd sling ammo */
                             : def_oc_syms[(int) obj->oclass].name;
         break;
     case P_BOW:
         if (is_ammo(obj))
+/*JP
             descr = "arrow";
+*/
+            descr = "矢";
         break;
     case P_CROSSBOW:
         if (is_ammo(obj))
+/*JP
             descr = "bolt";
+*/
+            descr = "ボルト";
         break;
     case P_FLAIL:
         if (obj->otyp == GRAPPLING_HOOK)
+/*JP
             descr = "hook";
+*/
+            descr = "フック";
         break;
     case P_PICK_AXE:
         /* even if "dwarvish mattock" hasn't been discovered yet */
         if (obj->otyp == DWARVISH_MATTOCK)
+/*JP
             descr = "mattock";
+*/
+            descr = "つるはし";
         break;
     default:
         break;
@@ -589,11 +633,17 @@ boolean polyspot;
         mon->weapon_check = NO_WEAPON_WANTED;
         obj_extract_self(obj);
         if (cansee(mon->mx, mon->my)) {
+/*JP
             pline("%s drops %s.", Monnam(mon), distant_name(obj, doname));
+*/
+            pline("%sは%sを置いた．", Monnam(mon), distant_name(obj, doname));
             newsym(mon->mx, mon->my);
         }
         /* might be dropping object into water or lava */
+/*JP
         if (!flooreffects(obj, mon->mx, mon->my, "drop")) {
+*/
+        if (!flooreffects(obj, mon->mx, mon->my, "落ちる")) {
             if (polyspot)
                 bypass_obj(obj);
             place_object(obj, mon->mx, mon->my);
@@ -681,22 +731,41 @@ register struct monst *mon;
          */
         if (mw_tmp && mwelded(mw_tmp)) {
             if (canseemon(mon)) {
+#if 0 /*JP*/
                 char welded_buf[BUFSZ];
+#endif
                 const char *mon_hand = mbodypart(mon, HAND);
 
                 if (bimanual(mw_tmp))
                     mon_hand = makeplural(mon_hand);
+#if 0 /*JP*/
                 Sprintf(welded_buf, "%s welded to %s %s",
                         otense(mw_tmp, "are"), mhis(mon), mon_hand);
+#endif
 
                 if (obj->otyp == PICK_AXE) {
+#if 0 /*JP*/
                     pline("Since %s weapon%s %s,", s_suffix(mon_nam(mon)),
                           plur(mw_tmp->quan), welded_buf);
+#else
+                    pline("%sは武器を手にしようとしたが，", mon_nam(mon));
+#endif
+#if 0 /*JP*/
                     pline("%s cannot wield that %s.", mon_nam(mon),
                           xname(obj));
+#else
+                    pline("%sは%sを装備できなかった．", mon_nam(mon),
+                          xname(obj));
+#endif
                 } else {
+/*JP
                     pline("%s tries to wield %s.", Monnam(mon), doname(obj));
+*/
+                    pline("%sは%sを装備しようとした．", Monnam(mon), doname(obj));
+/*JP
                     pline("%s %s!", Yname2(mw_tmp), welded_buf);
+*/
+                    pline("%sは%sを手にした！", Monnam(mon), xname(mw_tmp));
                 }
                 mw_tmp->bknown = 1;
             }
@@ -707,20 +776,35 @@ register struct monst *mon;
         setmnotwielded(mon, mw_tmp);
         mon->weapon_check = NEED_WEAPON;
         if (canseemon(mon)) {
+/*JP
             pline("%s wields %s!", Monnam(mon), doname(obj));
+*/
+            pline("%sは%sを装備した！", Monnam(mon), doname(obj));
             if (mwelded(mw_tmp)) {
+#if 0 /*JP*/
                 pline("%s %s to %s %s!", Tobjnam(obj, "weld"),
                       is_plural(obj) ? "themselves" : "itself",
                       s_suffix(mon_nam(mon)), mbodypart(mon, HAND));
+#else
+                pline("%sは勝手に%sの%sに装備された！",
+                      xname(obj),
+                      mon_nam(mon), mbodypart(mon, HAND));
+#endif
                 obj->bknown = 1;
             }
         }
         if (artifact_light(obj) && !obj->lamplit) {
             begin_burn(obj, FALSE);
             if (canseemon(mon))
+#if 0 /*JP*/
                 pline("%s %s in %s %s!", Tobjnam(obj, "shine"),
                       arti_light_description(obj), s_suffix(mon_nam(mon)),
                       mbodypart(mon, HAND));
+#else
+                pline("%sは%sの%sの中で%s輝いた！",
+                      xname(obj), mon_nam(mon),
+                      mbodypart(mon, HAND), arti_light_description(obj));
+#endif
         }
         obj->owornmask = W_WEP;
         return 1;
@@ -819,16 +903,32 @@ boolean verbose;
     /* new state is only reported if it's an increase */
     if (newspe > obj->spe) {
         if (verbose) {
+#if 0 /*JP*/
             const char *wetness = (newspe < 3)
                                      ? (!obj->spe ? "damp" : "damper")
                                      : (!obj->spe ? "wet" : "wetter");
+#else
+            const char *wetness = (newspe < 3)
+                                     ? (!obj->spe ? "湿った" : "さらに湿った")
+                                     : (!obj->spe ? "濡れた" : "さらに濡れた");
+#endif
 
             if (carried(obj))
+#if 0 /*JP*/
                 pline("%s gets %s.", Yobjnam2(obj, (const char *) 0),
                       wetness);
+#else
+                pline("%sは%s．", Yobjnam2(obj, (const char *) 0),
+                      wetness);
+#endif
             else if (mcarried(obj) && canseemon(obj->ocarry))
+#if 0 /*JP*/
                 pline("%s %s gets %s.", s_suffix(Monnam(obj->ocarry)),
                       xname(obj), wetness);
+#else
+                pline("%sの%sは%s．", Monnam(obj->ocarry),
+                      xname(obj), wetness);
+#endif
         }
     }
     obj->spe = min(newspe, 7);
@@ -852,11 +952,21 @@ boolean verbose;
     if (newspe < obj->spe) {
         if (verbose) {
             if (carried(obj))
+#if 0 /*JP*/
                 pline("%s dries%s.", Yobjnam2(obj, (const char *) 0),
                       !newspe ? " out" : "");
+#else
+                pline("%sは%s．", Yobjnam2(obj, (const char *) 0),
+                      !newspe ? "乾ききった" : "乾いた");
+#endif
             else if (mcarried(obj) && canseemon(obj->ocarry))
+#if 0 /*JP*/
                 pline("%s %s drie%s.", s_suffix(Monnam(obj->ocarry)),
                       xname(obj), !newspe ? " out" : "");
+#else
+                pline("%sの%sは%s．", Monnam(obj->ocarry),
+                      xname(obj), !newspe ? "乾ききった" : "乾いた");
+#endif
         }
     }
     newspe = min(newspe, 7);
@@ -878,26 +988,47 @@ char *buf;
 
     switch (P_SKILL(skill)) {
     case P_UNSKILLED:
+/*JP
         ptr = "Unskilled";
+*/
+        ptr = "初心者";
         break;
     case P_BASIC:
+/*JP
         ptr = "Basic";
+*/
+        ptr = "入門者";
         break;
     case P_SKILLED:
+/*JP
         ptr = "Skilled";
+*/
+        ptr = "熟練者";
         break;
     case P_EXPERT:
+/*JP
         ptr = "Expert";
+*/
+        ptr = "エキスパート";
         break;
     /* these are for unarmed combat/martial arts only */
     case P_MASTER:
+/*JP
         ptr = "Master";
+*/
+        ptr = "マスター";
         break;
     case P_GRAND_MASTER:
+/*JP
         ptr = "Grand Master";
+*/
+        ptr = "グランドマスター";
         break;
     default:
+/*JP
         ptr = "Unknown";
+*/
+        ptr = "不明";
         break;
     }
     Strcpy(buf, ptr);
@@ -985,18 +1116,33 @@ int skill;
     P_SKILL(skill)++;
     u.skill_record[u.skills_advanced++] = skill;
     /* subtly change the advance message to indicate no more advancement */
+#if 0 /*JP*/
     You("are now %s skilled in %s.",
         P_SKILL(skill) >= P_MAX_SKILL(skill) ? "most" : "more",
         P_NAME(skill));
+#else
+    Your("%sのスキルを%s高めた．", 
+         P_NAME(skill),
+         P_SKILL(skill) >= P_MAX_SKILL(skill) ? "最高に" : "さらに");
+#endif
 }
 
 static const struct skill_range {
     short first, last;
     const char *name;
 } skill_ranges[] = {
+/*JP
     { P_FIRST_H_TO_H, P_LAST_H_TO_H, "Fighting Skills" },
+*/
+    { P_FIRST_H_TO_H, P_LAST_H_TO_H, "戦いのスキル" },
+/*JP
     { P_FIRST_WEAPON, P_LAST_WEAPON, "Weapon Skills" },
+*/
+    { P_FIRST_WEAPON, P_LAST_WEAPON, "武器のスキル" },
+/*JP
     { P_FIRST_SPELL, P_LAST_SPELL, "Spellcasting Skills" },
+*/
+    { P_FIRST_SPELL,  P_LAST_SPELL,  "魔法のスキル" },
 };
 
 /*
@@ -1045,18 +1191,30 @@ enhance_weapon_skill()
         if (eventually_advance > 0 || maxxed_cnt > 0) {
             any = zeroany;
             if (eventually_advance > 0) {
+#if 0 /*JP*/
                 Sprintf(buf, "(Skill%s flagged by \"*\" may be enhanced %s.)",
                         plur(eventually_advance),
                         (u.ulevel < MAXULEV)
                             ? "when you're more experienced"
                             : "if skill slots become available");
+#else
+                Sprintf(buf, "(\"*\"がついているスキルは%s高められる．)",
+                        (u.ulevel < MAXULEV)
+                            ? "もっと経験をつめば"
+                            : "スキルスロットが使えるようになれば");
+#endif
                 add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, buf,
                          MENU_UNSELECTED);
             }
             if (maxxed_cnt > 0) {
+#if 0 /*JP*/
                 Sprintf(buf,
                  "(Skill%s flagged by \"#\" cannot be enhanced any further.)",
                         plur(maxxed_cnt));
+#else
+                Sprintf(buf,
+                        "(\"#\"がついているスキルはこれ以上高められない．)");
+#endif
                 add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, buf,
                          MENU_UNSELECTED);
             }
@@ -1120,8 +1278,13 @@ enhance_weapon_skill()
                          MENU_UNSELECTED);
             }
 
+#if 0 /*JP*/
         Strcpy(buf, (to_advance > 0) ? "Pick a skill to advance:"
                                      : "Current skills:");
+#else
+        Strcpy(buf, (to_advance > 0) ? "スキルを選択してください："
+                                     : "現在のスキル：");
+#endif
         if (wizard && !speedy)
             Sprintf(eos(buf), "  (%d slot%s available)", u.weapon_slots,
                     plur(u.weapon_slots));
@@ -1136,7 +1299,10 @@ enhance_weapon_skill()
             for (n = i = 0; i < P_NUM_SKILLS; i++) {
                 if (can_advance(i, speedy)) {
                     if (!speedy)
+/*JP
                         You_feel("you could be more dangerous!");
+*/
+                        You("さらにスキルを高めることができそうな気がした！");
                     n++;
                     break;
                 }
@@ -1518,9 +1684,14 @@ register struct obj *obj;
     if (artifact_light(obj) && obj->lamplit) {
         end_burn(obj, FALSE);
         if (canseemon(mon))
+#if 0 /*JP*/
             pline("%s in %s %s %s shining.", The(xname(obj)),
                   s_suffix(mon_nam(mon)), mbodypart(mon, HAND),
                   otense(obj, "stop"));
+#else
+            pline("%sが持つ%sの輝きが消えた．",
+                  mon_nam(mon), xname(obj));
+#endif
     }
     if (MON_WEP(mon) == obj)
         MON_NOWEP(mon);

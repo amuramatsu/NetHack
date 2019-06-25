@@ -3,13 +3,23 @@
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include <limits.h>
 
 extern const char *hu_stat[]; /* defined in eat.c */
 
+#if 0 /*JP*/
 const char *const enc_stat[] = { "",         "Burdened",  "Stressed",
                                  "Strained", "Overtaxed", "Overloaded" };
+#else
+const char *const enc_stat[] = { "",     "よろめき", "圧迫",
+                                 "限界", "荷重",     "超過"};
+#endif
 
 STATIC_OVL NEARDATA int mrank_sz = 0; /* loaded by max_rank_sz (from u_init) */
 STATIC_DCL const char *NDECL(rank);
@@ -46,8 +56,15 @@ do_statusline1()
     Strcpy(newbot1, plname);
     if ('a' <= newbot1[0] && newbot1[0] <= 'z')
         newbot1[0] += 'A' - 'a';
+#if 1 /*JP*/
+    if(is_kanji1(newbot1, 9))
+        newbot1[9] = '_';
+#endif
     newbot1[10] = 0;
+/*JP
     Sprintf(nb = eos(newbot1), " the ");
+*/
+    Sprintf(nb = eos(newbot1)," ");
 
     if (Upolyd) {
         char mbot[BUFSZ];
@@ -70,17 +87,34 @@ do_statusline1()
     if ((i - j) > 0)
         Sprintf(nb = eos(nb), "%*s", i - j, " "); /* pad with spaces */
 
+#if 0 /*JP*/
     Sprintf(nb = eos(nb), "St:%s Dx:%-1d Co:%-1d In:%-1d Wi:%-1d Ch:%-1d",
             get_strength_str(),
             ACURR(A_DEX), ACURR(A_CON), ACURR(A_INT), ACURR(A_WIS),
             ACURR(A_CHA));
+#else
+    Sprintf(nb = eos(nb), "強:%s 早:%-1d 耐:%-1d 知:%-1d 賢:%-1d 魅:%-1d ",
+            get_strength_str(),
+            ACURR(A_DEX), ACURR(A_CON), ACURR(A_INT), ACURR(A_WIS),
+            ACURR(A_CHA));
+#endif
+#if 0 /*JP*/
     Sprintf(nb = eos(nb),
             (u.ualign.type == A_CHAOTIC)
                 ? "  Chaotic"
                 : (u.ualign.type == A_NEUTRAL) ? "  Neutral" : "  Lawful");
+#else
+    Sprintf(nb = eos(nb),
+            (u.ualign.type == A_CHAOTIC)
+                ? "混沌"
+                : (u.ualign.type == A_NEUTRAL) ? "中立" : "秩序");
+#endif
 #ifdef SCORE_ON_BOTL
     if (flags.showscore)
+/*JP
         Sprintf(nb = eos(nb), " S:%ld", botl_score());
+*/
+        Sprintf(nb = eos(nb), "%ld点", botl_score());
 #endif
     return newbot1;
 }
@@ -134,23 +168,38 @@ do_statusline2()
     hpmax = Upolyd ? u.mhmax : u.uhpmax;
     if (hp < 0)
         hp = 0;
+#if 0 /*JP*/
     Sprintf(hlth, "HP:%d(%d) Pw:%d(%d) AC:%-2d",
             min(hp, 9999), min(hpmax, 9999),
             min(u.uen, 9999), min(u.uenmax, 9999), u.uac);
+#else
+    Sprintf(hlth, "体:%d(%d) 魔:%d(%d) 鎧:%-2d",
+            min(hp, 9999), min(hpmax, 9999),
+            min(u.uen, 9999), min(u.uenmax, 9999), u.uac);
+#endif
     hln = strlen(hlth);
 
     /* experience */
     if (Upolyd)
         Sprintf(expr, "HD:%d", mons[u.umonnum].mlevel);
     else if (flags.showexp)
+/*JP
         Sprintf(expr, "Xp:%u/%-1ld", u.ulevel, u.uexp);
+*/
+        Sprintf(expr, "経験:%u/%-1ld", u.ulevel, u.uexp);
     else
+/*JP
         Sprintf(expr, "Exp:%u", u.ulevel);
+*/
+        Sprintf(expr, "経験:%u", u.ulevel);
     xln = strlen(expr);
 
     /* time/move counter */
     if (flags.time)
+/*JP
         Sprintf(tmmv, "T:%ld", moves);
+*/
+        Sprintf(tmmv, "歩:%ld", moves);
     else
         tmmv[0] = '\0';
     tln = strlen(tmmv);
@@ -165,38 +214,77 @@ do_statusline2()
      * unusual for more than one of them to apply at a time.]
      */
     if (Stoned)
+/*JP
         Strcpy(nb = eos(nb), " Stone");
+*/
+        Strcpy(nb = eos(nb), " 石化");
     if (Slimed)
+/*JP
         Strcpy(nb = eos(nb), " Slime");
+*/
+        Strcpy(nb = eos(nb), " どろどろ");
     if (Strangled)
+/*JP
         Strcpy(nb = eos(nb), " Strngl");
+*/
+        Strcpy(nb = eos(nb), " 窒息");
     if (Sick) {
         if (u.usick_type & SICK_VOMITABLE)
+/*JP
             Strcpy(nb = eos(nb), " FoodPois");
+*/
+            Strcpy(nb = eos(nb), " 食毒");
         if (u.usick_type & SICK_NONVOMITABLE)
+/*JP
             Strcpy(nb = eos(nb), " TermIll");
+*/
+            Strcpy(nb = eos(nb), " 病気");
     }
     if (u.uhs != NOT_HUNGRY)
         Sprintf(nb = eos(nb), " %s", hu_stat[u.uhs]);
     if ((cap = near_capacity()) > UNENCUMBERED)
         Sprintf(nb = eos(nb), " %s", enc_stat[cap]);
     if (Blind)
+/*JP
         Strcpy(nb = eos(nb), " Blind");
+*/
+        Strcpy(nb = eos(nb), " 盲目");
     if (Deaf)
+/*JP
         Strcpy(nb = eos(nb), " Deaf");
+*/
+        Strcpy(nb = eos(nb), " 耳聾");
     if (Stunned)
+/*JP
         Strcpy(nb = eos(nb), " Stun");
+*/
+        Strcpy(nb = eos(nb), " 眩暈");
     if (Confusion)
+/*JP
         Strcpy(nb = eos(nb), " Conf");
+*/
+        Strcpy(nb = eos(nb), " 混乱");
     if (Hallucination)
+/*JP
         Strcpy(nb = eos(nb), " Hallu");
+*/
+        Strcpy(nb = eos(nb), " 幻覚");
     /* levitation and flying are mutually exclusive; riding is not */
     if (Levitation)
+/*JP
         Strcpy(nb = eos(nb), " Lev");
+*/
+        Strcpy(nb = eos(nb), " 浮遊");
     if (Flying)
+/*JP
         Strcpy(nb = eos(nb), " Fly");
+*/
+        Strcpy(nb = eos(nb), " 飛行");
     if (u.usteed)
+/*JP
         Strcpy(nb = eos(nb), " Ride");
+*/
+        Strcpy(nb = eos(nb), " 騎乗");
     cln = strlen(cond);
 
     /*
@@ -293,7 +381,10 @@ boolean female;
         return role->name.f;
     else if (role->name.m)
         return role->name.m;
+/*JP
     return "Player";
+*/
+    return "プレイヤー";
 }
 
 STATIC_OVL const char *
@@ -378,12 +469,21 @@ char *buf;
     if (Is_knox(&u.uz))
         Sprintf(buf, "%s ", dungeons[u.uz.dnum].dname);
     else if (In_quest(&u.uz))
+/*JP
         Sprintf(buf, "Home %d ", dunlev(&u.uz));
+*/
+        Sprintf(buf, "故郷 %d ", dunlev(&u.uz));
     else if (In_endgame(&u.uz))
+/*JP
         Sprintf(buf, Is_astralevel(&u.uz) ? "Astral Plane " : "End Game ");
+*/
+        Sprintf(buf, Is_astralevel(&u.uz) ? "精霊界 " : "最終試練 ");
     else {
         /* ports with more room may expand this one */
+/*JP
         Sprintf(buf, "Dlvl:%-2d ", depth(&u.uz));
+*/
+        Sprintf(buf, "地下:%-2d ", depth(&u.uz));
         ret = 0;
     }
     return ret;
@@ -546,7 +646,11 @@ bot_via_windowport()
     Strcpy(nb = buf, plname);
     nb[0] = highc(nb[0]);
     nb[10] = '\0';
+#if 0 /*JP*/
     Sprintf(nb = eos(nb), " the ");
+#else
+    Sprintf(nb = eos(nb), " ");
+#endif
     if (Upolyd) {
         for (i = 0, nb = strcpy(eos(nb), mons[u.umonnum].mname); nb[i]; i++)
             if (i == 0 || nb[i - 1] == ' ')
@@ -569,11 +673,19 @@ bot_via_windowport()
     blstats[idx][BL_CH].a.a_int = ACURR(A_CHA);
 
     /* Alignment */
+#if 0 /*JP*/
     Strcpy(blstats[idx][BL_ALIGN].val, (u.ualign.type == A_CHAOTIC)
                                           ? "Chaotic"
                                           : (u.ualign.type == A_NEUTRAL)
                                                ? "Neutral"
                                                : "Lawful");
+#else
+    Strcpy(blstats[idx][BL_ALIGN].val, (u.ualign.type == A_CHAOTIC)
+                                          ? "混沌"
+                                          : (u.ualign.type == A_NEUTRAL)
+                                               ? "中立"
+                                               : "秩序");
+#endif
 
     /* Score */
     blstats[idx][BL_SCORE].a.a_long =

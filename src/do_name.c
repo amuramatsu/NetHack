@@ -3,6 +3,11 @@
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 
 STATIC_DCL char *NDECL(nextmbuf);
@@ -50,7 +55,13 @@ boolean FDECL((*gp_getvalidf), (int, int));
     getpos_getvalid = gp_getvalidf;
 }
 
+/*JP:
+  [0] "cannot see %s"
+  [1] "pick a %s"
+  [2] "use XXX to move the cursor to %s"
+  */
 const char *const gloc_descr[NUM_GLOCS][4] = {
+#if 0 /*JP*/
     { "any monsters", "monster", "next monster", "monsters" },
     { "any items", "item", "next object", "objects" },
     { "any doors", "door", "next door or doorway", "doors or doorways" },
@@ -58,12 +69,25 @@ const char *const gloc_descr[NUM_GLOCS][4] = {
       "unexplored locations" },
     { "anything interesting", "interesting thing", "anything interesting",
       "anything interesting" }
+#else
+    { "怪物", "怪物", "怪物の隣", "怪物" },
+    { "物", "物", "物の隣", "物" },
+    { "扉", "扉", "扉や出入り口の隣", "扉や出入り口" },
+    { "未探索部分", "未探索部分", "未探索の位置", "未探索の位置" },
+    { "関心のあるもの", "関心のあるもの", "関心のあるもの", "関心のあるもの" }
+#endif
 };
 
 const char *const gloc_filtertxt[NUM_GFILTER] = {
+#if 0 /*JP*/
     "",
     " in view",
     " in this area"
+#else
+    "",
+    "視界の中の",
+    "このエリアの"
+#endif
 };
 
 void
@@ -75,12 +99,21 @@ int gloc;
 {
     char sbuf[BUFSZ];
 
+#if 0 /*JP*/
     Sprintf(sbuf, "Use '%s' or '%s' to %s%s%s.",
             k1, k2,
             iflags.getloc_usemenu ? "get a menu of "
                                   : "move the cursor to ",
             gloc_descr[gloc][2 + iflags.getloc_usemenu],
             gloc_filtertxt[iflags.getloc_filter]);
+#else
+    Sprintf(sbuf, "'%s'か'%s'で%s%s%s．",
+            k1, k2,
+            gloc_filtertxt[iflags.getloc_filter],
+            gloc_descr[gloc][2 + iflags.getloc_usemenu],
+            iflags.getloc_usemenu ? "のメニューを出す"
+                                  : "にカーソルを動かす");
+#endif
     putstr(tmpwin, 0, sbuf);
 }
 
@@ -93,20 +126,45 @@ const char *goal;
     char sbuf[BUFSZ];
     boolean doing_what_is;
     winid tmpwin = create_nhwindow(NHW_MENU);
+#if 0 /*JP*/
     const char *const fastmovemode[2] = { "8 units at a time",
                                           "skipping same glyphs" };
+#else
+    const char *const fastmovemode[2] = { "一度に8マス",
+                                          "同じ地形を飛ばして" };
+#endif
 
+#if 0 /*JP*/
     Sprintf(sbuf,
             "Use '%c', '%c', '%c', '%c' to move the cursor to %s.", /* hjkl */
             Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E, goal);
+#else
+    Sprintf(sbuf,
+            "[%c%c%c%c]で%sへ移動できる．",
+            Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E, goal);
+#endif
     putstr(tmpwin, 0, sbuf);
+#if 0 /*JP*/
     Sprintf(sbuf,
             "Use 'H', 'J', 'K', 'L' to fast-move the cursor, %s.",
             fastmovemode[iflags.getloc_moveskip]);
+#else
+    Sprintf(sbuf,
+            "'H', 'J', 'K', 'L' で%s移動できる．",
+            fastmovemode[iflags.getloc_moveskip]);
+#endif
     putstr(tmpwin, 0, sbuf);
+/*JP
     putstr(tmpwin, 0, "Or enter a background symbol (ex. '<').");
+*/
+    putstr(tmpwin, 0, "背景のシンボルを入力するとその位置に移動する(例：'<')．");
+#if 0 /*JP*/
     Sprintf(sbuf, "Use '%s' to move the cursor on yourself.",
            visctrl(Cmd.spkeys[NHKF_GETPOS_SELF]));
+#else
+    Sprintf(sbuf, "'%s'で自分自身の位置に移動する．",
+           visctrl(Cmd.spkeys[NHKF_GETPOS_SELF]));
+#endif
     putstr(tmpwin, 0, sbuf);
     if (!iflags.terrainmode || (iflags.terrainmode & TER_MON) != 0) {
         getpos_help_keyxhelp(tmpwin,
@@ -136,79 +194,160 @@ const char *goal;
                              visctrl(Cmd.spkeys[NHKF_GETPOS_INTERESTING_PREV]),
                              GLOC_INTERESTING);
     }
+#if 0 /*JP*/
     Sprintf(sbuf, "Use '%s' to change fast-move mode to %s.",
             visctrl(Cmd.spkeys[NHKF_GETPOS_MOVESKIP]),
             fastmovemode[!iflags.getloc_moveskip]);
+#else
+    Sprintf(sbuf, "'%s'で高速移動モードを%s移動にする．",
+            visctrl(Cmd.spkeys[NHKF_GETPOS_MOVESKIP]),
+            fastmovemode[!iflags.getloc_moveskip]);
+#endif
     putstr(tmpwin, 0, sbuf);
     if (!iflags.terrainmode || (iflags.terrainmode & TER_DETECT) == 0) {
+#if 0 /*JP*/
         Sprintf(sbuf, "Use '%s' to toggle menu listing for possible targets.",
                 visctrl(Cmd.spkeys[NHKF_GETPOS_MENU]));
+#else
+        Sprintf(sbuf, "'%s'で可能なターゲットのメニュー表示を切り替える．",
+                visctrl(Cmd.spkeys[NHKF_GETPOS_MENU]));
+#endif
         putstr(tmpwin, 0, sbuf);
+#if 0 /*JP*/
         Sprintf(sbuf,
                 "Use '%s' to change the mode of limiting possible targets.",
                 visctrl(Cmd.spkeys[NHKF_GETPOS_LIMITVIEW]));
+#else
+        Sprintf(sbuf,
+                "'%s'で制限された可能なターゲットのモードを切り替える．",
+                visctrl(Cmd.spkeys[NHKF_GETPOS_LIMITVIEW]));
+#endif
         putstr(tmpwin, 0, sbuf);
     }
     if (!iflags.terrainmode) {
         char kbuf[BUFSZ];
 
         if (getpos_getvalid) {
+#if 0 /*JP*/
             Sprintf(sbuf, "Use '%s' or '%s' to move to valid locations.",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_VALID_NEXT]),
                     visctrl(Cmd.spkeys[NHKF_GETPOS_VALID_PREV]));
+#else
+            Sprintf(sbuf, "'%s'か'%s'で正当な位置に移動する．",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_VALID_NEXT]),
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_VALID_PREV]));
+#endif
             putstr(tmpwin, 0, sbuf);
         }
         if (getpos_hilitefunc) {
+#if 0 /*JP:T*/
             Sprintf(sbuf, "Use '%s' to display valid locations.",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_SHOWVALID]));
+#else
+            Sprintf(sbuf, "'%s'で可能な位置を表示する．",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_SHOWVALID]));
+#endif
             putstr(tmpwin, 0, sbuf);
         }
+#if 0 /*JP:T*/
         Sprintf(sbuf, "Use '%s' to toggle automatic description.",
                 visctrl(Cmd.spkeys[NHKF_GETPOS_AUTODESC]));
+#else
+        Sprintf(sbuf, "'%s'で説明の自動表示を切り替える．",
+                visctrl(Cmd.spkeys[NHKF_GETPOS_AUTODESC]));
+#endif
         putstr(tmpwin, 0, sbuf);
         if (iflags.cmdassist) { /* assisting the '/' command, I suppose... */
+#if 0 /*JP*/
             Sprintf(sbuf,
                     (iflags.getpos_coords == GPCOORDS_NONE)
          ? "(Set 'whatis_coord' option to include coordinates with '%s' text.)"
          : "(Reset 'whatis_coord' option to omit coordinates from '%s' text.)",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_AUTODESC]));
+#else
+            Sprintf(sbuf,
+                    (iflags.getpos_coords == GPCOORDS_NONE)
+         ? "('%s'に座標を含むには'whatis_coord'オプションをオンにする．)"
+         : "('%s'から座標を除くには'whatis_coord'オプションをオフにする．)",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_AUTODESC]));
+#endif
         }
         /* disgusting hack; the alternate selection characters work for any
            getpos call, but only matter for dowhatis (and doquickwhatis) */
 	doing_what_is = (goal == what_is_an_unknown_object);
         if (doing_what_is) {
+#if 0 /*JP*/
             Sprintf(kbuf, "'%s' or '%s' or '%s' or '%s'",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]),
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_Q]),
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_O]),
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_V]));
+#else
+            Sprintf(kbuf, "'%s'か'%s'か'%s'か'%s'",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]),
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_Q]),
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_O]),
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_V]));
+#endif
         } else {
             Sprintf(kbuf, "'%s'", visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]));
         }
+#if 0 /*JP:T*/
         Sprintf(sbuf, "Type a %s when you are at the right place.", kbuf);
+#else
+        Sprintf(sbuf, "[.]%sで決定．", kbuf);
+#endif
         putstr(tmpwin, 0, sbuf);
         if (doing_what_is) {
+#if 0 /*JP*/
             Sprintf(sbuf,
        "  '%s' describe current spot, show 'more info', move to another spot.",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_V]));
+#else
+            Sprintf(sbuf,
+       "  '%s'は現在の位置を説明し、追加情報を表示し、次の位置に移動する．",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_V]));
+#endif
             putstr(tmpwin, 0, sbuf);
+#if 0 /*JP*/
             Sprintf(sbuf,
                     "  '%s' describe current spot,%s move to another spot;",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]),
                     flags.help ? " prompt if 'more info'," : "");
+#else
+            Sprintf(sbuf,
+                    "  '%s'は現在の位置を説明し，%s次の位置に移動する;",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]),
+                    flags.help ? "追加情報があれば確認し，" : "");
+#endif
             putstr(tmpwin, 0, sbuf);
+#if 0 /*JP*/
             Sprintf(sbuf,
                     "  '%s' describe current spot, move to another spot;",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_Q]));
+#else
+            Sprintf(sbuf,
+                    "  '%s'は現在の位置を説明し，次の位置に移動する;",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_Q]));
+#endif
             putstr(tmpwin, 0, sbuf);
+#if 0 /*JP*/
             Sprintf(sbuf,
                     "  '%s' describe current spot, stop looking at things;",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_O]));
+#else
+            Sprintf(sbuf,
+                    "  '%s'は現在の位置を説明し，見るのをやめる;",
+                    visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_O]));
+#endif
             putstr(tmpwin, 0, sbuf);
         }
     }
     if (!force)
+/*JP
         putstr(tmpwin, 0, "Type Space or Escape when you're done.");
+*/
+        putstr(tmpwin, 0, "スペースまたはエスケープで終了．");
     putstr(tmpwin, 0, "");
     display_nhwindow(tmpwin, TRUE);
     destroy_nhwindow(tmpwin);
@@ -461,16 +600,26 @@ boolean fulldir;
     int dst;
 
     if (!dx && !dy) {
+/*JP
         Sprintf(buf, "here");
+*/
+        Sprintf(buf, "ここ");
     } else if ((dst = xytod(dx, dy)) != -1) {
         /* explicit direction; 'one step' is implicit */
         Sprintf(buf, "%s", directionname(dst));
     } else {
         const char *dirnames[4][2] = {
+#if 0 /*JP*/
             { "n", "north" },
             { "s", "south" },
             { "w", "west" },
             { "e", "east" } };
+#else
+            { "n", "北" },
+            { "s", "南" },
+            { "w", "西" },
+            { "e", "東" } };
+#endif
         buf[0] = '\0';
         /* 9999: protect buf[] against overflow caused by invalid values */
         if (dy) {
@@ -539,12 +688,16 @@ int cx, cy;
     coord cc;
     int sym = 0;
     char tmpbuf[BUFSZ];
+/*JP
     const char *firstmatch = "unknown";
+*/
+    const char *firstmatch = "不明";
 
     cc.x = cx;
     cc.y = cy;
     if (do_screen_description(cc, TRUE, sym, tmpbuf, &firstmatch)) {
         (void) coord_desc(cx, cy, tmpbuf, iflags.getpos_coords);
+#if 0 /*JP*/
         custompline(SUPPRESS_HISTORY,
                     "%s%s%s%s%s", firstmatch, *tmpbuf ? " " : "", tmpbuf,
                     (iflags.autodescribe
@@ -552,6 +705,15 @@ int cx, cy;
                       ? " (illegal)" : "",
                     (iflags.getloc_travelmode && !is_valid_travelpt(cx, cy))
                       ? " (no travel path)" : "");
+#else
+        custompline(SUPPRESS_HISTORY,
+                    "%s%s%s%s%s", firstmatch, *tmpbuf ? " " : "", tmpbuf,
+                    (iflags.autodescribe
+                     && getpos_getvalid && !getpos_getvalid(cx, cy))
+                      ? " (不正)" : "",
+                    (iflags.getloc_travelmode && !is_valid_travelpt(cx, cy))
+                      ? " (経路なし)" : "");
+#endif
         curs(WIN_MAP, cx, cy);
         flush_screen(0);
     }
@@ -574,9 +736,15 @@ int gloc;
 
     if (gcount < 2) { /* gcount always includes the hero */
         free((genericptr_t) garr);
+#if 0 /*JP*/
         You("cannot %s %s.",
             iflags.getloc_filter == GFILTER_VIEW ? "see" : "detect",
             gloc_descr[gloc][0]);
+#else
+        You("%sを%sことができない．",
+            gloc_descr[gloc][0],
+            iflags.getloc_filter == GFILTER_VIEW ? "見る" : "見つける");
+#endif
         return FALSE;
     }
 
@@ -588,7 +756,10 @@ int gloc;
     for (i = 1; i < gcount; i++) {
         char fullbuf[BUFSZ];
         coord tmpcc;
+/*JP
         const char *firstmatch = "unknown";
+*/
+        const char *firstmatch = "不明";
         int sym = 0;
         any.a_int = i + 1;
         tmpcc.x = garr[i].x;
@@ -603,10 +774,17 @@ int gloc;
         }
     }
 
+#if 0 /*JP*/
     Sprintf(tmpbuf, "Pick a target %s%s%s",
             gloc_descr[gloc][1],
             gloc_filtertxt[iflags.getloc_filter],
             iflags.getloc_travelmode ? " for travel" : "");
+#else
+    Sprintf(tmpbuf, "%s%sで目標とする%sを選択してください",
+            iflags.getloc_travelmode ? "移動のために" : "",
+            gloc_filtertxt[iflags.getloc_filter],
+            gloc_descr[gloc][1]);
+#endif
     end_menu(tmpwin, tmpbuf);
     pick_cnt = select_menu(tmpwin, PICK_ONE, &picks);
     destroy_nhwindow(tmpwin);
@@ -669,10 +847,18 @@ const char *goal;
     mMoOdDxX[SIZE(mMoOdDxX_def)] = '\0';
 
     if (!goal)
+/*JP
         goal = "desired location";
+*/
+        goal = "目的地";
     if (flags.verbose) {
+#if 0 /*JP*/
         pline("(For instructions type a '%s')",
               visctrl(Cmd.spkeys[NHKF_GETPOS_HELP]));
+#else
+        pline("('%s'でヘルプ)",
+              visctrl(Cmd.spkeys[NHKF_GETPOS_HELP]));
+#endif
         msg_given = TRUE;
     }
     cx = ccp->x;
@@ -687,7 +873,10 @@ const char *goal;
 #endif
     for (;;) {
         if (show_goal_msg) {
+/*JP
             pline("Move cursor to %s:", goal);
+*/
+            pline("カーソルを%sに動かしてください:", goal);
             curs(WIN_MAP, cx, cy);
             flush_screen(0);
             show_goal_msg = FALSE;
@@ -795,18 +984,30 @@ const char *goal;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_AUTODESC]) {
             iflags.autodescribe = !iflags.autodescribe;
+#if 0 /*JP:T*/
             pline("Automatic description %sis %s.",
                   flags.verbose ? "of features under cursor " : "",
                   iflags.autodescribe ? "on" : "off");
+#else
+            pline("%s説明自動表示：%s",
+                  flags.verbose ? "カーソルの下にあるものの" : "",
+                  iflags.autodescribe ? "オン" : "オフ");
+#endif
             if (!iflags.autodescribe)
                 show_goal_msg = TRUE;
             msg_given = TRUE;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_LIMITVIEW]) {
             const char *const view_filters[NUM_GFILTER] = {
+#if 0 /*JP*/
                 "Not limiting targets",
                 "Limiting targets to in sight",
                 "Limiting targets to in same area"
+#else
+                "ターゲットを制限しない",
+                "視界内にターゲットを制限する",
+                "同じエリアにターゲットを制限する"
+#endif
             };
             iflags.getloc_filter = (iflags.getloc_filter + 1) % NUM_GFILTER;
             for (i = 0; i < NUM_GLOCS; i++) {
@@ -816,13 +1017,21 @@ const char *goal;
                 }
                 gidx[i] = gcount[i] = 0;
             }
+/*JP
             pline("%s.", view_filters[iflags.getloc_filter]);
+*/
+            pline("%s．", view_filters[iflags.getloc_filter]);
             msg_given = TRUE;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_MENU]) {
             iflags.getloc_usemenu = !iflags.getloc_usemenu;
+#if 0 /*JP*/
             pline("%s a menu to show possible targets.",
                   iflags.getloc_usemenu ? "Using" : "Not using");
+#else
+            pline("可能なターゲットを見るのにメニューを使%s．",
+                  iflags.getloc_usemenu ? "う" : "わない");
+#endif
             msg_given = TRUE;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_SELF]) {
@@ -835,8 +1044,13 @@ const char *goal;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_MOVESKIP]) {
             iflags.getloc_moveskip = !iflags.getloc_moveskip;
+#if 0 /*JP*/
             pline("%skipping over similar terrain when fastmoving the cursor.",
                   iflags.getloc_moveskip ? "S" : "Not s");
+#else
+            pline("カーソルを高速移動させるときに似たような地形を飛ば%s．",
+                  iflags.getloc_moveskip ? "す" : "さない");
+#endif
         } else if ((cp = index(mMoOdDxX, c)) != 0) { /* 'm|M', 'o|O', &c */
             /* nearest or farthest monster or object or door or unexplored */
             int gtmp = (int) (cp - mMoOdDxX), /* 0..7 */
@@ -927,26 +1141,44 @@ const char *goal;
                             } /* column */
                         }     /* row */
                     }         /* pass */
+/*JP
                     pline("Can't find dungeon feature '%c'.", c);
+*/
+                    pline("'%c'？", c);
                     msg_given = TRUE;
                     goto nxtc;
                 } else {
                     char note[QBUFSZ];
 
                     if (!force)
+/*JP
                         Strcpy(note, "aborted");
+*/
+                        Strcpy(note, "中断した");
                     else /* hjkl */
+#if 0 /*JP*/
                         Sprintf(note, "use '%c', '%c', '%c', '%c' or '%s'",
                                 Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E,
                                 visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]));
+#else
+                        Sprintf(note, "%c%c%c%cで移動，%sで終了",
+                                Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E,
+                                visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]));
+#endif
+/*JP
                     pline("Unknown direction: '%s' (%s).", visctrl((char) c),
+*/
+                    pline("その方向はない：'%s' (%s)", visctrl((char) c),
                           note);
                     msg_given = TRUE;
                 } /* k => matching */
             }     /* !quitchars */
             if (force)
                 goto nxtc;
+/*JP
             pline("Done.");
+*/
+            pline("以上．");
             msg_given = FALSE; /* suppress clear */
             cx = -1;
             cy = 0;
@@ -1065,6 +1297,10 @@ const char *name;
     /* dogname & catname are PL_PSIZ arrays; object names have same limit */
     lth = (name && *name) ? ((int) strlen(name) + 1) : 0;
     if (lth > PL_PSIZ) {
+#if 1 /*JP*/
+        if (is_kanji2(buf, lth - 1))
+            --lth;
+#endif
         lth = PL_PSIZ;
         name = strncpy(buf, name, PL_PSIZ - 1);
         buf[PL_PSIZ - 1] = '\0';
@@ -1094,14 +1330,21 @@ char *monnambuf, *usrbuf;
         /* catch trying to name "the {priest,Angel} of Crom" as "Crom" */
         || ((p = strstri(monnambuf, " of ")) != 0
             && fuzzymatch(usrbuf, p + 4, " -_", TRUE))) {
+#if 0 /*JP*/
         pline("%s is already called %s.",
               upstart(strcpy(pronounbuf, mhe(mtmp))), monnambuf);
+#else
+        pline("%sは既に%sと呼ばれている．",
+              upstart(strcpy(pronounbuf, mhe(mtmp))), monnambuf);
+#endif
         return TRUE;
+#if 0 /*JP*//*日本語では使わない*/
     } else if (mtmp->data == &mons[PM_JUIBLEX]
                && strstri(monnambuf, "Juiblex")
                && !strcmpi(usrbuf, "Jubilex")) {
         pline("%s doesn't like being called %s.", upstart(monnambuf), usrbuf);
         return TRUE;
+#endif
     }
     return FALSE;
 }
@@ -1116,12 +1359,18 @@ do_mname()
     struct monst *mtmp = 0;
 
     if (Hallucination) {
+/*JP
         You("would never recognize it anyway.");
+*/
+        You("それを認識できない．");
         return;
     }
     cc.x = u.ux;
     cc.y = u.uy;
+/*JP
     if (getpos(&cc, FALSE, "the monster you want to name") < 0
+*/
+    if (getpos(&cc, FALSE, "あなたが名づけたい怪物") < 0
         || (cx = cc.x) < 0)
         return;
     cy = cc.y;
@@ -1130,7 +1379,10 @@ do_mname()
         if (u.usteed && canspotmon(u.usteed)) {
             mtmp = u.usteed;
         } else {
+/*JP
             pline("This %s creature is called %s and cannot be renamed.",
+*/
+            pline("この%s生き物は%sと呼ばれていて，名前は変更できない．",
                   beautiful(), plname);
             return;
         }
@@ -1143,11 +1395,17 @@ do_mname()
                 || mtmp->mundetected || mtmp->m_ap_type == M_AP_FURNITURE
                 || mtmp->m_ap_type == M_AP_OBJECT
                 || (mtmp->minvis && !See_invisible)))) {
+/*JP
         pline("I see no monster there.");
+*/
+        pline("そこに怪物はいない．");
         return;
     }
     /* special case similar to the one in lookat() */
+/*JP
     Sprintf(qbuf, "What do you want to call %s?",
+*/
+    Sprintf(qbuf, "%sを何と呼びますか？",
             distant_monnam(mtmp, ARTICLE_THE, monnambuf));
     getlin(qbuf, buf);
     if (!*buf || *buf == '\033')
@@ -1164,15 +1422,24 @@ do_mname()
      */
     if ((mtmp->data->geno & G_UNIQ) && !mtmp->ispriest) {
         if (!alreadynamed(mtmp, monnambuf, buf))
-            pline("%s doesn't like being called names!", upstart(monnambuf));
+/*JP
+        pline("%s doesn't like being called names!", upstart(monnambuf));
+*/
+        pline("%sはあだ名で呼ばれるのが嫌いなようだ！", Monnam(mtmp));
     } else if (mtmp->isshk
                && !(Deaf || mtmp->msleeping || !mtmp->mcanmove
                     || mtmp->data->msound <= MS_ANIMAL)) {
         if (!alreadynamed(mtmp, monnambuf, buf))
-            verbalize("I'm %s, not %s.", shkname(mtmp), buf);
+/*JP
+        verbalize("I'm %s, not %s.", shkname(mtmp), buf);
+*/
+        verbalize("私は%sだ，%sではない．", shkname(mtmp), buf);
     } else if (mtmp->ispriest || mtmp->isminion || mtmp->isshk) {
         if (!alreadynamed(mtmp, monnambuf, buf))
-            pline("%s will not accept the name %s.", upstart(monnambuf), buf);
+/*JP
+        pline("%s will not accept the name %s.", upstart(monnambuf), buf);
+*/
+        pline("%sは%sという名前を受けいれなかった．", monnambuf, buf);
     } else
         (void) christen_monst(mtmp, buf);
 }
@@ -1195,13 +1462,20 @@ register struct obj *obj;
 
     /* Do this now because there's no point in even asking for a name */
     if (obj->otyp == SPE_NOVEL) {
+/*JP
         pline("%s already has a published name.", Ysimple_name2(obj));
+*/
+        pline("%sにはすでに出版時の名前がある．", Ysimple_name2(obj));
         return;
     }
 
+#if 0 /*JP*/
     Sprintf(qbuf, "What do you want to name %s ",
             is_plural(obj) ? "these" : "this");
     (void) safe_qbuf(qbuf, qbuf, "?", obj, xname, simpleonames, "item");
+#else
+    (void) safe_qbuf(qbuf, "", "を何と名づけますか？", obj, xname, simpleonames, "item");
+#endif
     getlin(qbuf, buf);
     if (!*buf || *buf == '\033')
         return;
@@ -1223,7 +1497,10 @@ register struct obj *obj;
         Strcpy(buf, aname);
 
     if (obj->oartifact) {
+/*JP
         pline_The("artifact seems to resist the attempt.");
+*/
+        pline("聖器は名づけを拒否しているようだ．");
         return;
     } else if (restrict_name(obj, buf) || exist_artifact(obj->otyp, buf)) {
         /* this used to change one letter, substituting a value
@@ -1243,9 +1520,15 @@ register struct obj *obj;
         do {
             wipeout_text(bufp, rnd(2), (unsigned) 0);
         } while (!strcmp(buf, bufcpy));
+/*JP
         pline("While engraving, your %s slips.", body_part(HAND));
+*/
+        pline("刻んでいる間に%sが滑ってしまった．", body_part(HAND));
         display_nhwindow(WIN_MESSAGE, FALSE);
+/*JP
         You("engrave: \"%s\".", buf);
+*/
+        You("刻んだ: 「%s」．",buf);
         /* violate illiteracy conduct since hero attempted to write
            a valid artifact name */
         u.uconduct.literate++;
@@ -1266,8 +1549,15 @@ const char *name;
     lth = *name ? (int) (strlen(name) + 1) : 0;
     if (lth > PL_PSIZ) {
         lth = PL_PSIZ;
+#if 0 /*JP*/
         name = strncpy(buf, name, PL_PSIZ - 1);
         buf[PL_PSIZ - 1] = '\0';
+#else
+        if (is_kanji2(name, lth - 1))
+            --lth;
+        name = strncpy(buf, name, lth - 1);
+        buf[lth - 1] = '\0';
+#endif
     }
     /* If named artifact exists in the game, do not create another.
      * Also trying to create an artifact shouldn't de-artifact
@@ -1333,27 +1623,48 @@ docallcmd()
     any = zeroany;
     any.a_char = 'm'; /* group accelerator 'C' */
     add_menu(win, NO_GLYPH, &any, abc ? 0 : any.a_char, 'C', ATR_NONE,
+/*JP
              "a monster", MENU_UNSELECTED);
+*/
+             "怪物", MENU_UNSELECTED);
     if (invent) {
         /* we use y and n as accelerators so that we can accept user's
            response keyed to old "name an individual object?" prompt */
         any.a_char = 'i'; /* group accelerator 'y' */
         add_menu(win, NO_GLYPH, &any, abc ? 0 : any.a_char, 'y', ATR_NONE,
+/*JP
                  "a particular object in inventory", MENU_UNSELECTED);
+*/
+                 "持ち物の中の一つのアイテム", MENU_UNSELECTED);
         any.a_char = 'o'; /* group accelerator 'n' */
         add_menu(win, NO_GLYPH, &any, abc ? 0 : any.a_char, 'n', ATR_NONE,
+/*JP
                  "the type of an object in inventory", MENU_UNSELECTED);
+*/
+                 "持ち物の中の一つのアイテムの種類", MENU_UNSELECTED);
     }
     any.a_char = 'f'; /* group accelerator ',' (or ':' instead?) */
     add_menu(win, NO_GLYPH, &any, abc ? 0 : any.a_char, ',', ATR_NONE,
+/*JP
              "the type of an object upon the floor", MENU_UNSELECTED);
+*/
+             "床の上にある一つのアイテムの種類", MENU_UNSELECTED);
     any.a_char = 'd'; /* group accelerator '\' */
     add_menu(win, NO_GLYPH, &any, abc ? 0 : any.a_char, '\\', ATR_NONE,
+/*JP
              "the type of an object on discoveries list", MENU_UNSELECTED);
+*/
+             "発見物一覧にある一つのアイテムの種類", MENU_UNSELECTED);
     any.a_char = 'a'; /* group accelerator 'l' */
     add_menu(win, NO_GLYPH, &any, abc ? 0 : any.a_char, 'l', ATR_NONE,
+/*JP
              "record an annotation for the current level", MENU_UNSELECTED);
+*/
+             "現在の階に対するメモの記録", MENU_UNSELECTED);
+/*JP
     end_menu(win, "What do you want to name?");
+*/
+    end_menu(win, "どれに名前をつけますか？");
     if (select_menu(win, PICK_ONE, &pick_list) > 0) {
         ch = pick_list[0].item.a_char;
         free((genericptr_t) pick_list);
@@ -1384,7 +1695,10 @@ docallcmd()
             (void) xname(obj);
 
             if (!obj->dknown) {
+/*JP
                 You("would never recognize another one.");
+*/
+                You("他に認識できない．");
 #if 0
             } else if (!objtyp_is_callable(obj->otyp)) {
                 You("know those as well as you ever will.");
@@ -1452,11 +1766,19 @@ struct obj *obj;
 
     if (obj->oclass == POTION_CLASS && obj->fromsink)
         /* kludge, meaning it's sink water */
+/*JP
         Sprintf(qbuf, "Call a stream of %s fluid:",
+*/
+        Sprintf(qbuf, "%s液体:",
                 OBJ_DESCR(objects[obj->otyp]));
     else
+#if 0 /*JP*/
         (void) safe_qbuf(qbuf, "Call ", ":", obj,
                          docall_xname, simpleonames, "thing");
+#else
+        (void) safe_qbuf(qbuf, "", "に何と名前を付ける？", obj,
+                         docall_xname, simpleonames, "これ");
+#endif
     getlin(qbuf, buf);
     if (!*buf || *buf == '\033')
         return;
@@ -1488,14 +1810,22 @@ namefloorobj()
     int glyph;
     char buf[BUFSZ];
     struct obj *obj = 0;
+#if 0 /*JP*/
     boolean fakeobj = FALSE, use_plural;
+#else
+    boolean fakeobj = FALSE;
+#endif
 
     cc.x = u.ux, cc.y = u.uy;
     /* "dot for under/over you" only makes sense when the cursor hasn't
        been moved off the hero's '@' yet, but there's no way to adjust
        the help text once getpos() has started */
+#if 0 /*JP*/
     Sprintf(buf, "object on map (or '.' for one %s you)",
             (u.uundetected && hides_under(youmonst.data)) ? "over" : "under");
+#else
+    Strcpy(buf, "地図上の物体(あるいは'.'であなたのいる場所");
+#endif
     if (getpos(&cc, FALSE, buf) < 0 || cc.x <= 0)
         return;
     if (cc.x == u.ux && cc.y == u.uy) {
@@ -1508,8 +1838,13 @@ namefloorobj()
     }
     if (!obj) {
         /* "under you" is safe here since there's no object to hide under */
+#if 0 /*JP*/
         pline("There doesn't seem to be any object %s.",
               (cc.x == u.ux && cc.y == u.uy) ? "under you" : "there");
+#else
+        pline("%sには何もないようだ．",
+              (cc.x == u.ux && cc.y == u.uy) ? "あなたの下" : "そこ");
+#endif
         return;
     }
     /* note well: 'obj' might be as instance of STRANGE_OBJECT if target
@@ -1520,7 +1855,9 @@ namefloorobj()
     Strcpy(buf, (obj->otyp != STRANGE_OBJECT)
                  ? simpleonames(obj)
                  : obj_descr[STRANGE_OBJECT].oc_name);
+#if 0 /*JP*/
     use_plural = (obj->quan > 1L);
+#endif
     if (Hallucination) {
         const char *unames[6];
         char tmpbuf[BUFSZ];
@@ -1538,16 +1875,35 @@ namefloorobj()
         /* traditional */
         unames[4] = roguename();
         /* silly */
+/*JP
         unames[5] = "Wibbly Wobbly";
+*/
+        unames[5] = "うろうろ";
+#if 0 /*JP*/
         pline("%s %s to call you \"%s.\"",
               The(buf), use_plural ? "decide" : "decides",
               unames[rn2(SIZE(unames))]);
+#else
+        pline("%sはあなたを「%s」と呼ぶことに決めた．",
+              buf,
+              unames[rn2(SIZE(unames))]);
+#endif
     } else if (!objtyp_is_callable(obj->otyp)) {
+#if 0 /*JP*/
         pline("%s %s can't be assigned a type name.",
               use_plural ? "Those" : "That", buf);
+#else
+        pline("%sに種類の名前を割り当てることはできない．",
+              buf);
+#endif
     } else if (!obj->dknown) {
+#if 0 /*JP*/
         You("don't know %s %s well enough to name %s.",
             use_plural ? "those" : "that", buf, use_plural ? "them" : "it");
+#else
+        You("名前を付けられるほど%sのことをよく知らない．",
+            buf);
+#endif
     } else {
         docall(obj);
     }
@@ -1617,8 +1973,10 @@ boolean called;
     struct permonst *mdat = mtmp->data;
     const char *pm_name = mdat->mname;
     boolean do_hallu, do_invis, do_it, do_saddle, do_name;
+#if 0 /*JP*/
     boolean name_at_start, has_adjectives;
     char *bp;
+#endif
 
     if (program_state.gameover)
         suppress |= SUPPRESS_HALLUCINATION;
@@ -1637,7 +1995,10 @@ boolean called;
 
     /* unseen monsters, etc.  Use "it" */
     if (do_it) {
+/*JP
         Strcpy(buf, "it");
+*/
+        Strcpy(buf, "何者か");
         return buf;
     }
 
@@ -1656,16 +2017,24 @@ boolean called;
         name = priestname(mtmp, priestnambuf);
         EHalluc_resistance = save_prop;
         mtmp->minvis = save_invis;
+#if 0 /*JP*/
         if (article == ARTICLE_NONE && !strncmp(name, "the ", 4))
             name += 4;
+#endif
         return strcpy(buf, name);
     }
     /* an "aligned priest" not flagged as a priest or minion should be
        "priest" or "priestess" (normally handled by priestname()) */
     if (mdat == &mons[PM_ALIGNED_PRIEST])
+/*JP
         pm_name = mtmp->female ? "priestess" : "priest";
+*/
+        pm_name = mtmp->female ? "尼僧" : "僧侶";
     else if (mdat == &mons[PM_HIGH_PRIEST] && mtmp->female)
+/*JP
         pm_name = "high priestess";
+*/
+        pm_name = "法王";
 
     /* Shopkeepers: use shopkeeper name.  For normal shopkeepers, just
      * "Asidonhopo"; for unusual ones, "Asidonhopo the invisible
@@ -1673,6 +2042,7 @@ boolean called;
      * none of this applies.
      */
     if (mtmp->isshk && !do_hallu) {
+#if 0 /*JP*/
         if (adjective && article == ARTICLE_THE) {
             /* pathological case: "the angry Asidonhopo the blue dragon"
                sounds silly */
@@ -1689,20 +2059,41 @@ boolean called;
             Strcat(buf, "invisible ");
         Strcat(buf, pm_name);
         return buf;
+#else
+        if (mdat == &mons[PM_SHOPKEEPER] && !do_invis){
+            Strcpy(buf, shkname(mtmp));
+        } else {
+            Sprintf(buf, "%sという名の%s%s",
+                    shkname(mtmp), do_invis ? "姿の見えない" : "",
+                    pm_name);
+        }
+        return buf;
+#endif
     }
 
     /* Put the adjectives in the buffer */
     if (adjective)
+/*JP
         Strcat(strcat(buf, adjective), " ");
+*/
+        Strcat(buf, adjective);
     if (do_invis)
+/*JP
         Strcat(buf, "invisible ");
+*/
+        Strcat(buf, "姿の見えない");
     if (do_saddle && (mtmp->misc_worn_check & W_SADDLE) && !Blind
         && !Hallucination)
+/*JP
         Strcat(buf, "saddled ");
+*/
+        Strcat(buf, "鞍のついている");
+#if 0 /*JP*/
     if (buf[0] != 0)
         has_adjectives = TRUE;
     else
         has_adjectives = FALSE;
+#endif
 
     /* Put the actual monster name or type into the buffer now */
     /* Be sure to remember whether the buffer starts with a name */
@@ -1711,16 +2102,29 @@ boolean called;
         char *rname = rndmonnam(&rnamecode);
 
         Strcat(buf, rname);
+#if 0 /*JP*/
         name_at_start = bogon_is_pname(rnamecode);
+#endif
     } else if (do_name && has_mname(mtmp)) {
         char *name = MNAME(mtmp);
 
         if (mdat == &mons[PM_GHOST]) {
+/*JP
             Sprintf(eos(buf), "%s ghost", s_suffix(name));
+*/
+            Sprintf(buf, "%sの幽霊", name);
+#if 0 /*JP*/
             name_at_start = TRUE;
+#endif
         } else if (called) {
+/*JP
             Sprintf(eos(buf), "%s called %s", pm_name, name);
+*/
+            Sprintf(eos(buf), "%sという名の%s", name, pm_name);
+#if 0 /*JP*/
             name_at_start = (boolean) type_is_pname(mdat);
+#endif
+#if 0 /*JP*//*定冠詞の処理は不要*/
         } else if (is_mplayer(mdat) && (bp = strstri(name, " the ")) != 0) {
             /* <name> the <adjective> <invisible> <saddled> <rank> */
             char pbuf[BUFSZ];
@@ -1733,22 +2137,34 @@ boolean called;
             Strcpy(buf, pbuf);
             article = ARTICLE_NONE;
             name_at_start = TRUE;
+#endif
         } else {
             Strcat(buf, name);
+#if 0 /*JP*/
             name_at_start = TRUE;
+#endif
         }
     } else if (is_mplayer(mdat) && !In_endgame(&u.uz)) {
         char pbuf[BUFSZ];
 
         Strcpy(pbuf, rank_of((int) mtmp->m_lev, monsndx(mdat),
                              (boolean) mtmp->female));
+#if 0 /*JP*/
         Strcat(buf, lcase(pbuf));
+#else
+        Strcat(buf, pbuf);
+#endif
+#if 0 /*JP*/
         name_at_start = FALSE;
+#endif
     } else {
         Strcat(buf, pm_name);
+#if 0 /*JP*/
         name_at_start = (boolean) type_is_pname(mdat);
+#endif
     }
 
+#if 0 /*JP*//*日本語に冠詞はない*/
     if (name_at_start && (article == ARTICLE_YOUR || !has_adjectives)) {
         if (mdat == &mons[PM_WIZARD_OF_YENDOR])
             article = ARTICLE_THE;
@@ -1779,6 +2195,9 @@ boolean called;
             return buf;
         }
     }
+#else
+    return buf;
+#endif
 }
 
 char *
@@ -1909,8 +2328,12 @@ char *outbuf;
        its own obfuscation) */
     if (mon->data == &mons[PM_HIGH_PRIEST] && !Hallucination
         && Is_astralevel(&u.uz) && distu(mon->mx, mon->my) > 2) {
+#if 0 /*JP*/
         Strcpy(outbuf, article == ARTICLE_THE ? "the " : "");
         Strcat(outbuf, mon->female ? "high priestess" : "high priest");
+#else
+        Strcpy(outbuf, "法王");
+#endif
     } else {
         Strcpy(outbuf, x_monnam(mon, article, (char *) 0, 0, TRUE));
     }
@@ -1989,11 +2412,13 @@ roguename()
                 return i + 5;
             }
     }
+    /*JP:Rogueの開発者の名前*/
     return rn2(3) ? (rn2(2) ? "Michael Toy" : "Kenneth Arnold")
                   : "Glenn Wichman";
 }
 
 static NEARDATA const char *const hcolors[] = {
+#if 0 /*JP*/
     "ultraviolet", "infrared", "bluish-orange", "reddish-green", "dark white",
     "light black", "sky blue-pink", "salty", "sweet", "sour", "bitter",
     "striped", "spiral", "swirly", "plaid", "checkered", "argyle", "paisley",
@@ -2001,6 +2426,15 @@ static NEARDATA const char *const hcolors[] = {
     "triangular", "cabernet", "sangria", "fuchsia", "wisteria", "lemon-lime",
     "strawberry-banana", "peppermint", "romantic", "incandescent",
     "octarine", /* Discworld: the Colour of Magic */
+#else
+    "紫外色の", "赤外色の", "青色がかったオレンジ色の", "赤みがかった緑色の", "暗い白色の",
+    "明るい黒の", "水色がかったピンク色の", "塩辛い", "甘い", "すっぱい", "苦い",
+    "しま模様の", "らせん状の", "波状の", "格子模様状の", "チェック状の", "放射状の", "ペーズリー模様の",
+    "しみ状の", "青色の斑点状の", "点状の", "四角形状の", "丸状の",
+    "三角状の", "カベルネ色の", "サングリア色の", "鮮やかな赤紫色の", "藤色の", "レモンライム色の",
+    "苺バナナ色の", "ペパーミント色の", "ロマンチックな色の", "白熱色の",
+    "オクタリン色の",
+#endif
 };
 
 const char *
@@ -2018,11 +2452,15 @@ rndcolor()
     int k = rn2(CLR_MAX);
 
     return Hallucination ? hcolor((char *) 0)
+/*JP
                          : (k == NO_COLOR) ? "colorless"
+*/
+                         : (k == NO_COLOR) ? "無色の"
                                            : c_obj_colors[k];
 }
 
 static NEARDATA const char *const hliquids[] = {
+#if 0 /*JP*/
     "yoghurt", "oobleck", "clotted blood", "diluted water", "purified water",
     "instant coffee", "tea", "herbal infusion", "liquid rainbow",
     "creamy foam", "mulled wine", "bouillon", "nectar", "grog", "flubber",
@@ -2030,6 +2468,15 @@ static NEARDATA const char *const hliquids[] = {
     "caramel sauce", "ink", "aqueous humour", "milk substitute", "fruit juice",
     "glowing lava", "gastric acid", "mineral water", "cough syrup", "quicksilver",
     "sweet vitriol", "grey goo", "pink slime",
+#else
+    "ヨーグルト", "ウーブレック", "血糊", "蒸留水", "精製水",
+    "インスタントコーヒー", "紅茶", "ハーブ液", "液体の虹",
+    "クリーミーフォーム", "ホットワイン", "ブイヨン", "果汁", "グロッグ", "フラバー",
+    "ケチャップ", "低速光", "油", "ビネグレットソース", "液体水晶", "蜂蜜",
+    "カラメルソース", "インク", "房水", "代用乳", "フルーツジュース",
+    "流れる溶岩", "胃酸", "ミネラルウォーター", "咳止めシロップ", "水銀",
+    "ジエチルエーテル", "グレイグー", "ピンクスライム",
+#endif
 };
 
 const char *

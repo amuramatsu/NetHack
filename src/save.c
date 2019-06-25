@@ -3,6 +3,11 @@
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "lev.h"
 
@@ -78,13 +83,19 @@ int
 dosave()
 {
     clear_nhwindow(WIN_MESSAGE);
+/*JP
     if (yn("Really save?") == 'n') {
+*/
+    if(yn("本当に保存する？") == 'n') {
         clear_nhwindow(WIN_MESSAGE);
         if (multi > 0)
             nomul(0);
     } else {
         clear_nhwindow(WIN_MESSAGE);
+/*JP
         pline("Saving...");
+*/
+        pline("保存中．．．");
 #if defined(UNIX) || defined(VMS) || defined(__EMX__)
         program_state.done_hup = 0;
 #endif
@@ -92,7 +103,10 @@ dosave()
             u.uhp = -1; /* universal game's over indicator */
             /* make sure they see the Saving message */
             display_nhwindow(WIN_MESSAGE, TRUE);
+/*JP
             exit_nhwindows("Be seeing you...");
+*/
+            exit_nhwindows("また会いましょう．．．");
             nh_terminate(EXIT_SUCCESS);
         } else
             (void) doredraw();
@@ -144,8 +158,14 @@ dosave0()
         if (fd > 0) {
             (void) nhclose(fd);
             clear_nhwindow(WIN_MESSAGE);
+/*JP
             There("seems to be an old save file.");
+*/
+            pline("前にセーブしたファイルがあります．");
+/*JP
             if (yn("Overwrite the old file?") == 'n') {
+*/
+            if (yn("古いファイルに上書きしますか？") == 'n') {
                 nh_compress(fq_save);
                 return 0;
             }
@@ -392,7 +412,9 @@ savestateinlock()
         if (tricked_fileremoved(fd, whynot))
             return;
 
+_pragma_ignore(-Wunused-result)
         (void) read(fd, (genericptr_t) &hpid, sizeof(hpid));
+_pragma_pop
         if (hackpid != hpid) {
             Sprintf(whynot, "Level #0 pid (%d) doesn't match ours (%d)!",
                     hpid, hackpid);
@@ -409,11 +431,15 @@ savestateinlock()
             done(TRICKED);
             return;
         }
+_pragma_ignore(-Wunused-result)
         (void) write(fd, (genericptr_t) &hackpid, sizeof(hackpid));
+_pragma_pop
         if (flags.ins_chkpt) {
             int currlev = ledger_no(&u.uz);
 
+_pragma_ignore(-Wunused-result)
             (void) write(fd, (genericptr_t) &currlev, sizeof(currlev));
+_pragma_pop
             save_savefile_name(fd);
             store_version(fd);
             store_savefileinfo(fd);

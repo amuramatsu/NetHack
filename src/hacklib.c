@@ -4,6 +4,11 @@
 /* Copyright (c) Robert Patrick Rankin, 1991                      */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h" /* for config.h+extern.h */
 /*=
     Assorted 'small' utility routines.  They're virtually independent of
@@ -117,6 +122,9 @@ char *s;
     register char *p;
 
     for (p = s; *p; p++)
+#if 1 /*JP*//*漢字は小文字化しない*/
+        if (is_kanji(*(unsigned char *)p)) p++; else
+#endif
         if ('A' <= *p && *p <= 'Z')
             *p |= 040;
     return s;
@@ -130,6 +138,9 @@ char *s;
     register char *p;
 
     for (p = s; *p; p++)
+#if 1 /*JP*//*漢字は大文字化しない*/
+        if (is_kanji(*(unsigned char *)p)) p++; else
+#endif
         if ('a' <= *p && *p <= 'z')
             *p &= ~040;
     return s;
@@ -306,6 +317,7 @@ const char *s;
     Static char buf[BUFSZ];
 
     Strcpy(buf, s);
+#if 0 /*JP*/
     if (!strcmpi(buf, "it")) /* it -> its */
         Strcat(buf, "s");
     else if (!strcmpi(buf, "you")) /* you -> your */
@@ -314,6 +326,9 @@ const char *s;
         Strcat(buf, "'");
     else /* X -> X's */
         Strcat(buf, "'s");
+#else /* X -> Xの */
+    Strcat(buf, "の");
+#endif
     return buf;
 }
 

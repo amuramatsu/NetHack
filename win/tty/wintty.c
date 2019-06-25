@@ -2,6 +2,11 @@
 /* Copyright (c) David Cohrs, 1991                                */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata 1994-2000                                      */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 /*
  * Neither a standard out nor character-based control codes should be
  * part of the "tty look" windowing implementation.
@@ -371,6 +376,13 @@ char **argv UNUSED;
     for (i = 1; i <= 4; ++i)
         tty_putstr(BASE_WINDOW, 0, copyright_banner_line(i));
     tty_putstr(BASE_WINDOW, 0, "");
+#if 0 /*JP*//*JPTB reversed*/
+    tty_putstr(BASE_WINDOW, 0, JA_COPYRIGHT_BANNER_A);
+    tty_putstr(BASE_WINDOW, 0, JA_COPYRIGHT_BANNER_B);
+    tty_putstr(BASE_WINDOW, 0, JA_COPYRIGHT_BANNER_C);
+    tty_putstr(BASE_WINDOW, 0, JA_COPYRIGHT_BANNER_D);
+    tty_putstr(BASE_WINDOW, 0, "");
+#endif
     tty_display_nhwindow(BASE_WINDOW, FALSE);
 }
 
@@ -491,7 +503,10 @@ makepicks:
                     if (gotrolefilter())
                         role_menu_extra(RS_filter, win, FALSE);
                     role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
+/*JP
                     Strcpy(pbuf, "Pick a role or profession");
+*/
+                    Strcpy(pbuf, "職業を選んでください");
                     end_menu(win, pbuf);
                     n = select_menu(win, PICK_ONE, &selected);
                     /*
@@ -590,7 +605,10 @@ makepicks:
                         if (gotrolefilter())
                             role_menu_extra(RS_filter, win, FALSE);
                         role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
+/*JP
                         Strcpy(pbuf, "Pick a race or species");
+*/
+                        Strcpy(pbuf, "種族を選んでください");
                         end_menu(win, pbuf);
                         n = select_menu(win, PICK_ONE, &selected);
                         if (n > 0) {
@@ -683,7 +701,10 @@ makepicks:
                         if (gotrolefilter())
                             role_menu_extra(RS_filter, win, FALSE);
                         role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
+/*JP
                         Strcpy(pbuf, "Pick a gender or sex");
+*/
+                        Strcpy(pbuf, "性別を選んでください");
                         end_menu(win, pbuf);
                         n = select_menu(win, PICK_ONE, &selected);
                         if (n > 0) {
@@ -772,7 +793,10 @@ makepicks:
                         if (gotrolefilter())
                             role_menu_extra(RS_filter, win, FALSE);
                         role_menu_extra(ROLE_NONE, win, FALSE); /* quit */
+/*JP
                         Strcpy(pbuf, "Pick an alignment or creed");
+*/
+                        Strcpy(pbuf, "属性を選んでください");
                         end_menu(win, pbuf);
                         n = select_menu(win, PICK_ONE, &selected);
                         if (n > 0) {
@@ -845,13 +869,23 @@ makepicks:
         if (!roles[ROLE].name.f
             && (roles[ROLE].allow & ROLE_GENDMASK)
                    == (ROLE_MALE | ROLE_FEMALE))
+/*JP
             Sprintf(plbuf, " %s", genders[GEND].adj);
+*/
+            Sprintf(plbuf, "%sの", genders[GEND].adj);
         else
             *plbuf = '\0'; /* omit redundant gender */
+#if 0 /*JP*/
         Sprintf(pbuf, "%s, %s%s %s %s", plname, aligns[ALGN].adj, plbuf,
                 races[RACE].adj,
                 (GEND == 1 && roles[ROLE].name.f) ? roles[ROLE].name.f
                                                   : roles[ROLE].name.m);
+#else
+        Sprintf(pbuf, "%s, %s%s%s%s", plname, aligns[ALGN].adj, plbuf,
+                races[RACE].adj,
+                (GEND == 1 && roles[ROLE].name.f) ? roles[ROLE].name.f
+                                                  : roles[ROLE].name.m);
+#endif
         add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, pbuf,
                  MENU_UNSELECTED);
         /* blank separator */
@@ -859,20 +893,35 @@ makepicks:
         add_menu(win, NO_GLYPH, &any, 0, 0, ATR_NONE, "", MENU_UNSELECTED);
         /* [ynaq] menu choices */
         any.a_int = 1;
+/*JP
         add_menu(win, NO_GLYPH, &any, 'y', 0, ATR_NONE, "Yes; start game",
+*/
+        add_menu(win, NO_GLYPH, &any, 'y', 0, ATR_NONE, "はい; ゲームを始める",
                  MENU_SELECTED);
         any.a_int = 2;
         add_menu(win, NO_GLYPH, &any, 'n', 0, ATR_NONE,
+/*JP
                  "No; choose role again", MENU_UNSELECTED);
+*/
+                 "いいえ; 職業を選び直す", MENU_UNSELECTED);
         if (iflags.renameallowed) {
             any.a_int = 3;
             add_menu(win, NO_GLYPH, &any, 'a', 0, ATR_NONE,
+/*JP
                      "Not yet; choose another name", MENU_UNSELECTED);
+*/
+                     "まだ; 名前を変える", MENU_UNSELECTED);
         }
         any.a_int = -1;
+/*JP
         add_menu(win, NO_GLYPH, &any, 'q', 0, ATR_NONE, "Quit",
+*/
+        add_menu(win, NO_GLYPH, &any, 'q', 0, ATR_NONE, "抜ける",
                  MENU_UNSELECTED);
+/*JP
         Sprintf(pbuf, "Is this ok? [yn%sq]", iflags.renameallowed ? "a" : "");
+*/
+        Sprintf(pbuf, "これでよい？ [yn%sq]", iflags.renameallowed ? "a" : "");
         end_menu(win, pbuf);
         n = select_menu(win, PICK_ONE, &selected);
         /* [pick-one menus with a preselected entry behave oddly...] */
@@ -1006,7 +1055,10 @@ int race, gend, algn; /* all ROLE_NONE for !filtering case */
             any.a_int = i + 1;
         else
             any.a_string = roles[i].name.m;
+/*JP
         thisch = lowc(*roles[i].name.m);
+*/
+        thisch = lowc(*roles[i].filecode);
         if (thisch == lastch)
             thisch = highc(thisch);
         Strcpy(rolenamebuf, roles[i].name.m);
@@ -1049,7 +1101,10 @@ int role, gend, algn;
             any.a_int = i + 1;
         else
             any.a_string = races[i].noun;
+/*JP
         this_ch = *races[i].noun;
+*/
+        this_ch = lowc(*races[i].filecode);
         /* filtering: picking race, so choose by first letter, with
            capital letter as unseen accelerator;
            !filtering: resetting filter rather than picking, choose by
@@ -1082,7 +1137,10 @@ int role, race, algn;
             any.a_int = i + 1;
         else
             any.a_string = genders[i].adj;
+/*JP
         this_ch = *genders[i].adj;
+*/
+        this_ch = lowc(*genders[i].filecode);
         /* (see setup_racemenu for explanation of selector letters
            and setup_rolemenu for preselection) */
         add_menu(win, NO_GLYPH, &any,
@@ -1112,15 +1170,29 @@ int role, race, gend;
         if (filtering)
             any.a_int = i + 1;
         else
+/*JP
             any.a_string = aligns[i].adj;
+*/
+            any.a_string = aligns[i].noun;
+/*JP
         this_ch = *aligns[i].adj;
+*/
+        this_ch = lowc(*aligns[i].filecode);
         /* (see setup_racemenu for explanation of selector letters
            and setup_rolemenu for preselection) */
+#if 0 /*JP*/
         add_menu(win, NO_GLYPH, &any,
                  filtering ? this_ch : highc(this_ch),
                  filtering ? highc(this_ch) : 0,
                  ATR_NONE, aligns[i].adj,
                  (!filtering && !algn_ok) ? MENU_SELECTED : MENU_UNSELECTED);
+#else
+        add_menu(win, NO_GLYPH, &any,
+                 filtering ? this_ch : highc(this_ch),
+                 filtering ? highc(this_ch) : 0,
+                 ATR_NONE, aligns[i].noun,
+                 (!filtering && !algn_ok) ? MENU_SELECTED : MENU_UNSELECTED);
+#endif
     }
 }
 
@@ -1133,8 +1205,14 @@ int role, race, gend;
 void
 tty_askname()
 {
+/*JP
     static const char who_are_you[] = "Who are you? ";
+*/
+    static const char who_are_you[] = "あなたは誰？ ";
     register int c, ct, tryct = 0;
+#if 1 /*JP*/
+    char ptmpname[PL_NSIZ];
+#endif
 
 #ifdef SELECTSAVED
     if (iflags.wc2_selectsaved && !iflags.renameinprogress)
@@ -1155,7 +1233,10 @@ tty_askname()
             if (tryct > 10)
                 bail("Giving up after 10 tries.\n");
             tty_curs(BASE_WINDOW, 1, wins[BASE_WINDOW]->cury - 1);
+/*JP
             tty_putstr(BASE_WINDOW, 0, "Enter a name for your character...");
+*/
+            tty_putstr(BASE_WINDOW, 0, "あなたのキャラクタの名前は？");
             /* erase previous prompt (in case of ESC after partial response)
              */
             tty_curs(BASE_WINDOW, 1, wins[BASE_WINDOW]->cury), cl_end();
@@ -1179,6 +1260,9 @@ tty_askname()
 #endif
             /* some people get confused when their erase char is not ^H */
             if (c == '\b' || c == '\177') {
+#if 1 /*JP*/
+            moreback:
+#endif
                 if (ct) {
                     ct--;
 #ifdef WIN32CON
@@ -1198,9 +1282,14 @@ tty_askname()
                     (void) putchar('\b');
 #endif
                 }
+#if 1 /*JP*/
+                if(is_kanji2(ptmpname, ct))
+                  goto moreback;
+#endif
                 continue;
             }
 #if defined(UNIX) || defined(VMS)
+# if 0 /*JP*/
             if (c != '-' && c != '@')
                 if (!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') &&
                     /* reject leading digit but allow digits elsewhere
@@ -1208,29 +1297,52 @@ tty_askname()
                        appended to uid to construct save file name) */
                     !(c >= '0' && c <= '9' && ct > 0))
                     c = '_';
+# endif /*JP*/
 #endif
             if (ct < (int) (sizeof plname) - 1) {
 #if defined(MICRO)
 #if defined(MSDOS)
                 if (iflags.grmode) {
+#  if 0 /*JP*/
                     (void) putchar(c);
+#  else
+                    (void) cputchar(c);
+#   ifdef NO_TERMS
+                    ttyDisplay->curx++;
+                    wins[BASE_WINDOW]->curx++;
+#   endif
+#  endif /*JP*/
                 } else
 #endif
+/*JP
                     msmsg("%c", c);
+*/
+                    (void) putchar(c);
 #else
                 (void) putchar(c);
 #endif
+#if 0 /*JP*/
                 plname[ct++] = c;
+#else
+                ptmpname[ct++] = c;
+#endif
 #ifdef WIN32CON
                 ttyDisplay->curx++;
 #endif
             }
         }
+#if 0 /*JP*/
         plname[ct] = 0;
+#else
+        ptmpname[ct] = 0;
+#endif
     } while (ct == 0);
 
     /* move to next line to simulate echo of user's <return> */
     tty_curs(BASE_WINDOW, 1, wins[BASE_WINDOW]->cury + 1);
+#if 1 /*JP*/
+    Strcpy(plname, str2ic(ptmpname));
+#endif
 
     /* since we let user pick an arbitrary name now, he/she can pick
        another one during role selection */
@@ -1247,6 +1359,9 @@ tty_get_nh_event()
 STATIC_OVL void
 getret()
 {
+#if 1 /*JP*/
+        jputchar('\0');
+#endif
     xputs("\n");
     if (flags.standout)
         standoutbeg();
@@ -1592,8 +1707,21 @@ const char *s; /* valid responses */
              (int) ttyDisplay->cury);
     if (flags.standout)
         standoutbeg();
+#if 0 /*JP*/
     xputs(prompt);
     ttyDisplay->curx += strlen(prompt);
+#else
+    jputchar('\0'); /* reset */
+    {
+      const char *p;
+      p = prompt;
+        while(*p){
+            jputchar(*(p++));
+            ttyDisplay->curx++;
+        }
+    }
+/*    jputs(prompt);*/
+#endif
     if (flags.standout)
         standoutend();
 
@@ -1610,7 +1738,10 @@ tty_menu_item *item;
 
     tty_curs(window, 4, lineno);
     term_start_attr(item->attr);
+/*JP
     (void) putchar(ch);
+*/
+    (void) jputchar(ch);
     ttyDisplay->curx++;
     term_end_attr(item->attr);
 }
@@ -1811,7 +1942,11 @@ struct WinDesc *cw;
                     if (cw->offx)
                         cl_end();
 
+#if 0 /*JP*/
                     (void) putchar(' ');
+#else
+                    (void) jputchar(' ');
+#endif
                     ++ttyDisplay->curx;
 
                     if (!iflags.use_menu_color
@@ -1853,11 +1988,23 @@ struct WinDesc *cw;
                             && curr->identifier.a_void != 0
                             && curr->selected) {
                             if (curr->count == -1L)
+#if 0 /*JP*/
                                 (void) putchar('+'); /* all selected */
+#else
+                                (void) jputchar('+'); /* all selected */
+#endif
                             else
+#if 0 /*JP*/
                                 (void) putchar('#'); /* count selected */
+#else
+                                (void) jputchar('#'); /* count selected */
+#endif
                         } else
+#if 0 /*JP*/
                             (void) putchar(*cp);
+#else
+                            (void) jputchar(*cp);
+#endif
                     } /* for *cp */
                     if (n > attr_n && (color != NO_COLOR || attr != ATR_NONE))
                         toggle_menu_attr(FALSE, color, attr);
@@ -1887,8 +2034,13 @@ struct WinDesc *cw;
             Strcat(resp, mapped_menu_cmds);
 
             if (cw->npages > 1)
+#if 0 /*JP*/
                 Sprintf(cw->morestr, "(%d of %d)", curr_page + 1,
                         (int) cw->npages);
+#else
+                Sprintf(cw->morestr, "(%d/%d)", curr_page + 1,
+                        (int) cw->npages);
+#endif
             else if (msave)
                 Strcpy(cw->morestr, msave);
             else
@@ -2128,7 +2280,11 @@ struct WinDesc *cw;
         if (cw->data[i]) {
             attr = cw->data[i][0] - 1;
             if (cw->offx) {
+#if 0 /*JP*/
                 (void) putchar(' ');
+#else
+                (void) jputchar(' ');
+#endif
                 ++ttyDisplay->curx;
             }
             term_start_attr(attr);
@@ -2140,7 +2296,11 @@ struct WinDesc *cw;
                  *cp && (int) ttyDisplay->curx < (int) ttyDisplay->cols;
                  cp++, ttyDisplay->curx++)
 #endif
+#if 0 /*JP*/
                 (void) putchar(*cp);
+#else
+                (void) jputchar(*cp);
+#endif
             term_end_attr(attr);
         }
     }
@@ -2407,7 +2567,11 @@ register int x, y; /* not xchar: perhaps xchar is unsigned and
         nocmov(x, y);
 #ifndef NO_TERMS
     } else if ((x <= 3 && cy <= 3) || (!nh_CM && x < cx)) {
+# if 0 /*JP*/
         (void) putchar('\r');
+# else
+        (void) cputchar('\r');
+# endif
         ttyDisplay->curx = 0;
         nocmov(x, y);
     } else if (!nh_CM) {
@@ -2438,7 +2602,15 @@ char ch;
     case NHW_MAP:
     case NHW_BASE:
         tty_curs(window, x, y);
+#if 0 /*JP*/
         (void) putchar(ch);
+#else
+        if(cw->type!=NHW_MAP)
+          (void) jputchar(ch);
+        else {
+          (void) cputchar(ch);
+        }
+#endif
         ttyDisplay->curx++;
         cw->curx++;
         break;
@@ -2491,10 +2663,17 @@ const char *str;
     register char *ob;
     register const char *nb;
     register long i, j, n0;
+#if 1 /*JP*/
+    int kchar2 = 0;             /* if 1, kanji 2nd byte */
+#endif
 
     /* Assume there's a real problem if the window is missing --
      * probably a panic message
      */
+#if 1 /*JP*/
+    jputchar('\0');     /* RESET */
+#endif
+
     if (window == WIN_ERR || (cw = wins[window]) == (struct WinDesc *) 0) {
         tty_raw_print(str);
         return;
@@ -2548,6 +2727,46 @@ const char *str;
                 }
                 break;
             }
+#if 0 /*JP*/
+#else /* this code updates all status line at any time */
+# if 0
+/* check 2-bytes character for Japanese */
+/* by issei 93/12/2                     */
+            uc = *((unsigned char *)nb);
+            if((!(uc & 0x80) && *ob != *nb) || kflg){
+              tty_putsym(WIN_STATUS, i, cw->cury, *nb);
+            }
+            else{
+              if(*ob != *nb || *(ob+1)!= *(nb+1)){
+                tty_putsym(WIN_STATUS, i, cw->cury, *nb);
+                kflg = 1;
+              }
+            }
+# endif /* 0 */
+#define ismbchar(c)     (((unsigned char)(c)) & 0x80)
+#define KANJI2  1
+#define KUPDATE 2
+            if (kchar2)                 /* kanji 2nd byte */
+            {
+                if (kchar2 & KUPDATE)
+                    tty_putsym(WIN_STATUS, i, cw->cury, *nb);
+                kchar2 = 0;
+            }
+            else if (ismbchar(*nb))     /* kanji 1st byte */
+            {
+                kchar2 = KANJI2;
+                /* Kanji char must be checked as 2-bytes pair. */
+                /* check i to prevent putting only kanji 1st byte at last. */
+                if ((*nb != *ob || *(nb+1) != *(ob+1)) && i < n0-1)
+                {
+                    tty_putsym(WIN_STATUS, i, cw->cury, *nb);
+                    kchar2 |= KUPDATE;  /* must do update */
+                }
+                /* else nb is the same char as old, so need not to update */
+            }
+            /* not kanji char */
+            else
+#endif
 #ifdef STATUS_HILITES
             /* Don't optimize the putsym away, in case it happens
                to be the same character but different color/attr.
@@ -2574,7 +2793,11 @@ const char *str;
         tty_curs(window, cw->curx + 1, cw->cury);
         term_start_attr(attr);
         while (*str && (int) ttyDisplay->curx < (int) ttyDisplay->cols - 1) {
+#if 0 /*JP*/
             (void) putchar(*str);
+#else
+            (void) cputchar(*str);
+#endif
             str++;
             ttyDisplay->curx++;
         }
@@ -2591,7 +2814,11 @@ const char *str;
                 cw->cury++;
                 tty_curs(window, cw->curx + 1, cw->cury);
             }
+#if 0 /*JP*/
             (void) putchar(*str);
+#else
+            (void) jputchar(*str);
+#endif
             str++;
             ttyDisplay->curx++;
         }
@@ -2655,6 +2882,9 @@ const char *str;
         }
         break;
     }
+#if 1 /*JP*/
+    jputchar('\0');     /* RESET */
+#endif
 }
 
 void
@@ -3133,19 +3363,31 @@ int in_ch;
 #if defined(ASCIIGRAPH) && !defined(NO_TERMS)
     if (SYMHANDLING(H_IBM) || iflags.eight_bit_tty) {
         /* IBM-compatible displays don't need other stuff */
+#   if 0 /*JP*/
         (void) putchar(ch);
+#   else
+        (void) cputchar(ch);
+#   endif
     } else if (ch & 0x80) {
         if (!GFlag || HE_resets_AS) {
             graph_on();
             GFlag = TRUE;
         }
+# if 0 /*JP*/
         (void) putchar((ch ^ 0x80)); /* Strip 8th bit */
+# else
+        (void) cputchar((ch ^ 0x80)); /* Strip 8th bit */
+# endif
     } else {
         if (GFlag) {
             graph_off();
             GFlag = FALSE;
         }
+# if 0 /*JP*/
         (void) putchar(ch);
+# else
+        (void) jputchar(ch);
+# endif
     }
 
 #else
@@ -3236,7 +3478,11 @@ int bkglyph UNUSED;
 
 #ifndef NO_TERMS
     if (ul_hack && ch == '_') { /* non-destructive underscore */
+# if 0 /*JP*/
         (void) putchar((char) ' ');
+# else
+        (void) cputchar((char) ' ');
+# endif
         backsp();
     }
 #endif
@@ -3294,7 +3540,11 @@ const char *str;
 #if defined(MICRO) || defined(WIN32CON)
     msmsg("%s\n", str);
 #else
+# if 0 /*JP*/
     puts(str);
+# else
+    jputs(str);
+# endif
     (void) fflush(stdout);
 #endif
 }
@@ -3310,13 +3560,19 @@ const char *str;
 #if defined(MICRO) || defined(WIN32CON)
     msmsg("%s", str);
 #else
+# if 0 /*JP*/
     (void) fputs(str, stdout);
+# else
+    (void) jputs(str);
+# endif
 #endif
     term_end_raw_bold();
 #if defined(MICRO) || defined(WIN32CON)
     msmsg("\n");
 #else
+# if 0 /*JP*/
     puts("");
+# endif
     (void) fflush(stdout);
 #endif
 }
@@ -3531,7 +3787,7 @@ tty_status_init()
                     term_start_attr(ATR_BLINK);                               \
                 if ((m) & HL_DIM)                                             \
                     term_start_attr(ATR_DIM);                                 \
-	    }
+            }
 
 #define End_Attr(m) \
             if (m) {                                                          \
@@ -3545,7 +3801,7 @@ tty_status_init()
                     term_end_attr(ATR_INVERSE);                               \
                 if ((m) & HL_BOLD)                                            \
                     term_end_attr(ATR_BOLD);                                  \
-	    }
+            }
 
 #ifdef STATUS_HILITES
 
@@ -3558,13 +3814,13 @@ tty_status_init()
                     Begin_Attr(attrmask);                                     \
                     if ((coloridx = condcolor(bm, colormasks)) != NO_COLOR)   \
                         term_start_color(coloridx);                           \
-		}                                                             \
+                }                                                             \
                 putstr(WIN_STATUS, 0, txt);                                   \
                 if (iflags.hilite_delta) {                                    \
                     if (coloridx != NO_COLOR)                                 \
                         term_end_color();                                     \
                     End_Attr(attrmask);                                       \
-		}                                                             \
+                }                                                             \
             }
 #else
 #define MaybeDisplayCond(bm,txt) \
@@ -3573,11 +3829,11 @@ tty_status_init()
                 if (iflags.hilite_delta) {                                    \
                     attrmask = condattr(bm, colormasks);                      \
                     Begin_Attr(attrmask);                                     \
-		}                                                             \
+                }                                                             \
                 putstr(WIN_STATUS, 0, txt);                                   \
                 if (iflags.hilite_delta) {                                    \
                     End_Attr(attrmask);                                       \
-		}                                                             \
+                }                                                             \
             }
 #endif
 
@@ -3655,16 +3911,16 @@ unsigned long *colormasks;
                     Begin_Attr(attridx);
 #ifdef TEXTCOLOR
                     if (coloridx != NO_COLOR && coloridx != CLR_MAX)
-	                term_start_color(coloridx);
+                        term_start_color(coloridx);
 #endif
-	        }
+                }
 
                 putstr(WIN_STATUS, 0, text);
 
                 if (iflags.hilite_delta) {
 #ifdef TEXTCOLOR
                     if (coloridx != NO_COLOR)
-	                term_end_color();
+                        term_end_color();
 #endif
                     End_Attr(attridx);
                 }
@@ -3690,7 +3946,7 @@ unsigned long *colormasks;
                         savedch = *bar2;
                         *bar2 = '\0';
                     }
-		}
+                }
                 if (iflags.hilite_delta && iflags.wc2_hitpointbar) {
                     putstr(WIN_STATUS, 0, "[");
 #ifdef TEXTCOLOR
@@ -3739,7 +3995,7 @@ unsigned long *colormasks;
                     if (coloridx != NO_COLOR && coloridx != CLR_MAX)
                         term_start_color(coloridx);
 #endif
-		}
+                }
 
                 if (fldidx2 == BL_GOLD) {
                     /* putmixed() due to GOLD glyph */
@@ -3750,7 +4006,7 @@ unsigned long *colormasks;
 
                 if (iflags.hilite_delta) {
 #ifdef TEXTCOLOR
-       	            if (coloridx != NO_COLOR)
+                    if (coloridx != NO_COLOR)
                         term_end_color();
 #endif
                     End_Attr(attridx);
@@ -3769,7 +4025,7 @@ unsigned long *colormasks;
                 MaybeDisplayCond(BL_MASK_LEV, "Lev");
                 MaybeDisplayCond(BL_MASK_FLY, "Fly");
                 MaybeDisplayCond(BL_MASK_RIDE, "Ride");
-	    }
+            }
         }
     }
     cl_end();

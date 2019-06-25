@@ -2,6 +2,11 @@
 /* Copyright (c) Dean Luick, 1992                                 */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata 1994-1999                                      */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 /*
  * "Main" file for the X window-port.  This contains most of the interface
  * routines.  Please see doc/window.doc for an description of the window
@@ -163,6 +168,10 @@ static void NDECL(release_yn_widgets);
 static int FDECL(input_event, (int));
 static void FDECL(win_visible, (Widget, XtPointer, XEvent *, Boolean *));
 static void NDECL(init_standard_windows);
+
+#ifdef  INSTALLCOLORMAP
+Colormap     cmap;
+#endif
 
 /*
  * Local variables.
@@ -332,6 +341,50 @@ try_again:
     }
     return True;
 }
+
+#ifdef INSTALLCOLORMAP
+Boolean
+nhCvtStringToColormap(dpy, args, num_args, fromVal, toVal, data)
+Display*        dpy;
+XrmValuePtr     args;
+Cardinal        *num_args;
+XrmValuePtr     fromVal;
+XrmValuePtr     toVal;
+XtPointer       data;
+{
+  XColor        black, white;
+  int screen = DefaultScreen(dpy);
+  Colormap dcmap = DefaultColormap(dpy, screen);
+  
+  if(strncmp(fromVal->addr, "install", 7)){
+    return False;
+  }
+  if(!cmap){
+    cmap = XCreateColormap(dpy,
+                           RootWindow(dpy, screen),
+                           DefaultVisual(dpy, screen),
+                           AllocNone);
+    /*
+      手抜き
+     */
+    black.red = 0;
+    black.green = 0;
+    black.blue = 0;
+
+    white.red = 0xffff;
+    white.green = 0xffff;
+    white.blue = 0xffff;
+
+    XAllocColor(dpy, dcmap, &black);
+    XAllocColor(dpy, dcmap, &white);
+
+    XAllocColor(dpy, cmap, &black);
+    XAllocColor(dpy, cmap, &white);
+  }
+  
+  done(Colormap, cmap);
+}
+#endif /*INSTALLCOLORMAP*/
 
 Boolean
 nhCvtStringToPixel(dpy, args, num_args, fromVal, toVal, closure_ret)
@@ -652,14 +705,20 @@ void
 X11_raw_print(str)
 const char *str;
 {
+/*JP
     (void) puts(str);
+*/
+    (void) jputs(str);
 }
 
 void
 X11_raw_print_bold(str)
 const char *str;
 {
+/*JP
     (void) puts(str);
+*/
+    (void) jputs(str);
 }
 
 void
@@ -1153,6 +1212,12 @@ static XtResource resources[] = {
       nhStr("False") },
     { nhStr("tile_file"), nhStr("Tile_file"), XtRString, sizeof(String),
       XtOffset(AppResources *, tile_file), XtRString, nhStr("x11tiles") },
+#ifdef X11LARGETILE
+    { nhStr("tile_width"), nhStr("Tile_width"), XtRInt, sizeof(int),
+      XtOffset(AppResources *, tile_width), XtRString, nhStr("32") },
+    { nhStr("tile_height"), nhStr("Tile_height"), XtRInt, sizeof(int),
+      XtOffset(AppResources *, tile_height), XtRString, nhStr("32") },
+#endif
     { nhStr("icon"), nhStr("Icon"), XtRString, sizeof(String),
       XtOffset(AppResources *, icon), XtRString, nhStr("nh72") },
     { nhStr("message_lines"), nhStr("Message_lines"), XtRInt, sizeof(int),
@@ -1217,11 +1282,25 @@ char **argv;
 
     XSetIOErrorHandler((XIOErrorHandler) hangup);
 
+#ifdef XI18N
+    XtSetLanguageProc(NULL, NULL, NULL);
+#endif
+#if 1 /*JP*/
+    XSetIOErrorHandler((XIOErrorHandler) hangup);
+#endif
+#ifdef INSTALLCOLORMAP
+    XtSetTypeConverter(XtRString, XtRColormap, nhCvtStringToColormap, 
+                       0, 0, XtCacheByDisplay, 0);
+#endif
     num_args = 0;
     XtSetArg(args[num_args], XtNallowShellResize, True); num_args++;
     XtSetArg(args[num_args], XtNtitle, "NetHack"); num_args++;
 
+#if 0 /*JP*/
     toplevel = XtAppInitialize(&app_context, "NetHack",     /* application  */
+#else
+    toplevel = XtAppInitialize(&app_context, "JNetHack",    /* application  */
+#endif
                                (XrmOptionDescList) 0, 0,    /* options list */
                                argcp, (String *) argv,      /* command line */
                                default_resource_data, /* fallback resources */
@@ -1688,13 +1767,19 @@ boolean complain;
     Cardinal num_args;
     Widget popup, dispfile;
     Position top_margin, bottom_margin, left_margin, right_margin;
+#if 0 /*JP*/
     XFontStruct *fs;
+#endif
     int new_width, new_height;
 #define LLEN 128
     char line[LLEN];
     int num_lines;
     char *textlines, *bp;
     int charcount;
+#ifdef XI18N
+    XFontSet fontset;
+    XFontSetExtents *extent;
+#endif
 
     /* Use the port-independent file opener to see if the file exists. */
     fp = dlb_fopen(str, RDTMODE);
@@ -1760,13 +1845,20 @@ boolean complain;
     XtSetArg(args[num_args], nhStr(XtNtranslations),
              XtParseTranslationTable(display_translations)); num_args++;
 
+#if defined(X11R6) && defined(XI18N)
+    XtSetArg(args[num_args], XtNinternational, True); num_args++;
+#endif
     dispfile = XtCreateManagedWidget("text",                      /* name */
                                      asciiTextWidgetClass, popup, /* parent */
                                      args, num_args);
 
     /* Get font and border information. */
     num_args = 0;
+#if 0 /*JP*/
     XtSetArg(args[num_args], nhStr(XtNfont), &fs); num_args++;
+#else
+    XtSetArg(args[num_args], XtNfontSet, &fontset); num_args++;
+#endif
     XtSetArg(args[num_args], nhStr(XtNtopMargin), &top_margin); num_args++;
     XtSetArg(args[num_args], nhStr(XtNbottomMargin), &bottom_margin);
                                                                    num_args++;
@@ -1779,9 +1871,16 @@ boolean complain;
      * The data files are currently set up assuming an 80 char wide window
      * and a fixed width font.  Soo..
      */
+#ifndef XI18N
     new_height =
         num_lines * nhFontHeight(dispfile) + top_margin + bottom_margin;
     new_width = 80 * fs->max_bounds.width + left_margin + right_margin;
+#else
+    extent = XExtentsOfFontSet(fontset);
+    new_height =
+        num_lines * extent->max_logical_extent.height + top_margin + bottom_margin;
+    new_width = 40 * extent->max_logical_extent.width + left_margin + right_margin;
+#endif
 
     /* Set the new width and height. */
     num_args = 0;
@@ -2038,6 +2137,9 @@ char def;            /* default response if user hits <space> or <return> */
         num_args = 0;
         XtSetArg(args[num_args], XtNtranslations,
                  XtParseTranslationTable(yn_translations)); num_args++;
+#if defined(X11R6) && defined(XI18N)
+        XtSetArg(args[num_args], XtNinternational, True); num_args++;
+#endif
         yn_label = XtCreateManagedWidget("yn_label", labelWidgetClass,
                                          yn_popup, args, num_args);
 
@@ -2209,8 +2311,13 @@ init_standard_windows()
 
     num_args = 0;
     XtSetArg(args[num_args], XtNallowShellResize, True); num_args++;
+#if 0 /*JP*/
     form = XtCreateManagedWidget("nethack", panedWidgetClass, toplevel, args,
                                  num_args);
+#else
+    form = XtCreateManagedWidget("jnethack", panedWidgetClass, toplevel, args,
+                                 num_args);
+#endif
 
     XtAddEventHandler(form, KeyPressMask, False, (XtEventHandler) msgkey,
                       (XtPointer) 0);
@@ -2240,6 +2347,10 @@ init_standard_windows()
         num_args = 0;
         XtSetArg(args[num_args], XtNtranslations,
                  XtParseTranslationTable(yn_translations)); num_args++;
+#if defined(X11R6) && defined(XI18N)
+        XtSetArg(args[num_args], XtNinternational, True);
+        num_args++;
+#endif
         yn_label = XtCreateManagedWidget("yn_label", labelWidgetClass, form,
                                          args, num_args);
         num_args = 0;

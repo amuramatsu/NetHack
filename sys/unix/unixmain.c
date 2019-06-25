@@ -16,6 +16,10 @@
 #include <fcntl.h>
 #endif
 
+#ifdef XI18N
+#include <X11/Xlocale.h>
+#endif
+
 #if !defined(_BULL_SOURCE) && !defined(__sgi) && !defined(_M_UNIX)
 #if !defined(SUNOS4) && !(defined(ULTRIX) && defined(__GNUC__))
 #if defined(POSIX_TYPES) || defined(SVR4) || defined(HPUX)
@@ -60,6 +64,13 @@ char *argv[];
 
     sys_early_init();
 
+#if 1 /*JP*//* iconvの初期化のために一度は呼び出す必要がある */
+    setkcode('U');
+#endif
+
+#ifdef XI18N
+    setlocale(LC_ALL, "");
+#endif
 #if defined(__APPLE__)
     {
 /* special hack to change working directory to a resource fork when
@@ -152,7 +163,14 @@ char *argv[];
             panictrace_setsignals(TRUE);
 #endif
 #endif
+#if 0 /*JP*/
             prscore(argc, argv);
+#else
+            setkcode('I');
+            initoptions();
+            prscore(argc, argv);
+            jputchar('\0'); /* reset */
+#endif
             /* FIXME: shouldn't this be using nh_terminate() to free
                up any memory allocated by initoptions() */
             exit(EXIT_SUCCESS);
@@ -172,6 +190,13 @@ char *argv[];
 #endif
 #ifdef __linux__
     check_linux_console();
+#endif
+#if 1 /*JP*/
+    /* Line like "OPTIONS=name:foo-@" may exist in config file.
+     * In this case, need to select random class,
+     * so must call setrandom() before initoptions().
+     */
+    setrandom();
 #endif
     initoptions();
 #ifdef PANICTRACE
@@ -288,14 +313,20 @@ attempt_restore:
             iflags.news = FALSE; /* in case dorecover() fails */
         }
 #endif
+/*JP
         pline("Restoring save file...");
+*/
+        pline("セーブファイルを復元中．．．");
         mark_synch(); /* flush output */
         if (dorecover(fd)) {
             resuming = TRUE; /* not starting new game */
             wd_message();
             if (discover || wizard) {
                 /* this seems like a candidate for paranoid_confirmation... */
+/*JP
                 if (yn("Do you want to keep the save file?") == 'n') {
+*/
+                if (yn("セーブファイルを残しておきますか？") == 'n') {
                     (void) delete_savefile();
                 } else {
                     (void) chmod(fq_save, FCMASK); /* back to readable */
@@ -383,11 +414,19 @@ char *argv[];
 #endif
         case 'u':
             if (argv[0][2]) {
+#if 0 /*JP*/
                 (void) strncpy(plname, argv[0] + 2, sizeof plname - 1);
+#else
+                (void) strncpy(plname, str2ic(argv[0] + 2), sizeof(plname) - 1);
+#endif
             } else if (argc > 1) {
                 argc--;
                 argv++;
+#if 0 /*JP*/
                 (void) strncpy(plname, argv[0], sizeof plname - 1);
+#else
+                (void) strncpy(plname, str2ic(argv[0]), sizeof(plname) - 1);
+#endif
             } else {
                 raw_print("Player name expected after -u");
             }
@@ -473,8 +512,10 @@ boolean wr;
 #endif
         ) {
 #ifdef SECURE
+_pragma_ignore(-Wunused-result)
         (void) setgid(getgid());
         (void) setuid(getuid()); /* Ron Wessels */
+_pragma_pop
 #endif
     } else {
         /* non-default data files is a sign that scores may not be
@@ -612,14 +653,25 @@ wd_message()
     if (wiz_error_flag) {
         if (sysopt.wizards && sysopt.wizards[0]) {
             char *tmp = build_english_list(sysopt.wizards);
+#if 0 /*JP*/
             pline("Only user%s %s may access debug (wizard) mode.",
                   index(sysopt.wizards, ' ') ? "s" : "", tmp);
+#else
+            pline("「%s」のみがデバッグ(ウイザード)モードを使用できる．",
+                  tmp);
+#endif
             free(tmp);
         } else
+/*JP
             pline("Entering explore/discovery mode instead.");
+*/
+            pline("かわりに発見モードへ移行する．");
         wizard = 0, discover = 1; /* (paranoia) */
     } else if (discover)
+/*JP
         You("are in non-scoring explore/discovery mode.");
+*/
+        You("スコアの載らない発見モードで起動した．");
 }
 
 /*

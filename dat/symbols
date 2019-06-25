@@ -581,3 +581,6 @@ start: plain
 	S_tlwall: '+'
 	S_trwall: '+'
 finish #plain -- other symbols implicitly retain their default values
+
+start: default
+finish

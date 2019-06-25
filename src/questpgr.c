@@ -2,6 +2,11 @@
 /*      Copyright 1991, M. Stephenson                             */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "dlb.h"
 
@@ -178,8 +183,12 @@ ldrname()
 {
     int i = urole.ldrnum;
 
+#if 0 /*JP*/
     Sprintf(nambuf, "%s%s", type_is_pname(&mons[i]) ? "" : "the ",
             mons[i].mname);
+#else
+    Strcpy(nambuf, mons[i].mname);
+#endif
     return nambuf;
 }
 
@@ -255,8 +264,12 @@ neminame()
 {
     int i = urole.neminum;
 
+#if 0 /*JP*/
     Sprintf(nambuf, "%s%s", type_is_pname(&mons[i]) ? "" : "the ",
             mons[i].mname);
+#else
+    Strcpy(nambuf, mons[i].mname);
+#endif
     return nambuf;
 }
 
@@ -307,9 +320,11 @@ char who,  /* 'd' => deity, 'l' => leader, 'n' => nemesis, 'o' => artifact */
                 : (lwhich == 'j') ? genders[g].his : "?";
     }
     Strcpy(cvt_buf, pnoun);
+#if 0 /*JP*/
     /* capitalize for H,I,J */
     if (lwhich != which)
         cvt_buf[0] = highc(cvt_buf[0]);
+#endif
     return;
 }
 
@@ -347,10 +362,16 @@ char c;
         str = rank_of(MIN_QUEST_LEVEL, Role_switch, flags.female);
         break;
     case 's':
+/*JP
         str = (flags.female) ? "sister" : "brother";
+*/
+        str = (flags.female) ? "妹" : "弟";
         break;
     case 'S':
+/*JP
         str = (flags.female) ? "daughter" : "son";
+*/
+        str = (flags.female) ? "娘" : "息子";
         break;
     case 'l':
         str = ldrname();
@@ -361,6 +382,7 @@ char c;
     case 'O':
     case 'o':
         str = the(artiname(urole.questarti));
+#if 0 /*JP*/
         if (c == 'O') {
             /* shorten "the Foo of Bar" to "the Foo"
                (buffer returned by the() is modifiable) */
@@ -369,6 +391,7 @@ char c;
             if (p)
                 *p = '\0';
         }
+#endif
         break;
     case 'n':
         str = neminame();
@@ -395,16 +418,28 @@ char c;
         str = align_gname(A_LAWFUL);
         break;
     case 'C':
+/*JP
         str = "chaotic";
+*/
+        str = "混沌";
         break;
     case 'N':
+/*JP
         str = "neutral";
+*/
+        str = "中立";
         break;
     case 'L':
+/*JP
         str = "lawful";
+*/
+        str = "秩序";
         break;
     case 'x':
+/*JP
         str = Blind ? "sense" : "see";
+*/
+        str = Blind ? "感じ" : "見";
         break;
     case 'Z':
         str = dungeons[0].dname;
@@ -451,7 +486,9 @@ char *in_line, *out_line;
 
                 /* capitalize */
                 case 'C':
+#if 0 /*JP*/
                     cvt_buf[0] = highc(cvt_buf[0]);
+#endif
                     break;
 
                 /* replace name with pronoun;
@@ -470,7 +507,9 @@ char *in_line, *out_line;
 
                 /* pluralize */
                 case 'P':
+#if 0 /*JP*/
                     cvt_buf[0] = highc(cvt_buf[0]);
+#endif
                     /*FALLTHRU*/
                 case 'p':
                     Strcpy(cvt_buf, makeplural(cvt_buf));
@@ -478,19 +517,25 @@ char *in_line, *out_line;
 
                 /* append possessive suffix */
                 case 'S':
+#if 0 /*JP*/
                     cvt_buf[0] = highc(cvt_buf[0]);
+#endif
                     /*FALLTHRU*/
                 case 's':
+#if 0 /*JP*/
                     Strcpy(cvt_buf, s_suffix(cvt_buf));
+#endif
                     break;
 
                 /* strip any "the" prefix */
                 case 't':
+#if 0 /*JP*/
                     if (!strncmpi(cvt_buf, "the ", 4)) {
                         Strcat(cc, &cvt_buf[4]);
                         cc += strlen(cc);
                         continue; /* for */
                     }
+#endif
                     break;
 
                 default:

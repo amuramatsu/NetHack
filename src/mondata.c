@@ -3,6 +3,11 @@
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 /*
  *      These routines provide basic data for any type of monster.
@@ -261,9 +266,15 @@ struct obj *obj; /* aatyp == AT_WEAP, AT_SPIT */
     if (check_visor) {
         o = (mdef == &youmonst) ? invent : mdef->minvent;
         for (; o; o = o->nobj)
+#if 0 /*JP*/
             if ((o->owornmask & W_ARMH)
                 && (s = OBJ_DESCR(objects[o->otyp])) != (char *) 0
                 && !strcmp(s, "visored helmet"))
+#else
+            if ((o->owornmask & W_ARMH)
+                && (s = OBJ_DESCR(objects[o->otyp])) != (char *) 0
+                && !strcmp(s, "面頬付きの兜"))
+#endif
                 return FALSE;
     }
 
@@ -772,6 +783,7 @@ const char *in_str;
             if (m_i_len == slen) {
                 return i; /* exact match */
             } else if (slen > m_i_len
+#if 0 /*JP*/
                        && (str[m_i_len] == ' '
                            || !strcmpi(&str[m_i_len], "s")
                            || !strncmpi(&str[m_i_len], "s ", 2)
@@ -781,6 +793,9 @@ const char *in_str;
                            || !strncmpi(&str[m_i_len], "'s ", 3)
                            || !strcmpi(&str[m_i_len], "es")
                            || !strncmpi(&str[m_i_len], "es ", 3))) {
+#else
+                       && !strncmp(&str[m_i_len], "の", 2)) {
+#endif
                 mntmp = i;
                 len = m_i_len;
             }
@@ -1063,13 +1078,34 @@ struct monst *mtmp;
         return mtmp->data;
 }
 
+/*JP
 static const char *levitate[4] = { "float", "Float", "wobble", "Wobble" };
+*/
+static const char *levitate[4] = { "浮く", "浮く", "よろめく", "よろめく" };
+/*JP
 static const char *flys[4] = { "fly", "Fly", "flutter", "Flutter" };
+*/
+static const char *flys[4] = { "飛ぶ", "飛ぶ", "おののく", "おののく" };
+/*JP
 static const char *flyl[4] = { "fly", "Fly", "stagger", "Stagger" };
+*/
+static const char *flyl[4] = { "飛ぶ", "飛ぶ", "よろめく", "よろめく" };
+/*JP
 static const char *slither[4] = { "slither", "Slither", "falter", "Falter" };
+*/
+static const char *slither[4] = { "滑る", "滑る", "たじろぐ", "たじろぐ" };
+/*JP
 static const char *ooze[4] = { "ooze", "Ooze", "tremble", "Tremble" };
+*/
+static const char *ooze[4] = { "にじみ出る", "にじみ出る", "身震いする", "身震いする" };
+/*JP
 static const char *immobile[4] = { "wiggle", "Wiggle", "pulsate", "Pulsate" };
+*/
+static const char *immobile[4] = { "動く", "動く", "震える", "震える" };
+/*JP
 static const char *crawl[4] = { "crawl", "Crawl", "falter", "Falter" };
+*/
+static const char *crawl[4] = { "はいずる", "はいずる", "たじろぐ", "たじろぐ" };
 
 const char *
 locomotion(ptr, def)
@@ -1088,6 +1124,12 @@ const char *def;
                         : def);
 }
 
+/*JP:
+ * 「よろめく」を怪物の種類によって変える。
+ * 自分に対して使う場合には既に「くらくらする」が使われているので、
+ * 変化していてもそのままにする。
+ * 相手に対して使う場合は「くらくらする」は不自然なのでこれを使う。
+ */
 const char *
 stagger(ptr, def)
 const struct permonst *ptr;
@@ -1104,6 +1146,28 @@ const char *def;
                       : nolimbs(ptr) ? crawl[capitalize]
                         : def);
 }
+#if 1 /*JP*/
+static const char *levitate2 = "浮き出た";
+static const char *fly2 = "飛び出た";
+static const char *slither2 = "滑り出た";
+static const char *ooze2 = "にじみ出た";
+static const char *crawl2 = "はいずり出た";
+
+const char *
+jumpedthrough(ptr, def)
+const struct permonst *ptr;
+const char *def;
+{
+        return (
+            is_floater(ptr) ? levitate2 :
+            is_flyer(ptr)   ? fly2 :
+            slithy(ptr)     ? slither2 :
+            amorphous(ptr)  ? ooze2 :
+            nolimbs(ptr)    ? crawl2 :
+            def
+            );
+}
+#endif
 
 /* return phrase describing the effect of fire attack on a type of monster */
 const char *
@@ -1118,16 +1182,25 @@ struct attack *mattk;
     case PM_FIRE_VORTEX:
     case PM_FIRE_ELEMENTAL:
     case PM_SALAMANDER:
+/*JP
         what = "already on fire";
+*/
+        what = "すでに炎につつまれている";
         break;
     case PM_WATER_ELEMENTAL:
     case PM_FOG_CLOUD:
     case PM_STEAM_VORTEX:
+/*JP
         what = "boiling";
+*/
+        what = "沸騰した";
         break;
     case PM_ICE_VORTEX:
     case PM_GLASS_GOLEM:
+/*JP
         what = "melting";
+*/
+        what = "溶けた";
         break;
     case PM_STONE_GOLEM:
     case PM_CLAY_GOLEM:
@@ -1136,10 +1209,16 @@ struct attack *mattk;
     case PM_EARTH_ELEMENTAL:
     case PM_DUST_VORTEX:
     case PM_ENERGY_VORTEX:
+/*JP
         what = "heating up";
+*/
+        what = "熱くなった";
         break;
     default:
+/*JP
         what = (mattk->aatyp == AT_HUGS) ? "being roasted" : "on fire";
+*/
+        what = (mattk->aatyp == AT_HUGS) ? "丸焼けになった" : "火だるまになった";
         break;
     }
     return what;

@@ -3,16 +3,32 @@
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 
+#if 0 /*JP*//*未使用*/
 static NEARDATA const char see_yourself[] = "see yourself";
+#endif
 static NEARDATA const char unknown_type[] = "Unknown type of %s (%d)";
+#if 0 /*JP*/
 static NEARDATA const char c_armor[] = "armor", c_suit[] = "suit",
                            c_shirt[] = "shirt", c_cloak[] = "cloak",
                            c_gloves[] = "gloves", c_boots[] = "boots",
                            c_helmet[] = "helmet", c_shield[] = "shield",
                            c_weapon[] = "weapon", c_sword[] = "sword",
                            c_axe[] = "axe", c_that_[] = "that";
+#else
+static NEARDATA const char c_armor[]  = "鎧", c_suit[]   = "服",
+                           c_shirt[]  = "シャツ", c_cloak[]  = "クローク",
+                           c_gloves[] = "小手", c_boots[]  = "靴",
+                           c_helmet[] = "兜", c_shield[] = "盾",
+                           c_weapon[] = "武器", c_sword[]  = "剣",
+                           c_axe[]    = "斧", c_that_[]  = "それ";
+#endif
 
 static NEARDATA const long takeoff_order[] = {
     WORN_BLINDF, W_WEP,      WORN_SHIELD, WORN_GLOVES, LEFT_RING,
@@ -41,15 +57,27 @@ STATIC_DCL int FDECL(menu_remarm, (int));
 STATIC_DCL void FDECL(count_worn_stuff, (struct obj **, BOOLEAN_P));
 STATIC_PTR int FDECL(armor_or_accessory_off, (struct obj *));
 STATIC_PTR int FDECL(accessory_or_armor_on, (struct obj *));
+#if 0 /*JP*/
 STATIC_DCL void FDECL(already_wearing, (const char *));
+#else
+STATIC_DCL void FDECL(already_wearing, (const char*, struct obj *));
+#endif
 STATIC_DCL void FDECL(already_wearing2, (const char *, const char *));
 
 void
 off_msg(otmp)
 struct obj *otmp;
 {
+#if 0 /*JP*/
     if (flags.verbose)
         You("were wearing %s.", doname(otmp));
+#else
+    const char *j;
+    const char *m;
+    m = joffmsg(otmp, &j);
+    if(flags.verbose)
+        You("%s%s%s．", doname(otmp), j, jpast(m));
+#endif
 }
 
 /* for items that involve no delay */
@@ -58,6 +86,7 @@ on_msg(otmp)
 struct obj *otmp;
 {
     if (flags.verbose) {
+#if 0 /*JP*/
         char how[BUFSZ];
         /* call xname() before obj_is_pname(); formatting obj's name
            might set obj->dknown and that affects the pname test */
@@ -68,6 +97,12 @@ struct obj *otmp;
             Sprintf(how, " around your %s", body_part(HEAD));
         You("are now wearing %s%s.",
             obj_is_pname(otmp) ? the(otmp_name) : an(otmp_name), how);
+#else
+        const char *j;
+        const char *m;
+        m = jonmsg(otmp, &j);
+        You("%s%s%s．", xname(otmp), j, jpast(m));
+#endif
     }
 }
 
@@ -97,13 +132,25 @@ boolean on;
 
         if (on) {
             if (!is_boots(obj))
+/*JP
                 You("move very quietly.");
+*/
+                Your("静かに動けるようになった．");
             else if (Levitation || Flying)
+/*JP
                 You("float imperceptibly.");
+*/
+                You("いつのまにか浮いていた．");
             else
+/*JP
                 You("walk very quietly.");
+*/
+                Your("足音は小さくなった．");
         } else {
+/*JP
             You("sure are noisy.");
+*/
+            Your("足音は大きくなった．");
         }
     }
 }
@@ -138,8 +185,13 @@ boolean on;
                 || Detect_monsters))) {
         makeknown(obj->otyp);
 
+#if 0 /*JP*/
         You_feel("that monsters%s have difficulty pinpointing your location.",
                  on ? "" : " no longer");
+#else
+        pline("怪物はあなたの位置がはっきりと分か%sなったようだ．",
+                 on ? "らなく" : "るように");
+#endif
     }
 }
 
@@ -173,8 +225,13 @@ Boots_on(VOID_ARGS)
         /* though not better than potion speed */
         if (!oldprop && !(HFast & TIMEOUT)) {
             makeknown(uarmf->otyp);
+#if 0 /*JP*/
             You_feel("yourself speed up%s.",
                      (oldprop || HFast) ? " a bit more" : "");
+#else
+            You("%s素早くなったような気がした．",
+                     (oldprop  || HFast) ? "さらに" : "");
+#endif
         }
         break;
     case ELVEN_BOOTS:
@@ -215,7 +272,10 @@ Boots_off(VOID_ARGS)
     case SPEED_BOOTS:
         if (!Very_fast && !context.takeoff.cancelled_don) {
             makeknown(otyp);
+/*JP
             You_feel("yourself slow down%s.", Fast ? " a bit" : "");
+*/
+            You("%sのろくなったような気がした．", Fast ? "ちょっと" : "");
         }
         break;
     case WATER_WALKING_BOOTS:
@@ -285,8 +345,14 @@ Cloak_on(VOID_ARGS)
         /* Note: it's already being worn, so we have to cheat here. */
         if ((HInvis || EInvis) && !Blind) {
             newsym(u.ux, u.uy);
+#if 0 /*JP*/
             You("can %s!", See_invisible ? "no longer see through yourself"
                                          : see_yourself);
+#else
+            pline("%s！",
+                  See_invisible ? "あなたは透明でなくなった" :
+                  "自分自身が見えるようになった");
+#endif
         }
         break;
     case CLOAK_OF_INVISIBILITY:
@@ -295,12 +361,20 @@ Cloak_on(VOID_ARGS)
         if (!oldprop && !HInvis && !Blind) {
             makeknown(uarmc->otyp);
             newsym(u.ux, u.uy);
+#if 0 /*JP*/
             pline("Suddenly you can%s yourself.",
                   See_invisible ? " see through" : "not see");
+#else
+            pline("突然，%sなった．",
+                  See_invisible ? "あなたは透明に" : "自分自身が見えなく");
+#endif
         }
         break;
     case OILSKIN_CLOAK:
+/*JP
         pline("%s very tightly.", Tobjnam(uarmc, "fit"));
+*/
+        pline("%sはとてもぴっちり合う．",xname(uarmc));
         break;
     /* Alchemy smock gives poison _and_ acid resistance */
     case ALCHEMY_SMOCK:
@@ -340,17 +414,28 @@ Cloak_off(VOID_ARGS)
     case MUMMY_WRAPPING:
         if (Invis && !Blind) {
             newsym(u.ux, u.uy);
+#if 0 /*JP*/
             You("can %s.", See_invisible ? "see through yourself"
                                          : "no longer see yourself");
+#else
+            pline("%s．", See_invisible ? "あなたは透明になった"
+                                        : "自分自身が見えなくなった");
+#endif
         }
         break;
     case CLOAK_OF_INVISIBILITY:
         if (!oldprop && !HInvis && !Blind) {
             makeknown(CLOAK_OF_INVISIBILITY);
             newsym(u.ux, u.uy);
+#if 0 /*JP*/
             pline("Suddenly you can %s.",
                   See_invisible ? "no longer see through yourself"
                                 : see_yourself);
+#else
+            pline("突然，%s．",
+                  See_invisible ? "あなたは透明でなくなった"
+                                : "自分自身が見えるようになった");
+#endif
         }
         break;
     /* Alchemy smock gives poison _and_ acid resistance */
@@ -401,21 +486,41 @@ Helmet_on(VOID_ARGS)
     case DUNCE_CAP:
         if (uarmh && !uarmh->cursed) {
             if (Blind)
+/*JP
                 pline("%s for a moment.", Tobjnam(uarmh, "vibrate"));
+*/
+                pline("%sは一瞬震えた．", xname(uarmh));
             else
+#if 0 /*JP*/
                 pline("%s %s for a moment.", Tobjnam(uarmh, "glow"),
                       hcolor(NH_BLACK));
+#else
+                pline("%sは一瞬%s輝いた．",
+                      xname(uarmh), jconj_adj(hcolor(NH_BLACK)));
+#endif
             curse(uarmh);
         }
         context.botl = 1; /* reveal new alignment or INT & WIS */
         if (Hallucination) {
+#if 0 /*JP*/
             pline("My brain hurts!"); /* Monty Python's Flying Circus */
+#else
+            pline("のーみそバーン！"); /*モンティパイソンとはちょっと違うけど*/
+#endif
         } else if (uarmh && uarmh->otyp == DUNCE_CAP) {
+#if 0 /*JP*/
             You_feel("%s.", /* track INT change; ignore WIS */
                      ACURR(A_INT)
                              <= (ABASE(A_INT) + ABON(A_INT) + ATEMP(A_INT))
                          ? "like sitting in a corner"
                          : "giddy");
+#else
+            You("%sような気がした．",
+                     ACURR(A_INT)
+                             <= (ABASE(A_INT) + ABON(A_INT) + ATEMP(A_INT))
+                         ? "隅っこに座っている"
+                         : "目がまわった");
+#endif
         } else {
             /* [message moved to uchangealign()] */
             makeknown(HELM_OF_OPPOSITE_ALIGNMENT);
@@ -512,11 +617,22 @@ boolean voluntary; /* taking gloves off on purpose? */
         return;
 
     if (touch_petrifies(&mons[obj->corpsenm]) && !Stone_resistance) {
+#if 0 /*JP*/
         You("now wield %s in your bare %s.",
             corpse_xname(obj, (const char *) 0, CXN_ARTICLE),
             makeplural(body_part(HAND)));
+#else
+        You("%sを素%sで持った．",
+            corpse_xname(obj, (const char *) 0, CXN_ARTICLE),
+            body_part(HAND));
+#endif
+#if 0 /*JP*/
         Sprintf(kbuf, "%s gloves while wielding %s",
                 voluntary ? "removing" : "losing", killer_xname(obj));
+#else
+        Sprintf(kbuf, "%sを持っているときに手袋を%s",
+                killer_xname(obj), voluntary ? "外して" : "失って");
+#endif
         instapetrify(kbuf);
         /* life-saved; can't continue wielding cockatrice corpse though */
         remove_worn_item(obj, FALSE);
@@ -712,14 +828,25 @@ Amulet_on()
         /* Don't use same message as polymorph */
         if (orig_sex != poly_gender()) {
             makeknown(AMULET_OF_CHANGE);
+#if 0 /*JP*/
             You("are suddenly very %s!",
                 flags.female ? "feminine" : "masculine");
+#else
+            You("突然%sっぽくなった！",
+                flags.female ? "女" : "男");
+#endif
             context.botl = 1;
         } else
             /* already polymorphed into single-gender monster; only
                changed the character's base sex */
+/*JP
             You("don't feel like yourself.");
+*/
+            You("自分自身じゃなくなった気がした．");
+/*JP
         pline_The("amulet disintegrates!");
+*/
+        pline("魔除けはこなごなになった！");
         if (orig_sex == poly_gender() && uamul->dknown
             && !objects[AMULET_OF_CHANGE].oc_name_known
             && !objects[AMULET_OF_CHANGE].oc_uname)
@@ -732,7 +859,10 @@ Amulet_on()
             makeknown(AMULET_OF_STRANGULATION);
             Strangled = 6L;
             context.botl = TRUE;
+/*JP
             pline("It constricts your throat!");
+*/
+            pline("魔除けはあなたの喉を絞めつけた！");
         }
         break;
     case AMULET_OF_RESTFUL_SLEEP: {
@@ -773,8 +903,13 @@ Amulet_off()
             setworn((struct obj *) 0, W_AMUL);
             if (!breathless(youmonst.data) && !amphibious(youmonst.data)
                 && !Swimming) {
+#if 0 /*JP*/
                 You("suddenly inhale an unhealthy amount of %s!",
                     hliquid("water"));
+#else
+                You("突然，大量の%sを飲み込んだ！",
+                    hliquid("水"));
+#endif
                 (void) drown();
             }
             return;
@@ -785,9 +920,15 @@ Amulet_off()
             Strangled = 0L;
             context.botl = TRUE;
             if (Breathless)
+/*JP
                 Your("%s is no longer constricted!", body_part(NECK));
+*/
+                pline("%sが楽になった！", body_part(NECK));
             else
+/*JP
                 You("can breathe more easily!");
+*/
+                You("楽に呼吸できるようになった！");
         }
         break;
     case AMULET_OF_RESTFUL_SLEEP:
@@ -890,7 +1031,10 @@ register struct obj *obj;
 
         if (Invis && !oldprop && !HSee_invisible && !Blind) {
             newsym(u.ux, u.uy);
+/*JP
             pline("Suddenly you are transparent, but there!");
+*/
+            pline("突然透明になった．しかし存在はしている！");
             learnring(obj, TRUE);
         }
         break;
@@ -1003,15 +1147,23 @@ boolean gone;
 
         if (Invisible && !Blind) {
             newsym(u.ux, u.uy);
+/*JP
             pline("Suddenly you cannot see yourself.");
+*/
+            pline("突然，自分自身が見えなくなった．");
             learnring(obj, TRUE);
         }
         break;
     case RIN_INVISIBILITY:
         if (!Invis && !BInvis && !Blind) {
             newsym(u.ux, u.uy);
+#if 0 /*JP*/
             Your("body seems to unfade%s.",
                  See_invisible ? " completely" : "..");
+#else
+            Your("体が%s．",
+                 See_invisible ? "完全に現われた" : "次第に現われてきた．．");
+#endif
             learnring(obj, TRUE);
         }
         break;
@@ -1093,7 +1245,10 @@ register struct obj *otmp;
     if (Blind && !already_blind) {
         changed = TRUE;
         if (flags.verbose)
+/*JP
             You_cant("see any more.");
+*/
+            You("何も見えなくなった．");
         /* set ball&chain variables before the hero goes blind */
         if (Punished)
             set_bc(0);
@@ -1104,10 +1259,16 @@ register struct obj *otmp;
             /* this can only happen by putting on the Eyes of the Overworld;
                that shouldn't actually produce a permanent cure, but we
                can't let the "blind from birth" conduct remain intact */
+/*JP
             pline("For the first time in your life, you can see!");
+*/
+            pline("人生で初めて，目が見えるようになった！");
             u.uroleplay.blind = FALSE;
         } else
+/*JP
             You("can see!");
+*/
+            You("目が見えるようになった！");
     }
     if (changed) {
         /* blindness has just been toggled */
@@ -1139,11 +1300,17 @@ register struct obj *otmp;
             /* "still cannot see" makes no sense when removing lenses
                since they can't have been the cause of your blindness */
             if (otmp->otyp != LENSES)
+/*JP
                 You("still cannot see.");
+*/
+                You("まだ目が見えない．");
         } else {
             changed = TRUE; /* !was_blind */
             /* "You were wearing the Eyes of the Overworld." */
+/*JP
             You_cant("see anything now!");
+*/
+            You("今は何も見ることができない！");
             /* set ball&chain variables before the hero goes blind */
             if (Punished)
                 set_bc(0);
@@ -1151,7 +1318,10 @@ register struct obj *otmp;
     } else if (was_blind) {
         if (!gulp_blnd_check()) {
             changed = TRUE; /* !Blind */
+/*JP
             You("can see again.");
+*/
+            You("ふたたび目が見えるようになった．");
         }
     }
     if (changed) {
@@ -1337,9 +1507,15 @@ struct obj *stolenobj; /* no message if stolenobj is already being doffing */
        by unmul() since the on or off action isn't completing */
     afternmv = (int NDECL((*))) 0;
     if (putting_on || otmp != stolenobj) {
+#if 0 /*JP*/
         Sprintf(buf, "You stop %s %s.",
                 putting_on ? "putting on" : "taking off",
                 thesimpleoname(otmp));
+#else
+        Sprintf(buf, "あなたは%sを%sのを止めた．",
+                thesimpleoname(otmp),
+                putting_on ? "身につける" : "外す");
+#endif
     } else {
         buf[0] = '\0';   /* silently stop doffing stolenobj */
         result = -multi; /* remember this before calling unmul() */
@@ -1408,8 +1584,15 @@ STATIC_OVL int
 armor_or_accessory_off(obj)
 struct obj *obj;
 {
+#if 1 /*JP*/
+    const char *j;
+    const char *m;
+#endif
     if (!(obj->owornmask & (W_ARMOR | W_ACCESSORY))) {
+/*JP
         You("are not wearing that.");
+*/
+        You("それを身につけていない．");
         return 0;
     }
     if (obj == uskin
@@ -1423,14 +1606,31 @@ struct obj *obj;
                 Strcat(what, cloak_simple_name(uarmc));
             if ((obj == uarmu) && uarm) {
                 if (uarmc)
+#if 0 /*JP*/
                     Strcat(what, " and ");
+#else
+                    Strcat(what, "と");
+#endif
                 Strcat(what, suit_simple_name(uarm));
             }
+#if 0 /*JP*/
             Sprintf(why, " without taking off your %s first", what);
+#else
+            Sprintf(why, "先に%sをはずさないと", what);
+#endif
         } else {
+#if 0 /*JP*/
             Strcpy(why, "; it's embedded");
+#else
+            Strcpy(why, "くっついているので");
+#endif
         }
+#if 0 /*JP*/
         You_cant("take that off%s.", why);
+#else
+        m = joffmsg(obj, &j);
+        pline("%sそれ%s%sことはできない．", why, j, m);
+#endif
         return 0;
     }
 
@@ -1475,12 +1675,21 @@ dotakeoff()
     if (!Narmorpieces && !Naccessories) {
         /* assert( GRAY_DRAGON_SCALES > YELLOW_DRAGON_SCALE_MAIL ); */
         if (uskin)
+#if 0 /*JP*/
             pline_The("%s merged with your skin!",
                       uskin->otyp >= GRAY_DRAGON_SCALES
                           ? "dragon scales are"
                           : "dragon scale mail is");
+#else
+            pline("ドラゴンの鱗%sはあなたの肌と融合してしまっている！",
+                      uskin->otyp >= GRAY_DRAGON_SCALES
+                          ? "" : "鎧");
+#endif
         else
+/*JP
             pline("Not wearing any armor or accessories.");
+*/
+            pline("鎧や装飾品を身につけていない．");
         return 0;
     }
     if (Narmorpieces != 1 || ParanoidRemove)
@@ -1499,7 +1708,10 @@ doremring()
 
     count_worn_stuff(&otmp, TRUE);
     if (!Naccessories && !Narmorpieces) {
+/*JP
         pline("Not wearing any accessories or armor.");
+*/
+        pline("装飾品や鎧を身につけていない．");
         return 0;
     }
     if (Naccessories != 1 || ParanoidRemove)
@@ -1521,10 +1733,14 @@ register struct obj *otmp;
     }
     /* Curses, like chickens, come home to roost. */
     if ((otmp == uwep) ? welded(otmp) : (int) otmp->cursed) {
+#if 0 /*JP*/
         boolean use_plural = (is_boots(otmp) || is_gloves(otmp)
                               || otmp->otyp == LENSES || otmp->quan > 1L);
 
         You("can't.  %s cursed.", use_plural ? "They are" : "It is");
+#else
+        pline("無理だ．それは呪われている．");
+#endif
         otmp->bknown = TRUE;
         return 1;
     }
@@ -1541,21 +1757,42 @@ register struct obj *otmp;
         return 0;
     if (delay) {
         nomul(delay);
+/*JP
         multi_reason = "disrobing";
+*/
+        multi_reason = "脱いでいる時に";
         if (is_helmet(otmp)) {
             /* ick... */
+/*JP
             nomovemsg = !strcmp(helm_simple_name(otmp), "hat")
+*/
+            nomovemsg = !strcmp(helm_simple_name(otmp), "帽子")
+/*JP
                             ? "You finish taking off your hat."
+*/
+                            ? "あなたは兜を脱ぎおえた．"
+/*JP
                             : "You finish taking off your helmet.";
+*/
+                            : "あなたは帽子を脱ぎおえた．";
             afternmv = Helmet_off;
         } else if (is_gloves(otmp)) {
+/*JP
             nomovemsg = "You finish taking off your gloves.";
+*/
+            nomovemsg = "あなたは小手を脱ぎおえた．";
             afternmv = Gloves_off;
         } else if (is_boots(otmp)) {
+/*JP
             nomovemsg = "You finish taking off your boots.";
+*/
+            nomovemsg = "あなたは靴を脱ぎおえた．";
             afternmv = Boots_off;
         } else {
+/*JP
             nomovemsg = "You finish taking off your suit.";
+*/
+            nomovemsg = "あなたは着ている物を脱ぎおえた．";
             afternmv = Armor_off;
         }
     } else {
@@ -1588,18 +1825,38 @@ register struct obj *otmp;
     return 1;
 }
 
+/*JP 
+** 物によって動詞が変化するので otmpを追加
+*/
 STATIC_OVL void
+#if 0 /*JP*/
 already_wearing(cc)
 const char *cc;
+#else
+already_wearing(cc, otmp)
+const char *cc;
+struct obj *otmp;
+#endif
 {
+#if 1 /*JP*/
+    const char *j;
+    const char *m;
+    m = jconj(jonmsg(otmp, &j), "ている");
+#endif
+/*JP
     You("are already wearing %s%c", cc, (cc == c_that_) ? '!' : '.');
+*/
+    You("もう%s%s%s%s", cc, j,  m, (cc == c_that_) ? "！" : "．");
 }
 
 STATIC_OVL void
 already_wearing2(cc1, cc2)
 const char *cc1, *cc2;
 {
+/*JP
     You_cant("wear %s because you're wearing %s there already.", cc1, cc2);
+*/
+    You_cant("%sを身に付けているので%sを身につけられない．", cc2, cc1);
 }
 
 /*
@@ -1617,12 +1874,19 @@ boolean noisy;
 {
     int err = 0;
     const char *which;
+#if 1 /*JP*/
+    const char *m;
+    const char *j;
+#endif
 
     /* this is the same check as for 'W' (dowear), but different message,
        in case we get here via 'P' (doputon) */
     if (verysmall(youmonst.data) || nohands(youmonst.data)) {
         if (noisy)
+/*JP
             You("can't wear any armor in your current form.");
+*/
+            You("現在の姿では防具を身につけることはできない．");
         return 0;
     }
 
@@ -1638,17 +1902,27 @@ boolean noisy;
         && (which != c_cloak || youmonst.data->msize != MZ_SMALL)
         && (racial_exception(&youmonst, otmp) < 1)) {
         if (noisy)
+/*JP
             pline_The("%s will not fit on your body.", which);
+*/
+            pline("%sはあなたの体に合わない．", which);
         return 0;
     } else if (otmp->owornmask & W_ARMOR) {
         if (noisy)
+#if 0 /*JP*/
             already_wearing(c_that_);
+#else
+            already_wearing(c_that_, otmp);
+#endif
         return 0;
     }
 
     if (welded(uwep) && bimanual(uwep) && (is_suit(otmp) || is_shirt(otmp))) {
         if (noisy)
+/*JP
             You("cannot do that while holding your %s.",
+*/
+            pline("%sを持ったままではそれは出来ない．",
                 is_sword(uwep) ? c_sword : c_weapon);
         return 0;
     }
@@ -1656,51 +1930,89 @@ boolean noisy;
     if (is_helmet(otmp)) {
         if (uarmh) {
             if (noisy)
+#if 0 /*JP*/
                 already_wearing(an(helm_simple_name(uarmh)));
+#else
+                already_wearing(helm_simple_name(uarmh), uarmh);
+#endif
             err++;
         } else if (Upolyd && has_horns(youmonst.data) && !is_flimsy(otmp)) {
             /* (flimsy exception matches polyself handling) */
             if (noisy)
+#if 0 /*JP*/
                 pline_The("%s won't fit over your horn%s.",
                           helm_simple_name(otmp),
                           plur(num_horns(youmonst.data)));
+#else
+                pline("角がじゃまで%sを身につけられない．",
+                      helm_simple_name(otmp));
+#endif
             err++;
         } else
             *mask = W_ARMH;
     } else if (is_shield(otmp)) {
         if (uarms) {
             if (noisy)
+#if 0 /*JP*/
                 already_wearing(an(c_shield));
+#else
+                already_wearing(c_shield, uarms);
+#endif
             err++;
         } else if (uwep && bimanual(uwep)) {
             if (noisy)
+#if 0 /*JP*/
                 You("cannot wear a shield while wielding a two-handed %s.",
                     is_sword(uwep) ? c_sword : (uwep->otyp == BATTLE_AXE)
                                                    ? c_axe
                                                    : c_weapon);
+#else
+                {
+                    m = jconj(jonmsg(uwep, &j), "ている");
+                    You("両手持ちの%s%s%sので盾で身を守れない．",
+                        is_sword(uwep) ? c_sword :
+                        uwep->otyp == BATTLE_AXE ? c_axe : c_weapon,
+                        j, m);
+                }
+#endif
             err++;
         } else if (u.twoweap) {
             if (noisy)
+/*JP
                 You("cannot wear a shield while wielding two weapons.");
+*/
+                You("二刀流をしているので盾で身を守れない．");
             err++;
         } else
             *mask = W_ARMS;
     } else if (is_boots(otmp)) {
         if (uarmf) {
             if (noisy)
+#if 0 /*JP*/
                 already_wearing(c_boots);
+#else
+                already_wearing(c_boots, uarmf);
+#endif
             err++;
         } else if (Upolyd && slithy(youmonst.data)) {
             if (noisy)
+#if 0 /*JP*/
                 You("have no feet..."); /* not body_part(FOOT) */
+#else
+                You("足がない．．．");  /* not body_part(FOOT) */
+#endif
             err++;
         } else if (Upolyd && youmonst.data->mlet == S_CENTAUR) {
             /* break_armor() pushes boots off for centaurs,
                so don't let dowear() put them back on... */
             if (noisy)
+#if 0 /*JP*/
                 pline("You have too many hooves to wear %s.",
                       c_boots); /* makeplural(body_part(FOOT)) yields
                                    "rear hooves" which sounds odd */
+#else
+                pline("%sを履くには足が多すぎる．", c_boots);
+#endif
             err++;
         } else if (u.utrap
                    && (u.utraptype == TT_BEARTRAP || u.utraptype == TT_INFLOOR
@@ -1708,15 +2020,28 @@ boolean noisy;
                        || u.utraptype == TT_BURIEDBALL)) {
             if (u.utraptype == TT_BEARTRAP) {
                 if (noisy)
+/*JP
                     Your("%s is trapped!", body_part(FOOT));
+*/
+                    Your("%sは罠にかかっている！", body_part(FOOT));
             } else if (u.utraptype == TT_INFLOOR || u.utraptype == TT_LAVA) {
                 if (noisy)
+#if 0 /*JP*/
                     Your("%s are stuck in the %s!",
                          makeplural(body_part(FOOT)), surface(u.ux, u.uy));
+#else
+                    Your("%sは%sにはまっている！",
+                         body_part(FOOT), surface(u.ux, u.uy));
+#endif
             } else { /*TT_BURIEDBALL*/
                 if (noisy)
+#if 0 /*JP*/
                     Your("%s is attached to the buried ball!",
                          body_part(LEG));
+#else
+                    Your("%sは埋まっている球につながっている！",
+                         body_part(LEG));
+#endif
             }
             err++;
         } else
@@ -1724,11 +2049,18 @@ boolean noisy;
     } else if (is_gloves(otmp)) {
         if (uarmg) {
             if (noisy)
+#if 0 /*JP*/
                 already_wearing(c_gloves);
+#else
+                already_wearing(c_gloves, uarmg);
+#endif
             err++;
         } else if (welded(uwep)) {
             if (noisy)
+/*JP
                 You("cannot wear gloves over your %s.",
+*/
+                You("%sの上から小手を装備できない．",
                     is_sword(uwep) ? c_sword : c_weapon);
             err++;
         } else
@@ -1737,10 +2069,17 @@ boolean noisy;
         if (uarm || uarmc || uarmu) {
             if (uarmu) {
                 if (noisy)
+#if 0 /*JP*/
                     already_wearing(an(c_shirt));
+#else
+                    already_wearing(c_shirt, uarmu);
+#endif
             } else {
                 if (noisy)
+/*JP
                     You_cant("wear that over your %s.",
+*/
+                    You("%sの上から着ることはできない．",
                              (uarm && !uarmc) ? c_armor
                                               : cloak_simple_name(uarmc));
             }
@@ -1750,18 +2089,27 @@ boolean noisy;
     } else if (is_cloak(otmp)) {
         if (uarmc) {
             if (noisy)
+/*JP
                 already_wearing(an(cloak_simple_name(uarmc)));
+*/
+                already_wearing(cloak_simple_name(uarmc), otmp);
             err++;
         } else
             *mask = W_ARMC;
     } else if (is_suit(otmp)) {
         if (uarmc) {
             if (noisy)
+/*JP
                 You("cannot wear armor over a %s.", cloak_simple_name(uarmc));
+*/
+                You("%sの上から着ることはできない．", cloak_simple_name(uarmc));
             err++;
         } else if (uarm) {
             if (noisy)
+/*JP
                 already_wearing("some armor");
+*/
+                already_wearing("鎧", uarm);
             err++;
         } else
             *mask = W_ARM;
@@ -1770,7 +2118,10 @@ boolean noisy;
            happens if you have armor for slots that are covered up or
            extra armor for slots that are filled */
         if (noisy)
+/*JP
             silly_thing("wear", otmp);
+*/
+            silly_thing("身につける", otmp);
         err++;
     }
     /* Unnecessary since now only weapons and special items like pick-axes get
@@ -1792,7 +2143,11 @@ struct obj *obj;
     boolean armor, ring, eyewear;
 
     if (obj->owornmask & (W_ACCESSORY | W_ARMOR)) {
+#if 0 /*JP*/
         already_wearing(c_that_);
+#else
+        already_wearing(c_that_, obj);
+#endif
         return 0;
     }
     armor = (obj->oclass == ARMOR_CLASS);
@@ -1807,9 +2162,15 @@ struct obj *obj;
         if (obj->otyp == HELM_OF_OPPOSITE_ALIGNMENT
             && qstart_level.dnum == u.uz.dnum) { /* in quest */
             if (u.ualignbase[A_CURRENT] == u.ualignbase[A_ORIGINAL])
+/*JP
                 You("narrowly avoid losing all chance at your goal.");
+*/
+                You("目的を達成する可能性を失うことをなんとか回避した．");
             else /* converted */
+/*JP
                 You("are suddenly overcome with shame and change your mind.");
+*/
+                You("突然恥ずかしくなって考えを変えた．");
             u.ublessed = 0; /* lose your god's protection */
             makeknown(obj->otyp);
             context.botl = 1; /*for AC after zeroing u.ublessed */
@@ -1822,13 +2183,22 @@ struct obj *obj;
             int res = 0;
 
             if (nolimbs(youmonst.data)) {
+/*JP
                 You("cannot make the ring stick to your body.");
+*/
+                You("指輪をはめられない体だ．");
                 return 0;
             }
             if (uleft && uright) {
+#if 0 /*JP*/
                 There("are no more %s%s to fill.",
                       humanoid(youmonst.data) ? "ring-" : "",
                       makeplural(body_part(FINGER)));
+#else
+                pline("はめることのできる%s%sがない．",
+                      humanoid(youmonst.data) ? "薬" : "",
+                      body_part(FINGER));
+#endif
                 return 0;
             }
             if (uleft) {
@@ -1837,9 +2207,15 @@ struct obj *obj;
                 mask = LEFT_RING;
             } else {
                 do {
+#if 0 /*JP*/
                     Sprintf(qbuf, "Which %s%s, Right or Left?",
                             humanoid(youmonst.data) ? "ring-" : "",
                             body_part(FINGER));
+#else
+                    Sprintf(qbuf, "どちらの%s%s，右(r)それとも左(l)？",
+                            humanoid(youmonst.data) ? "薬" : "",
+                            body_part(FINGER));
+#endif
                     answer = yn_function(qbuf, "rl", '\0');
                     switch (answer) {
                     case '\0':
@@ -1858,7 +2234,10 @@ struct obj *obj;
             if (uarmg && uarmg->cursed) {
                 res = !uarmg->bknown;
                 uarmg->bknown = 1;
+/*JP
                 You("cannot remove your gloves to put on the ring.");
+*/
+                You("指輪をはめようとしたが小手が脱げない．");
                 return res; /* uses move iff we learned gloves are cursed */
             }
             if (uwep) {
@@ -1869,39 +2248,71 @@ struct obj *obj;
                     /* welded will set bknown */
                     if (bimanual(uwep))
                         hand = makeplural(hand);
+/*JP
                     You("cannot free your weapon %s to put on the ring.",
+*/
+                    You("指輪をはめようとしたが利%sの自由がきかない．",
                         hand);
                     return res; /* uses move iff we learned weapon is cursed */
                 }
             }
         } else if (obj->oclass == AMULET_CLASS) {
             if (uamul) {
+#if 0 /*JP*/
                 already_wearing("an amulet");
+#else
+                already_wearing("魔除け", uamul);
+#endif
                 return 0;
             }
         } else if (eyewear) {
             if (ublindf) {
                 if (ublindf->otyp == TOWEL)
+#if 0 /*JP:T*/
                     Your("%s is already covered by a towel.",
                          body_part(FACE));
+#else
+                    You("既にタオルを身につけている．");
+#endif
                 else if (ublindf->otyp == BLINDFOLD) {
                     if (obj->otyp == LENSES)
+/*JP
                         already_wearing2("lenses", "a blindfold");
+*/
+                        already_wearing2("レンズ", "目隠し");
                     else
+#if 0 /*JP*/
                         already_wearing("a blindfold");
+#else
+                        already_wearing("目隠し", ublindf);
+#endif
                 } else if (ublindf->otyp == LENSES) {
                     if (obj->otyp == BLINDFOLD)
+/*JP
                         already_wearing2("a blindfold", "some lenses");
+*/
+                        already_wearing2("目隠し", "レンズ");
                     else
+#if 0 /*JP*/
                         already_wearing("some lenses");
+#else
+                        already_wearing("レンズ", ublindf);
+#endif
                 } else {
+#if 0 /*JP*/
                     already_wearing(something); /* ??? */
+#else
+                    already_wearing("何か", ublindf); /* ??? */
+#endif
                 }
                 return 0;
             }
         } else {
             /* neither armor nor accessory */
+/*JP
             You_cant("wear that!");
+*/
+            You_cant("それを身につけられない！");
             return 0;
         }
     }
@@ -1920,7 +2331,10 @@ struct obj *obj;
         delay = -objects[obj->otyp].oc_delay;
         if (delay) {
             nomul(delay);
+/*JP
             multi_reason = "dressing up";
+*/
+            multi_reason = "装備している時に";
             if (is_boots(obj))
                 afternmv = Boots_on;
             if (is_helmet(obj))
@@ -1929,7 +2343,10 @@ struct obj *obj;
                 afternmv = Gloves_on;
             if (obj == uarm)
                 afternmv = Armor_on;
+/*JP
             nomovemsg = "You finish your dressing maneuver.";
+*/
+            nomovemsg = "装備し終えた．";
         } else {
             if (is_cloak(obj))
                 (void) Cloak_on();
@@ -1974,13 +2391,19 @@ dowear()
     /* cantweararm() checks for suits of armor, not what we want here;
        verysmall() or nohands() checks for shields, gloves, etc... */
     if (verysmall(youmonst.data) || nohands(youmonst.data)) {
+/*JP
         pline("Don't even bother.");
+*/
+        pline("そんなつまらないことにこだわるな．");
         return 0;
     }
     if (uarm && uarmu && uarmc && uarmh && uarms && uarmg && uarmf
         && uleft && uright && uamul && ublindf) {
         /* 'W' message doesn't mention accessories */
+/*JP
         You("are already wearing a full complement of armor.");
+*/
+        You("すでに完全装備している．");
         return 0;
     }
     otmp = getobj(clothes, "wear");
@@ -1996,10 +2419,17 @@ doputon()
     if (uleft && uright && uamul && ublindf
         && uarm && uarmu && uarmc && uarmh && uarms && uarmg && uarmf) {
         /* 'P' message doesn't mention armor */
+#if 0 /*JP*/
         Your("%s%s are full, and you're already wearing an amulet and %s.",
              humanoid(youmonst.data) ? "ring-" : "",
              makeplural(body_part(FINGER)),
              (ublindf->otyp == LENSES) ? "some lenses" : "a blindfold");
+#else
+        Your("%s%sはふさがってるし，すでに魔除けと%sも身につけている．",
+             humanoid(youmonst.data) ? "薬" : "",
+             body_part(FINGER),
+             ublindf->otyp==LENSES ? "レンズ" : "目隠し");
+#endif
         return 0;
     }
     otmp = getobj(accessories, "put on");
@@ -2066,10 +2496,14 @@ glibr()
     rightfall = (uright && !uright->cursed && (!welded(uwep)));
     if (!uarmg && (leftfall || rightfall) && !nolimbs(youmonst.data)) {
         /* changed so cursed rings don't fall off, GAN 10/30/86 */
+#if 0 /*JP*/
         Your("%s off your %s.",
              (leftfall && rightfall) ? "rings slip" : "ring slips",
              (leftfall && rightfall) ? makeplural(body_part(FINGER))
                                      : body_part(FINGER));
+#else
+        Your("指輪は%sから滑り落ちた．", body_part(FINGER));
+#endif
         xfl++;
         if (leftfall) {
             otmp = uleft;
@@ -2094,9 +2528,17 @@ glibr()
         if (otmp->quan > 1L)
             otherwep = makeplural(otherwep);
         hand = body_part(HAND);
+/*JP
         which = "left ";
+*/
+        which = "左";
+#if 0 /*JP*/
         Your("%s %s%s from your %s%s.", otherwep, xfl ? "also " : "",
              otense(otmp, "slip"), which, hand);
+#else
+        You("%s%s%s%sから滑り落とした．", otherwep, xfl ? "もまた" : "を",
+            which, body_part(HAND));
+#endif
         xfl++;
         wastwoweap = TRUE;
         setuswapwep((struct obj *) 0); /* clears u.twoweap */
@@ -2127,11 +2569,22 @@ glibr()
         if (bimanual(otmp))
             hand = makeplural(hand);
         else if (wastwoweap)
+#if 0 /*JP*/
             which = "right "; /* preceding msg was about left */
+#else
+            which = "右"; /* preceding msg was about left */
+#endif
+#if 0 /*JP*/
         pline("%s %s%s %s%s from your %s%s.",
               !strncmp(thiswep, "corpse", 6) ? "The" : "Your",
               otherwep ? "other " : "", thiswep, xfl ? "also " : "",
               otense(otmp, "slip"), which, hand);
+#else
+        You("%s%s%s%s%sから滑り落とした．",
+            otherwep ? "もうひとつの" : "", thiswep,
+            xfl ? "もまた" : "を",
+            which, body_part(HAND));
+#endif
         /* xfl++; */
         otmp->quan = savequan;
         setuwep((struct obj *) 0);
@@ -2219,19 +2672,32 @@ register struct obj *otmp;
     /* special ring checks */
     if (otmp == uright || otmp == uleft) {
         if (nolimbs(youmonst.data)) {
+#if 0 /*JP*/
             pline_The("ring is stuck.");
+#else
+            pline("指輪は体に埋まってしまっている．");
+#endif
             return 0;
         }
         why = 0; /* the item which prevents ring removal */
         if (welded(uwep) && (otmp == uright || bimanual(uwep))) {
+/*JP
             Sprintf(buf, "free a weapon %s", body_part(HAND));
+*/
+            Sprintf(buf, "利腕の自由がきかない");
             why = uwep;
         } else if (uarmg && uarmg->cursed) {
+/*JP
             Sprintf(buf, "take off your %s", c_gloves);
+*/
+            Sprintf(buf, "%sが脱げない", c_gloves);
             why = uarmg;
         }
         if (why) {
+/*JP
             You("cannot %s to remove the ring.", buf);
+*/
+            You("指輪をはずそうとしたが%s．", buf);
             why->bknown = TRUE;
             return 0;
         }
@@ -2239,24 +2705,40 @@ register struct obj *otmp;
     /* special glove checks */
     if (otmp == uarmg) {
         if (welded(uwep)) {
+#if 0 /*JP*/
             You("are unable to take off your %s while wielding that %s.",
                 c_gloves, is_sword(uwep) ? c_sword : c_weapon);
+#else
+            You("%sを持ったまま%sをはずすことはできない．",
+                is_sword(uwep) ? c_sword : c_weapon, c_gloves);
+#endif
             uwep->bknown = TRUE;
             return 0;
         } else if (Glib) {
+#if 0 /*JP*/
             You_cant("take off the slippery %s with your slippery %s.",
                      c_gloves, makeplural(body_part(FINGER)));
+#else
+            You_cant("滑りやすい%sを滑りやすい%sではずせない．",
+                     c_gloves, body_part(FINGER));
+#endif
             return 0;
         }
     }
     /* special boot checks */
     if (otmp == uarmf) {
         if (u.utrap && u.utraptype == TT_BEARTRAP) {
+/*JP
             pline_The("bear trap prevents you from pulling your %s out.",
+*/
+            pline("%sが熊の罠につかまっているので脱ぐことができない．",
                       body_part(FOOT));
             return 0;
         } else if (u.utrap && u.utraptype == TT_INFLOOR) {
+/*JP
             You("are stuck in the %s, and cannot pull your %s out.",
+*/
+            You("%sが%sにはまっているので脱ぐことができない．",
                 surface(u.ux, u.uy), makeplural(body_part(FOOT)));
             return 0;
         }
@@ -2265,20 +2747,36 @@ register struct obj *otmp;
     if (otmp == uarm || otmp == uarmu) {
         why = 0; /* the item which prevents disrobing */
         if (uarmc && uarmc->cursed) {
+/*JP
             Sprintf(buf, "remove your %s", cloak_simple_name(uarmc));
+*/
+            Sprintf(buf, "%sが脱げない", cloak_simple_name(uarmc));
             why = uarmc;
         } else if (otmp == uarmu && uarm && uarm->cursed) {
+/*JP
             Sprintf(buf, "remove your %s", c_suit);
+*/
+            Sprintf(buf, "%sが脱げない", c_suit);
             why = uarm;
         } else if (welded(uwep) && bimanual(uwep)) {
+#if 0 /*JP*/
             Sprintf(buf, "release your %s",
                     is_sword(uwep) ? c_sword : (uwep->otyp == BATTLE_AXE)
                                                    ? c_axe
                                                    : c_weapon);
+#else
+            Sprintf(buf, "%sが手放せない",
+                    is_sword(uwep) ? c_sword : (uwep->otyp == BATTLE_AXE)
+                                                   ? c_axe
+                                                   : c_weapon);
+#endif
             why = uwep;
         }
         if (why) {
+/*JP
             You("cannot %s to take off %s.", buf, the(xname(otmp)));
+*/
+            You("%sをはずそうとしたが%s．", xname(otmp), buf);
             why->bknown = TRUE;
             return 0;
         }
@@ -2337,16 +2835,25 @@ do_takeoff()
     if (doff->what == W_WEP) {
         if (!cursed(uwep)) {
             setuwep((struct obj *) 0);
+/*JP
             You("are empty %s.", body_part(HANDED));
+*/
+            You("何も%sにしていない．", body_part(HAND));
             u.twoweap = FALSE;
         }
     } else if (doff->what == W_SWAPWEP) {
         setuswapwep((struct obj *) 0);
+/*JP
         You("no longer have a second weapon readied.");
+*/
+        You("予備の武器をおさめた．");
         u.twoweap = FALSE;
     } else if (doff->what == W_QUIVER) {
         setuqwep((struct obj *) 0);
+/*JP
         You("no longer have ammunition readied.");
+*/
+        You("準備した矢弾をおさめた．");
     } else if (doff->what == WORN_ARMOR) {
         otmp = uarm;
         if (!cursed(otmp))
@@ -2428,7 +2935,10 @@ take_off(VOID_ARGS)
     doff->delay = 0;
 
     if (doff->what == 0L) {
+/*JP
         You("finish %s.", doff->disrobing);
+*/
+        You("装備を解きおえた．");
         return 0;
     } else if (doff->what == W_WEP) {
         doff->delay = 1;
@@ -2505,12 +3015,21 @@ doddoremarm()
     int result = 0;
 
     if (context.takeoff.what || context.takeoff.mask) {
+/*JP
         You("continue %s.", context.takeoff.disrobing);
+*/
+        You("装備を解くのを再開した．");
+/*JP
         set_occupation(take_off, context.takeoff.disrobing, 0);
+*/
+        set_occupation(take_off, "装備を解く", 0);
         return 0;
     } else if (!uwep && !uswapwep && !uquiver && !uamul && !ublindf && !uleft
                && !uright && !wearing_armor()) {
+/*JP
         You("are not wearing anything.");
+*/
+        You("何も装備していない．");
         return 0;
     }
 
@@ -2521,6 +3040,7 @@ doddoremarm()
         result = menu_remarm(result);
 
     if (context.takeoff.mask) {
+#if 0 /*JP*//*日本語では使わない*/
         /* default activity for armor and/or accessories,
            possibly combined with weapons */
         (void) strncpy(context.takeoff.disrobing, "disrobing", CONTEXTVERBSZ);
@@ -2528,6 +3048,7 @@ doddoremarm()
         if (!(context.takeoff.mask & ~W_WEAPON))
             (void) strncpy(context.takeoff.disrobing, "disarming",
                            CONTEXTVERBSZ);
+#endif
         (void) take_off();
     }
     /* The time to perform the command is already completely accounted for
@@ -2549,7 +3070,10 @@ int retry;
         all_worn_categories = (retry == -2);
     } else if (flags.menu_style == MENU_FULL) {
         all_worn_categories = FALSE;
+/*JP
         n = query_category("What type of things do you want to take off?",
+*/
+        n = query_category("どのタイプの物の装備を解きますか？",
                            invent, (WORN_TYPES | ALL_TYPES
                                     | UNPAID_TYPES | BUCX_TYPES),
                            &pick_list, PICK_ANY);
@@ -2575,16 +3099,26 @@ int retry;
         || menu_class_present('C') || menu_class_present('X'))
         all_worn_categories = FALSE;
 
+#if 0 /*JP:T*/
     n = query_objlist("What do you want to take off?", &invent,
                       (SIGNAL_NOMENU | USE_INVLET | INVORDER_SORT),
                       &pick_list, PICK_ANY,
                       all_worn_categories ? is_worn : is_worn_by_type);
+#else
+    n = query_objlist("どの装備を解きますか？", &invent,
+                      (SIGNAL_NOMENU | USE_INVLET | INVORDER_SORT),
+                      &pick_list, PICK_ANY,
+                      all_worn_categories ? is_worn : is_worn_by_type);
+#endif
     if (n > 0) {
         for (i = 0; i < n; i++)
             (void) select_off(pick_list[i].item.a_obj);
         free((genericptr_t) pick_list);
     } else if (n < 0 && flags.menu_style != MENU_COMBINATION) {
+/*JP
         There("is nothing else you can remove or unwield.");
+*/
+        pline("装備を解けるものは何もない．");
     }
     return 0;
 }
@@ -2604,44 +3138,68 @@ register struct obj *atmp;
     if (DESTROY_ARM(uarmc)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("%s crumbles and turns to dust!", cloak_simple_name(uarmc));
+*/
+        Your("%sは粉々になった！", cloak_simple_name(uarmc));
         (void) Cloak_off();
         useup(otmp);
     } else if (DESTROY_ARM(uarm)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("armor turns to dust and falls to the %s!", surface(u.ux, u.uy));
+*/
+        Your("鎧は塵となり%sに落ちた！", surface(u.ux,u.uy));
         (void) Armor_gone();
         useup(otmp);
     } else if (DESTROY_ARM(uarmu)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("shirt crumbles into tiny threads and falls apart!");
+*/
+        Your("シャツはズタズタに裂け，小さな糸屑となり落ちた！");
         (void) Shirt_off();
         useup(otmp);
     } else if (DESTROY_ARM(uarmh)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("%s turns to dust and is blown away!", helm_simple_name(uarmh));
+*/
+        Your("%sは塵となり吹きとんだ！", helm_simple_name(uarmh));
         (void) Helmet_off();
         useup(otmp);
     } else if (DESTROY_ARM(uarmg)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("gloves vanish!");
+*/
+                Your("小手は消えた！");
         (void) Gloves_off();
         useup(otmp);
+/*JP
         selftouch("You");
+*/
+        selftouch("そのときあなたは");
     } else if (DESTROY_ARM(uarmf)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("boots disintegrate!");
+*/
+        Your("靴は粉々に砕けた！");
         (void) Boots_off();
         useup(otmp);
     } else if (DESTROY_ARM(uarms)) {
         if (donning(otmp))
             cancel_don();
+/*JP
         Your("shield crumbles away!");
+*/
+        Your("盾は砕け散った！");
         (void) Shield_off();
         useup(otmp);
     } else {
@@ -2682,10 +3240,16 @@ boolean
 inaccessible_equipment(obj, verb, only_if_known_cursed)
 struct obj *obj;
 const char *verb; /* "dip" or "grease", or null to avoid messages */
+/*JP:日本語では "を浸す", "に脂を塗る", null のいずれか*/
 boolean only_if_known_cursed; /* ignore covering unless known to be cursed */
 {
+#if 0 /*JP*/
     static NEARDATA const char need_to_take_off_outer_armor[] =
         "need to take off %s to %s %s.";
+#else /*JP:引数が原文と変わっていることに注意*/
+    static NEARDATA const char need_to_take_off_outer_armor[] =
+        "%s%sには%sを%s必要がある．";
+#endif
     char buf[BUFSZ];
     boolean anycovering = !only_if_known_cursed; /* more comprehensible... */
 #define BLOCKSACCESS(x) (anycovering || ((x)->cursed && (x)->bknown))
@@ -2697,7 +3261,11 @@ boolean only_if_known_cursed; /* ignore covering unless known to be cursed */
     if (obj == uarm && uarmc && BLOCKSACCESS(uarmc)) {
         if (verb) {
             Strcpy(buf, yname(uarmc));
+#if 0 /*JP*/
             You(need_to_take_off_outer_armor, buf, verb, yname(obj));
+#else /*JP:対象はクロークなのでjoffmsgを使わず決め撃ち*/
+            You(need_to_take_off_outer_armor, xname(obj), verb, buf, "脱ぐ");
+#endif
         }
         return TRUE;
     }
@@ -2717,10 +3285,17 @@ boolean only_if_known_cursed; /* ignore covering unless known to be cursed */
             if (uarmc)
                 Strcat(buf, yname(uarmc));
             if (uarm && uarmc)
+/*JP
                 Strcat(buf, " and ");
+*/
+                Strcat(buf, "と");
             if (uarm)
                 Strcat(buf, sameprefix ? xname(uarm) : yname(uarm));
+#if 0 /*JP*/
             You(need_to_take_off_outer_armor, buf, verb, yname(obj));
+#else /*JP:対象はクロークか鎧なのでjoffmsgを使わず決め撃ち*/
+            You(need_to_take_off_outer_armor, xname(obj), verb, buf, "脱ぐ");
+#endif
         }
         return TRUE;
     }
@@ -2728,7 +3303,11 @@ boolean only_if_known_cursed; /* ignore covering unless known to be cursed */
     if ((obj == uleft || obj == uright) && uarmg && BLOCKSACCESS(uarmg)) {
         if (verb) {
             Strcpy(buf, yname(uarmg));
+#if 0 /*JP*/
             You(need_to_take_off_outer_armor, buf, verb, yname(obj));
+#else /*JP:対象は小手なのでjoffmsgを使わず決め撃ち*/
+            You(need_to_take_off_outer_armor, xname(obj), verb, buf, "はずす");
+#endif
         }
         return TRUE;
     }

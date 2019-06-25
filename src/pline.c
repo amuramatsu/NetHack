@@ -3,6 +3,11 @@
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #define NEED_VARARGS /* Uses ... */ /* comment line for pre-compiled headers \
                                        */
 #include "hack.h"
@@ -262,7 +267,10 @@ VA_DECL(const char *, line)
     char *tmp;
     VA_START(line);
     VA_INIT(line, const char *);
+/*JP
     vpline(YouMessage(tmp, "You ", line), VA_ARGS);
+*/
+    vpline(YouMessage(tmp, "あなたは", line), VA_ARGS);
     VA_END();
 }
 
@@ -273,7 +281,10 @@ VA_DECL(const char *, line)
     char *tmp;
     VA_START(line);
     VA_INIT(line, const char *);
+/*JP
     vpline(YouMessage(tmp, "Your ", line), VA_ARGS);
+*/
+    vpline(YouMessage(tmp, "あなたの", line), VA_ARGS);
     VA_END();
 }
 
@@ -285,9 +296,15 @@ VA_DECL(const char *, line)
     VA_START(line);
     VA_INIT(line, const char *);
     if (Unaware)
+/*JP
         YouPrefix(tmp, "You dream that you feel ", line);
+*/
+        YouPrefix(tmp, "あなたは夢の中で", line);
     else
+/*JP
         YouPrefix(tmp, "You feel ", line);
+*/
+        YouPrefix(tmp, "あなたは", line);
     vpline(strcat(tmp, line), VA_ARGS);
     VA_END();
 }
@@ -299,7 +316,10 @@ VA_DECL(const char *, line)
     char *tmp;
     VA_START(line);
     VA_INIT(line, const char *);
+/*JP
     vpline(YouMessage(tmp, "You can't ", line), VA_ARGS);
+*/
+    vpline(YouMessage(tmp, "あなたは", line), VA_ARGS);
     VA_END();
 }
 
@@ -310,7 +330,10 @@ VA_DECL(const char *, line)
     char *tmp;
     VA_START(line);
     VA_INIT(line, const char *);
+/*JP
     vpline(YouMessage(tmp, "The ", line), VA_ARGS);
+*/
+    vpline(YouMessage(tmp, "", line), VA_ARGS);
     VA_END();
 }
 
@@ -321,7 +344,10 @@ VA_DECL(const char *, line)
     char *tmp;
     VA_START(line);
     VA_INIT(line, const char *);
+/*JP
     vpline(YouMessage(tmp, "There ", line), VA_ARGS);
+*/
+    vpline(YouMessage(tmp, "", line), VA_ARGS);
     VA_END();
 }
 
@@ -330,11 +356,16 @@ void You_hear
 VA_DECL(const char *, line)
 {
     char *tmp;
+#if 1 /*JP*/
+        const char *adj;
+        char *p;
+#endif
 
     if (Deaf || !flags.acoustics)
         return;
     VA_START(line);
     VA_INIT(line, const char *);
+#if 0 /*JP*/
     if (Underwater)
         YouPrefix(tmp, "You barely hear ", line);
     else if (Unaware)
@@ -342,6 +373,29 @@ VA_DECL(const char *, line)
     else
         YouPrefix(tmp, "You hear ", line);
     vpline(strcat(tmp, line), VA_ARGS);
+#else
+    if (Underwater)
+        adj = "かすかに";
+    else if (Unaware)
+        adj = "夢の中で";
+    else
+        adj = "";
+    tmp = You_buf(strlen(adj) + strlen(line) + sizeof("あなたは   "));
+
+    p = (char *)strstr(line, "聞こ") ;
+    if (p == NULL)
+        Strcpy(tmp, "あなたは");
+    else
+        Strcpy(tmp, "");
+    if (p != NULL || (p = (char *)strstr(line, "聞い")) != NULL){
+        strncat(tmp, line, (p - line));
+        strcat(tmp, adj);
+        strcat(tmp, p);
+    } else {
+        Strcat(tmp, line);
+    }
+    vpline(tmp, VA_ARGS);
+#endif
     VA_END();
 }
 
@@ -354,11 +408,19 @@ VA_DECL(const char *, line)
     VA_START(line);
     VA_INIT(line, const char *);
     if (Unaware)
+/*JP
         YouPrefix(tmp, "You dream that you see ", line);
+*/
+        YouPrefix(tmp, "あなたは夢の中で", line);
+#if 0 /*JP*//*ここは呼び出し元で処理する?*/
     else if (Blind) /* caller should have caught this... */
         YouPrefix(tmp, "You sense ", line);
+#endif
     else
+/*JP
         YouPrefix(tmp, "You see ", line);
+*/
+        YouPrefix(tmp, "あなたは", line);
     vpline(strcat(tmp, line), VA_ARGS);
     VA_END();
 }
@@ -375,10 +437,17 @@ VA_DECL(const char *, line)
 
     VA_START(line);
     VA_INIT(line, const char *);
+#if 0 /*JP*/
     tmp = You_buf((int) strlen(line) + sizeof "\"\"");
     Strcpy(tmp, "\"");
     Strcat(tmp, line);
     Strcat(tmp, "\"");
+#else
+    tmp = You_buf((int) strlen(line) + sizeof "「」");
+    Strcpy(tmp, "「");
+    Strcat(tmp, line);
+    Strcat(tmp, "」");
+#endif
     vpline(tmp, VA_ARGS);
     VA_END();
 }
@@ -454,8 +523,13 @@ VA_DECL(const char *, s)
     pbuf[BUFSZ - 1] = '\0'; /* sanity */
     paniclog("impossible", pbuf);
     pline("%s", VA_PASS1(pbuf));
+#if 0 /*JP:T*/
     pline(VA_PASS1(
        "Program in disorder!  (Saving and reloading may fix this problem.)"));
+#else
+    pline(VA_PASS1(
+       "プログラムに障害発生！ (保存して再読み込みすれば問題解決するかもしれない．)"));
+#endif
     program_state.in_impossible = 0;
     VA_END();
 }

@@ -2,6 +2,11 @@
 /* Copyright (c) Dean Luick, 1992				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata 1994-1999                                      */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 /*
  * Data structures and support routines for the Window widget.  This is a
  * drawing canvas with 16 colors and one font.
@@ -77,6 +82,10 @@ static XtResource resources[] = {
 
     { nhStr(XtNfont), XtCFont, XtRFontStruct, sizeof(XFontStruct *),
       offset(font), XtRString, (XtPointer) XtDefaultFont },
+#ifdef XI18N
+    { XtNfontSet, XtCFontSet, XtRFontSet, sizeof(XFontSet *),
+        offset(fontset), XtRString, XtDefaultFontSet },
+#endif
     { nhStr(XtNexposeCallback), XtCCallback, XtRCallback,
       sizeof(XtCallbackList), offset(expose_callback), XtRCallback,
       (char *) 0 },
@@ -185,3 +194,12 @@ Widget w;
 {
     return ((WindowWidget) w)->window.font;
 }
+
+#ifdef XI18N
+XFontSet
+WindowFontSet(w)
+Widget w;
+{
+    return ((WindowWidget) w)->window.fontset;
+}
+#endif

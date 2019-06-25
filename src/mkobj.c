@@ -648,9 +648,15 @@ register struct obj *otmp;
 
 /* alteration types; must match COST_xxx macros in hack.h */
 static const char *const alteration_verbs[] = {
+#if 0 /*JP*/
     "cancel", "drain", "uncharge", "unbless", "uncurse", "disenchant",
     "degrade", "dilute", "erase", "burn", "neutralize", "destroy", "splatter",
     "bite", "open", "break the lock on", "rust", "rot", "tarnish"
+#else
+    "無効化した", "劣化させた", "放出させた", "祝福を解いた", "呪いを解いた", "魔力を減らした",
+    "劣化させた", "薄めた", "消した", "燃やした", "無毒化した", "壊した", "使った",
+    "食べた", "開けた", "鍵を壊した", "錆びさせた", "腐らせた", "傷つけた"
+#endif
 };
 
 /* possibly bill for an object which the player has just modified */
@@ -662,7 +668,9 @@ int alter_type;
     xchar ox, oy;
     char objroom;
     boolean set_bknown;
+#if 0 /*JP*//*使わない*/
     const char *those, *them;
+#endif
     struct monst *shkp = 0;
 
     if (alter_type < 0 || alter_type >= SIZE(alteration_verbs)) {
@@ -693,10 +701,12 @@ int alter_type;
             return;
     }
 
+#if 0 /*JP*//*日本語では不要*/
     if (obj->quan == 1L)
         those = "that", them = "it";
     else
         those = "those", them = "them";
+#endif
 
     /* when shopkeeper describes the object as being uncursed or unblessed
        hero will know that it is now uncursed; will also make the feedback
@@ -708,17 +718,27 @@ int alter_type;
     case OBJ_INVENT:
         if (set_bknown)
             obj->bknown = 1;
+#if 0 /*JP*/
         verbalize("You %s %s %s, you pay for %s!",
                   alteration_verbs[alter_type], those, simpleonames(obj),
                   them);
+#else
+        verbalize("%sを%sのなら，買ってもらうよ！",
+                  simpleonames(obj), alteration_verbs[alter_type]);
+#endif
         bill_dummy_object(obj);
         break;
     case OBJ_FLOOR:
         if (set_bknown)
             obj->bknown = 1;
         if (costly_spot(u.ux, u.uy) && objroom == *u.ushops) {
+#if 0 /*JP*/
             verbalize("You %s %s, you pay for %s!",
                       alteration_verbs[alter_type], those, them);
+#else
+            verbalize("%sのなら，買ってもらうよ！",
+                      alteration_verbs[alter_type]);
+#endif
             bill_dummy_object(obj);
         } else {
             (void) stolen_value(obj, ox, oy, FALSE, FALSE);
@@ -1204,7 +1224,11 @@ int old_range;
             *buf = '\0';
             if (iflags.last_msg == PLNMSG_OBJ_GLOWS)
                 /* we just saw "The <obj> glows <color>." from dipping */
+#if 0 /*JP*/
                 Strcpy(buf, (obj->quan == 1L) ? "It" : "They");
+#else
+                Strcpy(buf, "それ");
+#endif
             else if (carried(obj) || cansee(ox, oy))
                 Strcpy(buf, Yname2(obj));
             if (*buf) {
@@ -1213,9 +1237,15 @@ int old_range;
                    when changing intensity, using "less brightly" is
                    straightforward for dimming, but we need "brighter"
                    rather than "more brightly" for brightening; ugh */
+#if 0 /*JP*/
                 pline("%s %s %s%s.", buf, otense(obj, "shine"),
                       (abs(delta) > 1) ? "much " : "",
                       (delta > 0) ? "brighter" : "less brightly");
+#else
+                pline("%sの輝きは%s%s．", buf,
+                      (abs(delta) > 1) ? "かなり" : "",
+                      (delta > 0) ? "増した" : "減った");
+#endif
             }
         }
     }
@@ -2133,15 +2163,24 @@ boolean tipping; /* caller emptying entire contents; affects shop handling */
                 do {
                     obj->otyp = rnd_class(POT_BOOZE, POT_WATER);
                 } while (obj->otyp == POT_SICKNESS);
+/*JP
             what = (obj->quan > 1L) ? "Some potions" : "A potion";
+*/
+            what = "薬";
         } else {
             obj = mkobj(FOOD_CLASS, FALSE);
             if (obj->otyp == FOOD_RATION && !rn2(7))
                 obj->otyp = LUMP_OF_ROYAL_JELLY;
+/*JP
             what = "Some food";
+*/
+            what = "食べ物";
         }
         ++objcount;
+/*JP
         pline("%s %s out.", what, vtense(what, "spill"));
+*/
+        pline("%sが飛び出てきた．", what);
         obj->blessed = horn->blessed;
         obj->cursed = horn->cursed;
         obj->owt = weight(obj);
@@ -2153,6 +2192,7 @@ boolean tipping; /* caller emptying entire contents; affects shop handling */
            being included in its formatted name during next message */
         iflags.suppress_price++;
         if (!tipping) {
+#if 0 /*JP*/
             obj = hold_another_object(
                 obj, u.uswallow ? "Oops!  %s out of your reach!"
                                 : (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz)
@@ -2161,6 +2201,16 @@ boolean tipping; /* caller emptying entire contents; affects shop handling */
                                       ? "Oops!  %s away from you!"
                                       : "Oops!  %s to the floor!",
                 The(aobjnam(obj, "slip")), (const char *) 0);
+#else
+            obj = hold_another_object(
+                obj, u.uswallow ? "おっと！%sは届かない！"
+                                : (Is_airlevel(&u.uz) || Is_waterlevel(&u.uz)
+                                   || levl[u.ux][u.uy].typ < IRONBARS
+                                   || levl[u.ux][u.uy].typ >= ICE)
+                                      ? "おっと！%sはあなたの手から滑り落ちた！"
+                                      : "おっと！%sは床に滑り落ちた！",
+                xname(obj), (const char *)0);
+#endif
         } else {
             /* assumes this is taking place at hero's location */
             if (!can_reach_floor(TRUE)) {
@@ -2169,8 +2219,13 @@ boolean tipping; /* caller emptying entire contents; affects shop handling */
                 if (IS_ALTAR(levl[u.ux][u.uy].typ))
                     doaltarobj(obj); /* does its own drop message */
                 else
+#if 0 /*JP*/
                     pline("%s %s to the %s.", Doname2(obj),
                           otense(obj, "drop"), surface(u.ux, u.uy));
+#else
+                    pline("%sは%sに落ちた．", Doname2(obj),
+                          surface(u.ux, u.uy));
+#endif
                 dropy(obj);
             }
         }
@@ -2776,19 +2831,33 @@ struct obj *otmp2;
     if ((!Blind && visible) || inpack) {
         if (Hallucination) {
             if (onfloor) {
+/*JP
                 You_see("parts of the floor melting!");
+*/
+                You_see("床の一部が溶けているのを見た！");
             } else if (inpack) {
+/*JP
                 Your("pack reaches out and grabs something!");
+*/
+                Your("かばんが手を伸ばして何かをつかんだ！");
             }
             /* even though we can see where they should be,
              * they'll be out of our view (minvent or container)
              * so don't actually show anything */
         } else if (onfloor || inpack) {
+#if 0 /*JP*/
             pline("The %s coalesce%s.", makeplural(obj_typename(otmp->otyp)),
                   inpack ? " inside your pack" : "");
+#else
+            pline("%sが%s合体した．", obj_typename(otmp->otyp),
+                  inpack ? "あなたのかばんの中で" : "");
+#endif
         }
     } else {
+/*JP
         You_hear("a faint sloshing sound.");
+*/
+        You_hear("かすかなバシャバシャという音を聞いた．");
     }
 }
 

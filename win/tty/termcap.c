@@ -583,7 +583,10 @@ xputc(c)
     char c;
 #endif
 {
+/*JP
     (void) putchar(c);
+*/
+    (void) cputchar(c);
 }
 
 void
@@ -591,6 +594,9 @@ xputs(s)
 const char *s;
 {
 #ifndef TERMLIB
+#if 1 /*JP*/
+    (void) jputchar('\0');
+#endif
     (void) fputs(s, stdout);
 #else
 #if defined(NHSTDC) || defined(ULTRIX_PROTO)
@@ -707,7 +713,11 @@ tty_nhbell()
 {
     if (flags.silent)
         return;
+#if 0 /*JP*/
     (void) putchar('\007'); /* curx does not change */
+#else
+    (void) cputchar('\007'); /* curx does not change */
+#endif
     (void) fflush(stdout);
 }
 
@@ -757,10 +767,17 @@ tty_delay_output()
 #endif
 #if defined(MICRO)
     /* simulate the delay with "cursor here" */
+#if 1 /*JP*//*JPTB need?*/
+    {
+        register int i;
+#endif
     for (i = 0; i < 3; i++) {
         cmov(ttyDisplay->curx, ttyDisplay->cury);
         (void) fflush(stdout);
     }
+#if 1 /*JP*/
+    }
+#endif
 #else /* MICRO */
     /* BUG: if the padding character is visible, as it is on the 5620
        then this looks terrible. */

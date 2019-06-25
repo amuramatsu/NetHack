@@ -410,7 +410,9 @@ linux_mapon()
 {
 #ifdef TTY_GRAPHICS
     if (!strcmp(windowprocs.name, "tty") && linux_flag_console) {
+_pragma_ignore(-Wunused-result)
         write(1, "\033(B", 3);
+_pragma_pop
     }
 #endif
 }
@@ -420,7 +422,9 @@ linux_mapoff()
 {
 #ifdef TTY_GRAPHICS
     if (!strcmp(windowprocs.name, "tty") && linux_flag_console) {
+_pragma_ignore(-Wunused-result)
         write(1, "\033(U", 3);
+_pragma_pop
     }
 #endif
 }

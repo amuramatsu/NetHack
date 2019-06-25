@@ -953,10 +953,22 @@ init_dungeons()
     /*
      *  I hate hardwiring these names. :-(
      */
+/*JP
     quest_dnum = dname_to_dnum("The Quest");
+*/
+    quest_dnum = dname_to_dnum("クエスト");
+/*JP
     sokoban_dnum = dname_to_dnum("Sokoban");
+*/
+    sokoban_dnum = dname_to_dnum("倉庫番");
+/*JP
     mines_dnum = dname_to_dnum("The Gnomish Mines");
+*/
+    mines_dnum = dname_to_dnum("ノームの鉱山");
+/*JP
     tower_dnum = dname_to_dnum("Vlad's Tower");
+*/
+    tower_dnum = dname_to_dnum("ヴラド侯の塔");
 
     /* one special fixup for dummy surface level */
     if ((x = find_level("dummy")) != 0) {
@@ -1644,7 +1656,9 @@ const char *nam;
     d_level dlev;
     const char *p;
     int idx, idxtoo;
+#if 0 /*JP*/
     char buf[BUFSZ];
+#endif
     mapseen *mseen;
 
     /* look at the player's custom level annotations first */
@@ -1653,6 +1667,7 @@ const char *nam;
     } else {
         /* no matching annotation, check whether they used a name we know */
 
+#if 0 /*JP*//*日本語では処理しない*/
         /* allow strings like "the oracle level" to find "oracle" */
         if (!strncmpi(nam, "the ", 4))
             nam += 4;
@@ -1668,6 +1683,7 @@ const char *nam;
             else
                 nam = "valley";
         }
+#endif
 
         if ((slev = find_level(nam)) != 0)
             dlev = slev->dlevel;
@@ -1785,15 +1801,30 @@ int type;
 {
     switch (type) {
     case BR_PORTAL:
+/*JP
         return "Portal";
+*/
+        return "魔法の入り口";
     case BR_NO_END1:
+/*JP
         return "Connection";
+*/
+        return "接続部";
     case BR_NO_END2:
+/*JP
         return "One way stair";
+*/
+        return "一方通行の階段";
     case BR_STAIR:
+/*JP
         return "Stair";
+*/
+        return "階段";
     }
+/*JP
     return " (unknown)";
+*/
+    return " (不明)";
 }
 
 STATIC_OVL char
@@ -1820,10 +1851,17 @@ struct lchoice *lchoices_p;
     for (br = branches; br; br = br->next) {
         if (br->end1.dnum == dnum && lower_bound < br->end1.dlevel
             && br->end1.dlevel <= upper_bound) {
+#if 0 /*JP*/
             Sprintf(buf, "%c %s to %s: %d",
                     bymenu ? chr_u_on_lvl(&br->end1) : ' ',
                     br_string(br->type),
                     dungeons[br->end2.dnum].dname, depth(&br->end1));
+#else
+            Sprintf(buf, "%c %sから%s: %d",
+                    bymenu ? chr_u_on_lvl(&br->end1) : ' ',
+                    br_string(br->type),
+                    dungeons[br->end2.dnum].dname, depth(&br->end1));
+#endif
             if (bymenu)
                 tport_menu(win, buf, lchoices_p, &br->end1,
                            unreachable_level(&br->end1, FALSE));
@@ -1861,21 +1899,37 @@ xchar *rdgn;
         if (bymenu && In_endgame(&u.uz) && i != astral_level.dnum)
             continue;
         unplaced = unplaced_floater(dptr);
+/*JP
         descr = unplaced ? "depth" : "level";
+*/
+        descr = unplaced ? "地下" : "レベル";
         nlev = dptr->num_dunlevs;
         if (nlev > 1)
+#if 0 /*JP*/
             Sprintf(buf, "%s: %s %d to %d", dptr->dname, makeplural(descr),
                     dptr->depth_start, dptr->depth_start + nlev - 1);
+#else
+            Sprintf(buf, "%s: %s%dから%d", dptr->dname, descr,
+                    dptr->depth_start, dptr->depth_start + nlev - 1);
+#endif
         else
             Sprintf(buf, "%s: %s %d", dptr->dname, descr, dptr->depth_start);
 
         /* Most entrances are uninteresting. */
         if (dptr->entry_lev != 1) {
             if (dptr->entry_lev == nlev)
+/*JP
                 Strcat(buf, ", entrance from below");
+*/
+                Strcat(buf, ", 下からの入り口");
             else
+#if 0 /*JP*/
                 Sprintf(eos(buf), ", entrance on %d",
                         dptr->depth_start + dptr->entry_lev - 1);
+#else
+                Sprintf(eos(buf), ", %dの入り口",
+                        dptr->depth_start + dptr->entry_lev - 1);
+#endif
         }
         if (bymenu) {
             any = zeroany;
@@ -1918,7 +1972,10 @@ xchar *rdgn;
         menu_item *selected;
         int idx;
 
+/*JP
         end_menu(win, "Level teleport to where:");
+*/
+        end_menu(win, "どこに瞬間移動する：");
         n = select_menu(win, PICK_ONE, &selected);
         destroy_nhwindow(win);
         if (n > 0) {
@@ -1938,11 +1995,19 @@ xchar *rdgn;
         if (br->end1.dnum == n_dgns) {
             if (first) {
                 putstr(win, 0, "");
+/*JP
                 putstr(win, 0, "Floating branches");
+*/
+                putstr(win, 0, "浮動分岐");
                 first = FALSE;
             }
+#if 0 /*JP*/
             Sprintf(buf, "   %s to %s", br_string(br->type),
                     dungeons[br->end2.dnum].dname);
+#else
+            Sprintf(buf, "   %sから%s", br_string(br->type),
+                    dungeons[br->end2.dnum].dname);
+#endif
             putstr(win, 0, buf);
         }
     }
@@ -1950,8 +2015,13 @@ xchar *rdgn;
     /* I hate searching for the invocation pos while debugging. -dean */
     if (Invocation_lev(&u.uz)) {
         putstr(win, 0, "");
+#if 0 /*JP*/
         Sprintf(buf, "Invocation position @ (%d,%d), hero @ (%d,%d)",
                 inv_pos.x, inv_pos.y, u.ux, u.uy);
+#else
+        Sprintf(buf, "発動位置 @ (%d,%d), プレイヤー @ (%d,%d)",
+                inv_pos.x, inv_pos.y, u.ux, u.uy);
+#endif
         putstr(win, 0, buf);
     } else {
         struct trap *trap;
@@ -1971,10 +2041,17 @@ xchar *rdgn;
                     trap->tx, trap->ty, u.ux, u.uy);
 
         /* only report "no portal found" when actually expecting a portal */
+#if 0 /*JP*/
         else if (Is_earthlevel(&u.uz) || Is_waterlevel(&u.uz)
                  || Is_firelevel(&u.uz) || Is_airlevel(&u.uz)
                  || Is_qstart(&u.uz) || at_dgn_entrance("The Quest")
                  || Is_knox(&u.uz))
+#else
+        else if (Is_earthlevel(&u.uz) || Is_waterlevel(&u.uz)
+                 || Is_firelevel(&u.uz) || Is_airlevel(&u.uz)
+                 || Is_qstart(&u.uz) || at_dgn_entrance("クエスト")
+                 || Is_knox(&u.uz))
+#endif
             Strcpy(buf, "No portal found.");
 
         /* only give output if we found a portal or expected one and didn't */
@@ -2059,12 +2136,20 @@ donamelevel()
     if (mptr->custom) {
         char tmpbuf[BUFSZ];
 
+#if 0 /*JP*/
         Sprintf(tmpbuf, "Replace annotation \"%.30s%s\" with?", mptr->custom,
                 (strlen(mptr->custom) > 30) ? "..." : "");
+#else
+        Sprintf(tmpbuf, "現在のメモ「%.30s%s」を何に書き換える？", mptr->custom,
+                strlen(mptr->custom) > 30 ? "..." : "");
+#endif
         getlin(tmpbuf, nbuf);
     } else
 #endif
+/*JP
         getlin("What do you want to call this dungeon level?", nbuf);
+*/
+        getlin("この階を何と呼ぶ？", nbuf);
 
     /* empty input or ESC means don't add or change annotation;
        space-only means discard current annotation without adding new one */
@@ -2439,7 +2524,10 @@ recalc_mapseen()
     /* flags.castle, flags.valley, flags.msanctum retain previous value */
     mptr->flags.forgot = 0;
     /* flags.quest_summons disabled once quest finished */
+/*JP
     mptr->flags.quest_summons = (at_dgn_entrance("The Quest")
+*/
+    mptr->flags.quest_summons = (at_dgn_entrance("クエスト")
                                  && u.uevent.qcalled
                                  && !(u.uevent.qcompleted
                                       || u.uevent.qexpelled
@@ -2738,14 +2826,24 @@ const char *obj;
     /* players are computer scientists: 0, 1, 2, n */
     switch (x) {
     case 0:
+/*JP:ここには来ないはず*/
         return "no";
     /* an() returns too much.  index is ok in this case */
     case 1:
+/*JP
         return index(vowels, *obj) ? "an" : "a";
+*/
+        return "";
     case 2:
+/*JP
         return "some";
+*/
+        return "二つの";
     case 3:
+/*JP
         return "many";
+*/
+        return "多くの";
     }
 
     return "(unknown)";
@@ -2762,13 +2860,22 @@ branch *br;
 
     switch (br->type) {
     case BR_PORTAL:
+/*JP
         return closed_portal ? "Sealed portal" : "Portal";
+*/
+        return closed_portal ? "封印された魔法の入口" : "魔法の入口";
     case BR_NO_END1:
         return "Connection";
     case BR_NO_END2:
+/*JP
         return br->end1_up ? "One way stairs up" : "One way stairs down";
+*/
+        return br->end1_up ? "上り片道階段" : "下り片道階段";
     case BR_STAIR:
+/*JP
         return br->end1_up ? "Stairs up" : "Stairs down";
+*/
+        return br->end1_up ? "上り階段" : "下り階段";
     }
 
     return "(unknown)";
@@ -2785,23 +2892,41 @@ int indx;
     *outbuf = '\0';
     switch (indx) {
     case -5:
+/*JP
         Strcpy(outbuf, "Astral Plane");
+*/
+        Strcpy(outbuf, "天上界");
         break;
     case -4:
+/*JP
         planename = "Water";
+*/
+        planename = "水";
         break;
     case -3:
+/*JP
         planename = "Fire";
+*/
+        planename = "火";
         break;
     case -2:
+/*JP
         planename = "Air";
+*/
+        planename = "風";
         break;
     case -1:
+/*JP
         planename = "Earth";
+*/
+        planename = "土";
         break;
     }
     if (planename)
+/*JP
         Sprintf(outbuf, "Plane of %s", planename);
+*/
+        Sprintf(outbuf, "%sの精霊界", planename);
     else if (!*outbuf)
         Sprintf(outbuf, "unknown plane #%d", indx);
     return outbuf;
@@ -2811,45 +2936,85 @@ STATIC_OVL const char *
 shop_string(rtype)
 int rtype;
 {
+#if 0 /*JP*/
     const char *str = "shop"; /* catchall */
+#else
+    const char *str = "店"; /* catchall */
+#endif
 
     /* Yuck, redundancy...but shclass.name doesn't cut it as a noun */
     switch (rtype) {
     case SHOPBASE - 1:
+/*JP
         str = "untended shop";
+*/
+        str = "放棄された店";
         break; /* see recalc_mapseen */
     case SHOPBASE:
+/*JP
         str = "general store";
+*/
+        str = "雑貨店";
         break;
     case ARMORSHOP:
+/*JP
         str = "armor shop";
+*/
+        str = "防具店";
         break;
     case SCROLLSHOP:
+/*JP
         str = "scroll shop";
+*/
+        str = "巻物店";
         break;
     case POTIONSHOP:
+/*JP
         str = "potion shop";
+*/
+        str = "薬店";
         break;
     case WEAPONSHOP:
+/*JP
         str = "weapon shop";
+*/
+        str = "武器店";
         break;
     case FOODSHOP:
+/*JP
         str = "delicatessen";
+*/
+        str = "食料品店";
         break;
     case RINGSHOP:
+/*JP
         str = "jewelers";
+*/
+        str = "宝石店";
         break;
     case WANDSHOP:
+/*JP
         str = "wand shop";
+*/
+        str = "杖店";
         break;
     case BOOKSHOP:
+/*JP
         str = "bookstore";
+*/
+        str = "書店";
         break;
     case FODDERSHOP:
+/*JP
         str = "health food store";
+*/
+        str = "健康食品店";
         break;
     case CANDLESHOP:
+/*JP
         str = "lighting shop";
+*/
+        str = "照明店";
         break;
     default:
         break;
@@ -2888,12 +3053,21 @@ char *outbuf;
 #endif
 #define COMMA (i++ > 0 ? ", " : PREFIX)
 /* "iterate" once; safe to use as ``if (cond) ADDTOBUF(); else whatever;'' */
+#if 0 /*JP*/
 #define ADDNTOBUF(nam, var)                                                  \
     do {                                                                     \
         if (var)                                                             \
             Sprintf(eos(buf), "%s%s %s%s", COMMA, seen_string((var), (nam)), \
                     (nam), plur(var));                                       \
     } while (0)
+#else
+#define ADDNTOBUF(nam, var)                                                  \
+    do {                                                                     \
+        if (var)                                                             \
+            Sprintf(eos(buf), "%s%s%s", COMMA, seen_string((var), (nam)),    \
+                    (nam));                                                  \
+    } while (0)
+#endif
 #define ADDTOBUF(nam, var)                           \
     do {                                             \
         if (var)                                     \
@@ -2928,12 +3102,18 @@ boolean printdun;
             || In_endgame(&mptr->lev))
             Sprintf(buf, "%s:", dungeons[dnum].dname);
         else if (builds_up(&mptr->lev))
+/*JP
             Sprintf(buf, "%s: levels %d up to %d",
+*/
+            Sprintf(buf, "%s: %d階から%d階",
                     dungeons[dnum].dname,
                     depthstart + dungeons[dnum].entry_lev - 1,
                     depthstart + dungeons[dnum].dunlev_ureached - 1);
         else
+/*JP
             Sprintf(buf, "%s: levels %d to %d",
+*/
+            Sprintf(buf, "%s: %d階から%d階",
                     dungeons[dnum].dname, depthstart,
                     depthstart + dungeons[dnum].dunlev_ureached - 1);
         putstr(win, !final ? ATR_INVERSE : 0, buf);
@@ -2944,7 +3124,10 @@ boolean printdun;
     if (In_endgame(&mptr->lev))
         Sprintf(buf, "%s%s:", TAB, endgamelevelname(tmpbuf, i));
     else
+/*JP
         Sprintf(buf, "%sLevel %d:", TAB, i);
+*/
+        Sprintf(buf, "%s%d階:", TAB, i);
 
     /* wizmode prints out proto dungeon names for clarity */
     if (wizard) {
@@ -2957,10 +3140,17 @@ boolean printdun;
     if (mptr->custom)
         Sprintf(eos(buf), " \"%s\"", mptr->custom);
     if (on_level(&u.uz, &mptr->lev))
+#if 0 /*JP*/
         Sprintf(eos(buf), " <- You %s here.",
                 (!final || (final == 1 && how == ASCENDED)) ? "are"
                   : (final == 1 && how == ESCAPED) ? "left from"
                     : "were");
+#else
+        Sprintf(eos(buf), " <- ここ%s．",
+                (!final || (final == 1 && how == ASCENDED)) ? "にいる"
+                  : (final == 1 && how == ESCAPED) ? "から抜けた"
+                    : "にいた");
+#endif
     putstr(win, !final ? ATR_BOLD : 0, buf);
 
     if (mptr->flags.forgot)
@@ -2975,7 +3165,10 @@ boolean printdun;
          */
         if (mptr->feat.nshop > 0) {
             if (mptr->feat.nshop > 1)
+/*JP
                 ADDNTOBUF("shop", mptr->feat.nshop);
+*/
+                ADDNTOBUF("店", mptr->feat.nshop);
             else
                 Sprintf(eos(buf), "%s%s", COMMA,
                         an(shop_string(mptr->feat.shoptype)));
@@ -2983,19 +3176,43 @@ boolean printdun;
         if (mptr->feat.naltar > 0) {
             /* Temples + non-temple altars get munged into just "altars" */
             if (mptr->feat.ntemple != mptr->feat.naltar)
+/*JP
                 ADDNTOBUF("altar", mptr->feat.naltar);
+*/
+                ADDNTOBUF("祭壇", mptr->feat.naltar);
             else
+/*JP
                 ADDNTOBUF("temple", mptr->feat.ntemple);
+*/
+                ADDNTOBUF("寺院", mptr->feat.ntemple);
 
             /* only print out altar's god if they are all to your god */
             if (Amask2align(Msa2amask(mptr->feat.msalign)) == u.ualign.type)
+/*JP
                 Sprintf(eos(buf), " to %s", align_gname(u.ualign.type));
+*/
+                Sprintf(eos(buf), "(%s)", align_gname(u.ualign.type));
         }
+/*JP
         ADDNTOBUF("throne", mptr->feat.nthrone);
+*/
+        ADDNTOBUF("玉座", mptr->feat.nthrone);
+/*JP
         ADDNTOBUF("fountain", mptr->feat.nfount);
+*/
+        ADDNTOBUF("泉", mptr->feat.nfount);
+/*JP
         ADDNTOBUF("sink", mptr->feat.nsink);
+*/
+        ADDNTOBUF("流し台", mptr->feat.nsink);
+/*JP
         ADDNTOBUF("grave", mptr->feat.ngrave);
+*/
+        ADDNTOBUF("墓", mptr->feat.ngrave);
+/*JP
         ADDNTOBUF("tree", mptr->feat.ntree);
+*/
+        ADDNTOBUF("木", mptr->feat.ntree);
 #if 0
         ADDTOBUF("water", mptr->feat.water);
         ADDTOBUF("lava", mptr->feat.lava);
@@ -3012,52 +3229,100 @@ boolean printdun;
     /* we assume that these are mutually exclusive */
     *buf = '\0';
     if (mptr->flags.oracle) {
+/*JP
         Sprintf(buf, "%sOracle of Delphi.", PREFIX);
+*/
+        Sprintf(buf, "%sデルファイの神殿．", PREFIX);
     } else if (In_sokoban(&mptr->lev)) {
+#if 0 /*JP*/
         Sprintf(buf, "%s%s.", PREFIX,
                 mptr->flags.sokosolved ? "Solved" : "Unsolved");
+#else
+        Sprintf(buf, "%s%s.", PREFIX,
+                mptr->flags.sokosolved ? "クリア済" : "未クリア");
+#endif
     } else if (mptr->flags.bigroom) {
+/*JP
         Sprintf(buf, "%sA very big room.", PREFIX);
+*/
+        Sprintf(buf, "%sとても大きい部屋．", PREFIX);
     } else if (mptr->flags.roguelevel) {
+/*JP
         Sprintf(buf, "%sA primitive area.", PREFIX);
+*/
+        Sprintf(buf, "%s単純な部屋．", PREFIX);
     } else if (on_level(&mptr->lev, &qstart_level)) {
+#if 0 /*JP*/
         Sprintf(buf, "%sHome%s.", PREFIX,
                 mptr->flags.unreachable ? " (no way back...)" : "");
+#else
+        Sprintf(buf, "%s故郷%s．", PREFIX,
+                mptr->flags.unreachable ? "(戻れない．．．)" : "");
+#endif
         if (u.uevent.qcompleted)
+/*JP
             Sprintf(buf, "%sCompleted quest for %s.", PREFIX, ldrname());
+*/
+            Sprintf(buf, "%s%sのためにクエストを完遂した．", PREFIX, ldrname());
         else if (mptr->flags.questing)
+/*JP
             Sprintf(buf, "%sGiven quest by %s.", PREFIX, ldrname());
+*/
+            Sprintf(buf, "%s%sからクエストを与えられた．", PREFIX, ldrname());
     } else if (mptr->flags.ludios) {
         /* presence of the ludios branch in #overview output indicates that
            the player has made it onto the level; presence of this annotation
            indicates that the fort's entrance has been seen (or mapped) */
+/*JP
         Sprintf(buf, "%sFort Ludios.", PREFIX);
+*/
+        Sprintf(buf, "%sローディオス砦．", PREFIX);
     } else if (mptr->flags.castle) {
+/*JP
         Sprintf(buf, "%sThe castle%s.", PREFIX, tunesuffix(mptr, tmpbuf));
+*/
+        Sprintf(buf, "%s城%s．", PREFIX, tunesuffix(mptr, tmpbuf));
     } else if (mptr->flags.valley) {
+/*JP
         Sprintf(buf, "%sValley of the Dead.", PREFIX);
+*/
+        Sprintf(buf, "%s死の谷．", PREFIX);
     } else if (mptr->flags.msanctum) {
+/*JP
         Sprintf(buf, "%sMoloch's Sanctum.", PREFIX);
+*/
+        Sprintf(buf, "%sモーロックの聖域．", PREFIX);
     }
     if (*buf)
         putstr(win, 0, buf);
     /* quest entrance is not mutually-exclusive with bigroom or rogue level */
     if (mptr->flags.quest_summons) {
+/*JP
         Sprintf(buf, "%sSummoned by %s.", PREFIX, ldrname());
+*/
+        Sprintf(buf, "%s%sから呼び出された．", PREFIX, ldrname());
         putstr(win, 0, buf);
     }
 
     /* print out branches */
     if (mptr->br) {
+#if 0 /*JP*/
         Sprintf(buf, "%s%s to %s", PREFIX, br_string2(mptr->br),
                 dungeons[mptr->br->end2.dnum].dname);
+#else
+        Sprintf(buf, "%s%sへの%s", PREFIX, dungeons[mptr->br->end2.dnum].dname,
+                br_string2(mptr->br));
+#endif
 
         /* Since mapseen objects are printed out in increasing order
          * of dlevel, clarify which level this branch is going to
          * if the branch goes upwards.  Unless it's the end game.
          */
         if (mptr->br->end1_up && !In_endgame(&(mptr->br->end2)))
+/*JP
             Sprintf(eos(buf), ", level %d", depth(&(mptr->br->end2)));
+*/
+            Sprintf(eos(buf), ", %d階", depth(&(mptr->br->end2)));
         Strcat(buf, ".");
         putstr(win, 0, buf);
     }
@@ -3071,19 +3336,29 @@ boolean printdun;
             if (bp->bonesknown || wizard || final)
                 ++kncnt;
         if (kncnt) {
+/*JP
             Sprintf(buf, "%s%s", PREFIX, "Final resting place for");
+*/
+            Sprintf(buf, "%s%s", PREFIX, "最期の地:");
             putstr(win, 0, buf);
             if (died_here) {
                 /* disclosure occurs before bones creation, so listing dead
                    hero here doesn't give away whether bones are produced */
                 formatkiller(tmpbuf, sizeof tmpbuf, how, TRUE);
+#if 0 /*JP*/
                 /* rephrase a few death reasons to work with "you" */
                 (void) strsubst(tmpbuf, " himself", " yourself");
                 (void) strsubst(tmpbuf, " herself", " yourself");
                 (void) strsubst(tmpbuf, " his ", " your ");
                 (void) strsubst(tmpbuf, " her ", " your ");
+#endif
+#if 0 /*JP*/
                 Sprintf(buf, "%s%syou, %s%c", PREFIX, TAB, tmpbuf,
                         --kncnt ? ',' : '.');
+#else
+                Sprintf(buf, "%s%s     %s%c", PREFIX, TAB, tmpbuf,
+                        --kncnt ? ',' : '.');
+#endif
                 putstr(win, 0, buf);
             }
             for (bp = mptr->final_resting_place; bp; bp = bp->next) {

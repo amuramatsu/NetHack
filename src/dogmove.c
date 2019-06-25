@@ -3,6 +3,11 @@
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 
 #include "mfndpos.h"
@@ -274,13 +279,26 @@ boolean devour;
            pet eats visible food. */
         if (sawpet || (seeobj && canspotmon(mtmp))) {
             if (tunnels(mtmp->data))
+/*JP
                 pline("%s digs in.", noit_Monnam(mtmp));
+*/
+                pline("%sは掘っている．", noit_Monnam(mtmp));
             else
+#if 0 /*JP*/
                 pline("%s %s %s.", noit_Monnam(mtmp),
                       devour ? "devours" : "eats", distant_name(obj, doname));
+#else
+                pline("%sは%sを%sいる．", noit_Monnam(mtmp),
+                      distant_name(obj, doname), devour ? "飲み込んで" : "食べて");
+#endif
         } else if (seeobj)
+#if 0 /*JP*/
             pline("It %s %s.", devour ? "devours" : "eats",
                   distant_name(obj, doname));
+#else
+            pline("それは%sを%sいる．", distant_name(obj, doname),
+                  devour ? "飲み込んで" : "食べて");
+#endif
     }
     if (obj->unpaid) {
         Strcpy(objnambuf, xname(obj));
@@ -302,8 +320,13 @@ boolean devour;
         obj->oerodeproof = 0;
         mtmp->mstun = 1;
         if (canseemon(mtmp) && flags.verbose) {
+#if 0 /*JP:T*/
             pline("%s spits %s out in disgust!", Monnam(mtmp),
                   distant_name(obj, doname));
+#else
+            pline("%sは%sをペッと吐き出した！", Monnam(mtmp),
+                  distant_name(obj,doname));
+#endif
         }
     } else if (obj == uball) {
         unpunish();
@@ -315,8 +338,13 @@ boolean devour;
             /* edible item owned by shop has been thrown or kicked
                by hero and caught by tame or food-tameable monst */
             oprice = unpaid_cost(obj, TRUE);
+#if 0 /*JP*/
             pline("That %s will cost you %ld %s.", objnambuf, oprice,
                   currency(oprice));
+#else
+            pline("あの%sは%ld%sだ．", objnambuf, oprice,
+                  currency(oprice));
+#endif
             /* delobj->obfree will handle actual shop billing update */
         }
         delobj(obj);
@@ -373,21 +401,38 @@ struct edog *edog;
             if (mtmp->mhp < 1)
                 goto dog_died;
             if (cansee(mtmp->mx, mtmp->my))
+/*JP
                 pline("%s is confused from hunger.", Monnam(mtmp));
+*/
+                pline("%sは空腹のため混乱している．", Monnam(mtmp));
             else if (couldsee(mtmp->mx, mtmp->my))
                 beg(mtmp);
             else
+/*JP
                 You_feel("worried about %s.", y_monnam(mtmp));
+*/
+                You("%sが心配になった．", y_monnam(mtmp));
             stop_occupation();
         } else if (monstermoves > edog->hungrytime + 750 || mtmp->mhp < 1) {
         dog_died:
             if (mtmp->mleashed && mtmp != u.usteed)
+/*JP
                 Your("leash goes slack.");
+*/
+                Your("紐はたるんだ．");
             else if (cansee(mtmp->mx, mtmp->my))
+/*JP
                 pline("%s starves.", Monnam(mtmp));
+*/
+                pline("%sは飢えで死んだ．", Monnam(mtmp));
             else
+#if 0 /*JP*/
                 You_feel("%s for a moment.",
                          Hallucination ? "bummed" : "sad");
+#else
+                You("%s気分におそわれた．",
+                    Hallucination ? "がっかりした" : "悲しい");
+#endif
             mondied(mtmp);
             return  TRUE;
         }
@@ -450,8 +495,13 @@ int udist;
                         if (carryamt != obj->quan)
                             otmp = splitobj(obj, carryamt);
                         if (cansee(omx, omy) && flags.verbose)
+#if 0 /*JP:T*/
                             pline("%s picks up %s.", Monnam(mtmp),
                                   distant_name(otmp, doname));
+#else
+                            pline("%sは%sを拾った．", Monnam(mtmp),
+                                  distant_name(obj, doname));
+#endif
                         obj_extract_self(otmp);
                         newsym(omx, omy);
                         (void) mpickobj(mtmp, otmp);
@@ -937,7 +987,10 @@ int after; /* this is extra fast monster movement */
     if (!Conflict && !mtmp->mconf
         && mtmp == u.ustuck && !sticks(youmonst.data)) {
         unstuck(mtmp); /* swallowed case handled above */
+/*JP
         You("get released!");
+*/
+        You("動けるようになった！");
     }
 #endif
     if (!nohands(mtmp->data) && !verysmall(mtmp->data)) {
@@ -1177,8 +1230,13 @@ newdogpos:
 
         if (info[chi] & ALLOW_U) {
             if (mtmp->mleashed) { /* play it safe */
+#if 0 /*JP:T*/
                 pline("%s breaks loose of %s leash!", Monnam(mtmp),
                       mhis(mtmp));
+#else
+                pline("%sは自分についている紐をはずした！",
+                      Monnam(mtmp));
+#endif
                 m_unleash(mtmp, FALSE);
             }
             (void) mattacku(mtmp);
@@ -1202,8 +1260,12 @@ newdogpos:
                                ? vobj_at(nix, niy) : 0;
             const char *what = o ? distant_name(o, doname) : something;
 
+#if 0 /*JP*/
             pline("%s %s reluctantly over %s.", noit_Monnam(mtmp),
                   vtense((char *) 0, locomotion(mtmp->data, "step")), what);
+#else
+            pline("%sは%sの上にいやいや動いた．", noit_Monnam(mtmp), what);
+#endif
         }
         for (j = MTSZ - 1; j > 0; j--)
             mtmp->mtrack[j] = mtmp->mtrack[j - 1];
@@ -1391,6 +1453,7 @@ struct monst *mtmp;
            (on the other hand, perhaps you're sensing a brief glimpse
            of its mind as it changes form) */
         newsym(mtmp->mx, mtmp->my);
+#if 0 /*JP*/
         You("%s %s %sappear%s where %s was!",
             cansee(mtmp->mx, mtmp->my) ? "see" : "sense that",
             (mtmp->m_ap_type == M_AP_FURNITURE)
@@ -1407,6 +1470,22 @@ struct monst *mtmp;
             cansee(mtmp->mx, mtmp->my) ? "" : "has ",
             cansee(mtmp->mx, mtmp->my) ? "" : "ed",
             buf);
+#else
+        You("%sがあったところに%sが現れたの%s！",
+            buf,
+            (mtmp->m_ap_type == M_AP_FURNITURE)
+                ? an(defsyms[mtmp->mappearance].explanation)
+                : (mtmp->m_ap_type == M_AP_OBJECT
+                   && OBJ_DESCR(objects[mtmp->mappearance]))
+                      ? an(OBJ_DESCR(objects[mtmp->mappearance]))
+                      : (mtmp->m_ap_type == M_AP_OBJECT
+                         && OBJ_NAME(objects[mtmp->mappearance]))
+                            ? an(OBJ_NAME(objects[mtmp->mappearance]))
+                            : (mtmp->m_ap_type == M_AP_MONSTER)
+                                  ? an(mons[mtmp->mappearance].mname)
+                                  : something,
+            cansee(mtmp->mx, mtmp->my) ? "を見た" : "に気づいた");
+#endif
         display_nhwindow(WIN_MAP, TRUE);
     }
 }

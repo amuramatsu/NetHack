@@ -3,6 +3,11 @@
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 /* various code that was replicated in *main.c */
 
 #include "hack.h"
@@ -45,14 +50,23 @@ boolean resuming;
     /* side-effects from the real world */
     flags.moonphase = phase_of_the_moon();
     if (flags.moonphase == FULL_MOON) {
+/*JP
         You("are lucky!  Full moon tonight.");
+*/
+        pline("ラッキー！今晩は満月だ．");
         change_luck(1);
     } else if (flags.moonphase == NEW_MOON) {
+/*JP
         pline("Be careful!  New moon tonight.");
+*/
+        pline("注意しろ！今晩は新月だ．");
     }
     flags.friday13 = friday_13th();
     if (flags.friday13) {
+/*JP
         pline("Watch out!  Bad things can happen on Friday the 13th.");
+*/
+        pline("用心しろ！１３日の金曜日にはよくないことがある．") ;
         change_luck(-1);
     }
 
@@ -209,7 +223,10 @@ boolean resuming;
                             } else if (!Upolyd && u.uhp > 1) {
                                 u.uhp--;
                             } else {
+/*JP
                                 You("pass out from exertion!");
+*/
+                                pline("疲労で意識を失った！");
                                 exercise(A_CON, FALSE);
                                 fall_asleep(-10, FALSE);
                             }
@@ -227,7 +244,10 @@ boolean resuming;
                             u.uen = u.uenmax;
                         context.botl = 1;
                         if (u.uen == u.uenmax)
+/*JP
                             interrupt_multi("You feel full of energy.");
+*/
+                            interrupt_multi("エネルギーが回復した．");
                     }
 
                     if (!u.uinvulnerable) {
@@ -507,7 +527,10 @@ int wtcap;
     }
 
     if (reached_full)
+/*JP
         interrupt_multi("You are in full health.");
+*/
+        interrupt_multi("体力が回復した．");
 }
 
 void
@@ -515,7 +538,10 @@ stop_occupation()
 {
     if (occupation) {
         if (!maybe_finished_meal(TRUE))
+/*JP
             You("stop %s.", occtxt);
+*/
+            You("%sのを中断した．", occtxt);
         occupation = 0;
         context.botl = 1; /* in case u.uhs changed */
         nomul(0);
@@ -644,7 +670,10 @@ boolean new_game; /* false => restoring an old game */
     /* skip "welcome back" if restoring a doomed character */
     if (!new_game && Upolyd && ugenocided()) {
         /* death via self-genocide is pending */
+/*JP
         pline("You're back, but you still feel %s inside.", udeadinside());
+*/
+        pline("あなたは帰ってきたが，魂が%sままだ．", udeadinside());
         return;
     }
 
@@ -658,17 +687,36 @@ boolean new_game; /* false => restoring an old game */
      */
     *buf = '\0';
     if (new_game || u.ualignbase[A_ORIGINAL] != u.ualignbase[A_CURRENT])
+/*JP
         Sprintf(eos(buf), " %s", align_str(u.ualignbase[A_ORIGINAL]));
+*/
+        Sprintf(eos(buf), "%s", align_str(u.ualignbase[A_ORIGINAL]));
     if (!urole.name.f
         && (new_game
                 ? (urole.allow & ROLE_GENDMASK) == (ROLE_MALE | ROLE_FEMALE)
                 : currentgend != flags.initgend))
+/*JP
         Sprintf(eos(buf), " %s", genders[currentgend].adj);
+*/
+        Sprintf(eos(buf), "の%s", genders[currentgend].adj);
 
+#if 0 /*JP*/
     pline(new_game ? "%s %s, welcome to NetHack!  You are a%s %s %s."
                    : "%s %s, the%s %s %s, welcome back to NetHack!",
           Hello((struct monst *) 0), plname, buf, urace.adj,
           (currentgend && urole.name.f) ? urole.name.f : urole.name.m);
+#else
+    if(new_game){
+        pline("%s，NetHackの世界へ！このゲームではあなたは%s%s(%s)だ．",
+              Hello((struct monst *) 0), urace.adj,
+              (currentgend && urole.name.f) ? urole.name.f : urole.name.m,
+              buf);
+    } else {
+        pline("%s，NetHackの世界へ！あなたは%s%sだ！",
+              Hello((struct monst *) 0), urace.adj,
+              (currentgend && urole.name.f) ? urole.name.f : urole.name.m);
+    }
+#endif
 }
 
 #ifdef POSITIONBAR

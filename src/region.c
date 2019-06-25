@@ -2,6 +2,11 @@
 /* Copyright (c) 1996 by Jean-Christophe Collet  */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "lev.h"
 
@@ -953,17 +958,33 @@ genericptr_t p2;
         if (u.uinvulnerable || nonliving(youmonst.data) || Breathless)
             return FALSE;
         if (!Blind) {
+/*JP
             Your("%s sting.", makeplural(body_part(EYE)));
+*/
+            Your("%sがチクチクした．", body_part(EYE));
             make_blinded(1L, FALSE);
         }
         if (!Poison_resistance) {
+#if 0 /*JP*/
             pline("%s is burning your %s!", Something,
                   makeplural(body_part(LUNG)));
+#else
+            pline("何か妙なものを吸いこんだ！");
+#endif
+/*JP
             You("cough and spit blood!");
+*/
+            You("咳きこみ，血を吐いた！");
+/*JP
             losehp(Maybe_Half_Phys(rnd(dam) + 5), "gas cloud", KILLED_BY_AN);
+*/
+            losehp(Maybe_Half_Phys(rnd(dam) + 5), "ガス雲で", KILLED_BY_AN);
             return FALSE;
         } else {
+/*JP
             You("cough!");
+*/
+            You("咳きこんだ！");
             return FALSE;
         }
     } else { /* A monster is inside the cloud */
@@ -979,7 +1000,10 @@ genericptr_t p2;
             && !(attacktype_fordmg(mtmp->data, AT_BREA, AD_DRST)
                  || attacktype_fordmg(mtmp->data, AT_BREA, AD_RBRE))) {
             if (cansee(mtmp->mx, mtmp->my))
+/*JP
                 pline("%s coughs!", Monnam(mtmp));
+*/
+                pline("%sは咳きこんだ！", Monnam(mtmp));
             if (heros_fault(reg))
                 setmangry(mtmp, TRUE);
             if (haseyes(mtmp->data) && mtmp->mcansee) {
@@ -993,7 +1017,10 @@ genericptr_t p2;
                 if (heros_fault(reg))
                     killed(mtmp);
                 else
+/*JP
                     monkilled(mtmp, "gas cloud", AD_DRST);
+*/
+                    monkilled(mtmp, "ガス雲", AD_DRST);
                 if (mtmp->mhp <= 0) { /* not lifesaved */
                     return TRUE;
                 }
@@ -1090,10 +1117,16 @@ region_safety()
         safe_teleds(FALSE);
     } else if (r) {
         remove_region(r);
+/*JP
         pline_The("gas cloud enveloping you dissipates.");
+*/
+        pline("あなたを包んでいたガス雲は消えた．");
     } else {
         /* cloud dissipated on its own, so nothing needs to be done */
+/*JP
         pline_The("gas cloud has dissipated.");
+*/
+        pline("ガス雲は消えた．");
     }
     /* maybe cure blindness too */
     if ((Blinded & TIMEOUT) == 1L)

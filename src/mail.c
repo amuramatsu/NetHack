@@ -3,6 +3,11 @@
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 
 #ifdef MAIL
@@ -271,8 +276,13 @@ coord *startp; /* starting position (read only) */
 }
 
 /* Let the mail daemon have a larger vocabulary. */
+#if 0 /*JP*/
 static NEARDATA const char *mail_text[] = { "Gangway!", "Look out!",
                                             "Pardon me!" };
+#else
+static NEARDATA const char *mail_text[] = { "どいたどいた！", "気をつけろ！",
+                                            "じゃまするよ！" };
+#endif
 #define md_exclamations() (mail_text[rn2(3)])
 
 /*
@@ -334,7 +344,10 @@ register int tx, ty; /* destination of mail daemon */
         if ((mon = m_at(fx, fy)) != 0) /* save monster at this position */
             verbalize1(md_exclamations());
         else if (fx == u.ux && fy == u.uy)
+/*JP
             verbalize("Excuse me.");
+*/
+            verbalize("ちょっとしつれい．");
 
         place_monster(md, fx, fy); /* put md down */
         newsym(fx, fy);            /* see it */
@@ -359,7 +372,10 @@ register int tx, ty; /* destination of mail daemon */
     if ((mon = m_at(fx, fy)) != 0) {
         place_monster(md, fx, fy); /* display md with text below */
         newsym(fx, fy);
+/*JP
         verbalize("This place's too crowded.  I'm outta here.");
+*/
+        verbalize("ここは混みすぎ．ここで待ってるよ．");
 
         if ((mon->mx != fx) || (mon->my != fy)) /* put mon back */
             place_worm_seg(mon, fx, fy);
@@ -399,7 +415,11 @@ struct mail_info *info;
         goto go_back;
 
     message_seen = TRUE;
+#if 0 /*JP*/
     verbalize("%s, %s!  %s.", Hello(md), plname, info->display_txt);
+#else
+    verbalize("%s！%s．", Hello(md), info->display_txt);
+#endif
 
     if (info->message_typ) {
         struct obj *obj = mksobj(SCR_MAIL, FALSE, FALSE);
@@ -410,10 +430,18 @@ struct mail_info *info;
             new_omailcmd(obj, info->response_cmd);
 
         if (distu(md->mx, md->my) > 2)
+/*JP
             verbalize("Catch!");
+*/
+            verbalize("ほらよ！");
         display_nhwindow(WIN_MESSAGE, FALSE);
+#if 0 /*JP*/
         obj = hold_another_object(obj, "Oops!", (const char *) 0,
                                   (const char *) 0);
+#else
+        obj = hold_another_object(obj, "おっと！", (const char *) 0,
+                                  (const char *) 0);
+#endif
     }
 
 /* zip back to starting location */
@@ -423,7 +451,10 @@ go_back:
 /* deliver some classes of messages even if no daemon ever shows up */
 give_up:
     if (!message_seen && info->message_typ == MSG_OTHER)
+/*JP
         pline("Hark!  \"%s.\"", info->display_txt);
+*/
+        pline("「%s．」と言うことだ！", info->display_txt);
 }
 
 #if !defined(UNIX) && !defined(VMS)
@@ -441,7 +472,10 @@ ckmailstatus()
     }
     if (--mustgetmail <= 0) {
         static struct mail_info deliver = {
+/*JP
             MSG_MAIL, "I have some mail for you", 0, 0
+*/
+            MSG_MAIL, "メールを持ってきたよ", 0, 0
         };
         newmail(&deliver);
         mustgetmail = -1;
@@ -455,16 +489,37 @@ struct obj *otmp UNUSED;
 {
     static char *junk[] = {
         NULL, /* placeholder for "Report bugs to <devteam@nethack.org>.", */
+/*JP
         "Please disregard previous letter.", "Welcome to NetHack.",
+*/
+        "前のメールは忘れてください．", "NetHackへようこそ！",
 #ifdef AMIGA
         "Only Amiga makes it possible.", "CATS have all the answers.",
 #endif
+/*JP
         "This mail complies with the Yendorian Anti-Spam Act (YASA)",
+*/
+        "このメールはイェンダースパム対策法(YASA)に準拠しています．",
+/*JP
         "Please find enclosed a small token to represent your Owlbear",
+*/
+        "あなたのアウルベアを表現するために同封した小さいトークンを探してください",
+/*JP
         "**FR33 P0T10N 0F FULL H34L1NG**",
+*/
+        "**完全回復の薬プレゼント**",
+/*JP
         "Please return to sender (Asmodeus)",
+*/
+        "送信者(アスモデウス)に送り返してください",
+/*JP
       "Buy a potion of gain level for only $19.99! Guaranteed to be blessed!",
+*/
+      "レベルアップの薬がたったの1980円!祝福保証!",
+/*JP
         "Invitation: Visit the NetHack web site at http://www.nethack.org!"
+*/
+        "招待状: NetHack ウェブサイト http://www.nethack.org に来てね!"
     };
 
     /* XXX replace with more general substitution code and add local
@@ -477,9 +532,15 @@ struct obj *otmp UNUSED;
 #undef BUGS_FORMAT
     }
     if (Blind) {
+/*JP
         pline("Unfortunately you cannot see what it says.");
+*/
+        pline("残念ながら何と書いてあるのか見ることができない．");
     } else
+/*JP
         pline("It reads:  \"%s\"", junk[rn2(SIZE(junk))]);
+*/
+        pline("それを読んだ：\"%s\"", junk[rn2(SIZE(junk))]);
 }
 
 #endif /* !UNIX && !VMS */
@@ -510,10 +571,16 @@ ckmailstatus()
         if (nmstat.st_size) {
             static struct mail_info deliver = {
 #ifndef NO_MAILREADER
+/*JP
                 MSG_MAIL, "I have some mail for you",
+*/
+                MSG_MAIL, "メイルを持ってきたよ",
 #else
                 /* suppress creation and delivery of scroll of mail */
+/*JP
                 MSG_OTHER, "You have some mail in the outside world",
+*/
+                MSG_OTHER, "外の世界からのメールだ",
 #endif
                 0, 0
             };
@@ -536,8 +603,13 @@ boolean adminmsg;
     struct flock fl = { 0 };
 #endif
     const char *msgfrom = adminmsg
+#if 0 /*JP*/
         ? "The voice of %s booms through the caverns:"
         : "This message is from '%s'.";
+#else
+        ? "%sの声が洞窟に響きわたった:"
+        : "これは'%s'からのメッセージだ．";
+#endif
 
     if (!mb)
         goto bail;
@@ -564,8 +636,13 @@ boolean adminmsg;
             fl.l_type = F_UNLCK;
             fcntl (fileno(mb), F_UNLCK, &fl);
 #endif
+#if 0 /*JP*/
             pline("There is a%s message on this scroll.",
                   seen_one_already ? "nother" : "");
+#else
+            pline("この巻物には%sメッセージがある．",
+                  seen_one_already ? "まだ" : "");
+#endif
         }
         msg = strchr(curline, ':');
 
@@ -580,7 +657,10 @@ boolean adminmsg;
         if (adminmsg)
             verbalize(msg);
         else
+/*JP
             pline("It reads: \"%s\".", msg);
+*/
+            pline("それを読んだ：「%s」", msg);
 
         seen_one_already = TRUE;
 #ifdef SIMPLE_MAIL
@@ -607,7 +687,10 @@ boolean adminmsg;
 bail:
     /* bail out _professionally_ */
     if (!adminmsg)
+/*JP
         pline("It appears to be all gibberish.");
+*/
+        pline("これはまったくちんぷんかんぷんだ．");
 }
 #endif /* SIMPLE_MAIL */
 

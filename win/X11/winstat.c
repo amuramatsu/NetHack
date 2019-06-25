@@ -2,6 +2,11 @@
 /* Copyright (c) Dean Luick, 1992				  */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata 1994-1999                                      */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 /*
  * Status window routines.  This file supports both the "traditional"
  * tty status display and a "fancy" status display.  A tty status is
@@ -47,10 +52,16 @@ struct xwindow *wp; /* window pointer */
 boolean create_popup;
 Widget parent;
 {
+#if 0 /*JP*/
     XFontStruct *fs;
+#endif
     Arg args[8];
     Cardinal num_args;
     Position top_margin, bottom_margin, left_margin, right_margin;
+#ifdef XI18N
+    XFontSet fontset;
+    XFontSetExtents *extent;
+#endif
 
     wp->type = NHW_STATUS;
 
@@ -94,6 +105,11 @@ Widget parent;
              XawtextScrollWhenNeeded);
     num_args++;
 
+/*JP*/
+#if defined(X11R6) && defined(XI18N)
+    XtSetArg(args[num_args], XtNinternational, True);
+    num_args++;
+#endif
     wp->w = XtCreateManagedWidget("status", /* name */
                                   asciiTextWidgetClass,
                                   parent,    /* parent widget */
@@ -107,7 +123,11 @@ Widget parent;
 
     /* Get the font and margin information. */
     num_args = 0;
+#ifndef XI18N
     XtSetArg(args[num_args], XtNfont, &fs);
+#else
+    XtSetArg(args[num_args], XtNfontSet, &fontset);
+#endif
     num_args++;
     XtSetArg(args[num_args], nhStr(XtNtopMargin), &top_margin);
     num_args++;
@@ -119,9 +139,16 @@ Widget parent;
     num_args++;
     XtGetValues(wp->w, args, num_args);
 
+#ifndef XI18N
     wp->pixel_height = 2 * nhFontHeight(wp->w) + top_margin + bottom_margin;
     wp->pixel_width =
         COLNO * fs->max_bounds.width + left_margin + right_margin;
+#else
+    extent = XExtentsOfFontSet(fontset);
+    wp->pixel_height = 2 * extent->max_logical_extent.height + top_margin + bottom_margin;
+    wp->pixel_width  =
+        COLNO / 2 * extent->max_logical_extent.width + left_margin + right_margin;
+#endif
 
     /* Set the new width and height. */
     num_args = 0;
@@ -271,15 +298,25 @@ static Widget FDECL(init_info_form, (Widget, Widget, Widget));
 static struct X_status_value shown_stats[NUM_STATS] = {
     { "", SV_NAME, (Widget) 0, -1, 0, FALSE, FALSE }, /* 0*/
 
+#if 0 /*JP*/
     { "Strength", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
     { "Dexterity", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
     { "Constitution", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
     { "Intelligence", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
     { "Wisdom", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE }, /* 5*/
     { "Charisma", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+#else /*JP*/
+    { "強さ",   SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },    /* 0*/
+    { "素早さ", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "耐久力", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "知力",   SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "賢さ",   SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "魅力",   SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },    /* 5*/
+#endif
 
     { "", SV_LABEL, (Widget) 0, -1, 0, FALSE, FALSE }, /* name */
     { "", SV_LABEL, (Widget) 0, -1, 0, FALSE, FALSE }, /* dlvl */
+#if 0 /*JP*/
     { "Gold", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
     { "Hit Points", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE }, /*10*/
     { "Max HP", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
@@ -291,24 +328,59 @@ static struct X_status_value shown_stats[NUM_STATS] = {
     { "Alignment", SV_VALUE, (Widget) 0, -2, 0, FALSE, FALSE },
     { "Time", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
     { "Score", SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+#else /*JP*/
+    { "金",             SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "体力",           SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "最大体力",       SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },    /*10*/
+    { "魔力",           SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "最大魔力",       SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "鎧",             SV_VALUE, (Widget) 0,256, 0, FALSE, FALSE },
+    { "レベル",         SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "経験",           SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },    /*15*/
+    { "属性",           SV_VALUE, (Widget) 0, -2, 0, FALSE, FALSE },
+    { "時間",           SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+    { "スコア",         SV_VALUE, (Widget) 0, -1, 0, FALSE, FALSE },
+#endif
 
+#if 0 /*JP*/
     { "Petrifying", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE }, /*20*/
     { "Slimed", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Strangled", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Food Pois", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Term Ill", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+#else
+    { "石化", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE }, /*20*/
+    { "スライム", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "窒息", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "食毒", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "病気", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+#endif
 
     { "", SV_NAME, (Widget) 0, -1, 0, FALSE, TRUE }, /*25*/     /* hunger */
     { "", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },             /*encumbr */
+#if 0 /*JP*/
     { "Levitating", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Flying", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Riding", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+#else
+    { "浮遊", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "飛行", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "騎乗", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+#endif
 
+#if 0 /*JP*/
     { "Blind", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE }, /*30*/
     { "Deaf", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Stunned", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Confused", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
     { "Hallucinating", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+#else
+    { "盲目", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE }, /*30*/
+    { "耳聾", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "眩暈", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "混乱", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+    { "幻覚", SV_NAME, (Widget) 0, 0, 0, FALSE, TRUE },
+#endif
 };
 
 /*
@@ -371,16 +443,22 @@ long new_value;
         if (attr_rec == &shown_stats[F_NAME]) {
             Strcpy(buf, plname);
             buf[0] = highc(buf[0]);
+#if 0 /*JP*/
             Strcat(buf, " the ");
+#else
+            Strcat(buf, " ");
+#endif
             if (Upolyd) {
                 char mname[BUFSZ];
                 int k;
 
                 Strcpy(mname, mons[u.umonnum].mname);
+#if 0 /*JP*//*キャピタライズ不要*/
                 for (k = 0; mname[k] != '\0'; k++) {
                     if (k == 0 || mname[k - 1] == ' ')
                         mname[k] = highc(mname[k]);
                 }
+#endif
                 Strcat(buf, mname);
             } else
                 Strcat(buf, rank_of(u.ulevel, pl_character[0], flags.female));
@@ -388,7 +466,10 @@ long new_value;
         } else if (attr_rec == &shown_stats[F_DLEVEL]) {
             if (!describe_level(buf)) {
                 Strcpy(buf, dungeons[u.uz.dnum].dname);
+/*JP
                 Sprintf(eos(buf), ", level %d", depth(&u.uz));
+*/
+                Sprintf(eos(buf), " 地下%d階", depth(&u.uz));
             }
         } else {
             impossible("update_val: unknown label type \"%s\"",
@@ -534,10 +615,18 @@ long new_value;
                 Sprintf(buf, "%ld", new_value);
             }
         } else if (attr_rec == &shown_stats[F_ALIGN]) {
+#if 0 /*JP*/
             Strcpy(buf,
                    (new_value == A_CHAOTIC)
                        ? "Chaotic"
                        : (new_value == A_NEUTRAL) ? "Neutral" : "Lawful");
+#else
+            Strcpy(buf,
+                   (new_value == A_CHAOTIC)
+                   ? "混沌"
+                   : (new_value == A_NEUTRAL)
+                   ? "中立" : "秩序");
+#endif
         } else {
             Sprintf(buf, "%ld", new_value);
         }
@@ -855,6 +944,10 @@ int sv_index;
         num_args++;
         XtSetArg(args[num_args], XtNinternalHeight, 0);
         num_args++;
+#if defined(X11R6) && defined(XI18N)
+        XtSetArg(args[num_args], XtNinternational, True);
+        num_args++;
+#endif
         sv->w = XtCreateManagedWidget((sv_index == F_NAME)
                                          ? "name"
                                          : "dlevel",
@@ -866,6 +959,9 @@ int sv_index;
         XtSetArg(args[0], XtNlabel, width_string(sv_index)); num_args++;
         XtSetArg(args[num_args], XtNborderWidth, 0); num_args++;
         XtSetArg(args[num_args], XtNinternalHeight, 0); num_args++;
+#if defined(X11R6) && defined(XI18N)
+        XtSetArg(args[num_args], XtNinternational, True); num_args++;
+#endif
         sv->w = XtCreateManagedWidget(sv->name, labelWidgetClass, parent,
                                       args, num_args);
         break;

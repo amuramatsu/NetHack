@@ -166,7 +166,10 @@ getlock()
 
       {
         const char destroy_old_game_prompt[] =
+/*JP
     "There is already a game in progress under your name.  Destroy old game?";
+*/
+    "あなたの名前で不正終了したゲームが残っています．破棄しますか？";
 
         if (iflags.window_inited) {
             /* this is a candidate for paranoid_confirmation */
@@ -304,11 +307,13 @@ int wt;
     linux_mapon();
 #endif
     if ((f = fork()) == 0) { /* child */
+_pragma_ignore(-Wunused-result)
         (void) setgid(getgid());
         (void) setuid(getuid());
 #ifdef CHDIR
         (void) chdir(getenv("HOME"));
 #endif
+_pragma_pop
         return 1;
     }
     if (f == -1) { /* cannot fork */

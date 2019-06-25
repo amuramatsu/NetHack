@@ -5,6 +5,11 @@
 
 #define NEED_VARARGS
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "dlb.h"
 
@@ -271,6 +276,13 @@ int bufsz;
             *op++ = *sp;
             *op = '\0';
             cnt++;
+#if 1 /*JP*/
+        } else if (is_kanji1(s, sp - s)) {
+            *op++ = *sp++;
+            *op++ = *sp;
+            *op = '\0';
+            cnt += 2;
+#endif
         } else {
             (void) sprintf(op, "%c%02X", quotechar, *sp);
             op += 3;
@@ -557,8 +569,13 @@ char errbuf[];
        settle for `lock' instead of `fq_lock' because the latter
        might end up being too big for nethack's BUFSZ */
     if (fd < 0 && errbuf)
+#if 0 /*JP*/
         Sprintf(errbuf, "Cannot open file \"%s\" for level %d (errno %d).",
                 lock, lev, errno);
+#else
+        Sprintf(errbuf, "地下%d階のファイル\"%s\"を開けない(errno %d)．",
+                lev, lock, errno);
+#endif
 
     return fd;
 }
@@ -964,7 +981,9 @@ void
 save_savefile_name(fd)
 int fd;
 {
+_pragma_ignore(-Wunused-result)
     (void) write(fd, (genericptr_t) SAVEF, sizeof(SAVEF));
+_pragma_pop
 }
 #endif
 
@@ -1354,8 +1373,10 @@ boolean uncomp;
             redirect(filename, RDBMODE, stdin, uncomp);
             redirect(cfn, WRBMODE, stdout, uncomp);
         }
+_pragma_ignore(-Wunused-result)
         (void) setgid(getgid());
         (void) setuid(getuid());
+_pragma_pop
         (void) execv(args[0], (char *const *) args);
         perror((char *) 0);
         (void) fprintf(stderr, "Exec to %scompress %s failed.\n",
@@ -2011,6 +2032,16 @@ int src;
         return fp;
 #else /* should be only UNIX left */
     envp = nh_getenv("HOME");
+#if 1 /*JP*//*".jnethackrc"を優先して読み込み*/
+    if (!envp)
+        Strcpy(tmp_config, ".jnethackrc");
+    else
+        Sprintf(tmp_config, "%s/%s", envp, ".jnethackrc");
+
+    set_configfile_name(tmp_config);
+    if ((fp = fopenp(configfile, "r")) != (FILE *) 0)
+        return fp;
+#endif
     if (!envp)
         Strcpy(tmp_config, ".nethackrc");
     else
@@ -3960,7 +3991,10 @@ unsigned oid; /* book identifier */
 
     int scope = 0;
     int linect = 0, passagecnt = 0, targetpassage = 0;
+/*JP
     const char *badtranslation = "an incomprehensible foreign translation";
+*/
+    const char *badtranslation = "不完全な外国語翻訳";
     boolean matchedsection = FALSE, matchedtitle = FALSE;
     winid tribwin = WIN_ERR;
     boolean grasped = FALSE;
@@ -3972,7 +4006,10 @@ unsigned oid; /* book identifier */
     /* check for mandatories */
     if (!tribsection || !tribtitle) {
         if (!nowin_buf)
+/*JP
             pline("It's %s of \"%s\"!", badtranslation, tribtitle);
+*/
+            pline("これは「%s」の%sだ！", tribtitle, badtranslation);
         return grasped;
     }
 
@@ -3983,7 +4020,10 @@ unsigned oid; /* book identifier */
     if (!fp) {
         /* this is actually an error - cannot open tribute file! */
         if (!nowin_buf)
+/*JP
             pline("You feel too overwhelmed to continue!");
+*/
+            pline("あなたは続けられないほど圧倒された！");
         return grasped;
     }
 
@@ -4115,7 +4155,10 @@ cleanup:
         }
         if (!grasped)
             /* multi-line window, problem */
+/*JP
             pline("It seems to be %s of \"%s\"!", badtranslation, tribtitle);
+*/
+            pline("これは「%s」の%sのようだ！", tribtitle, badtranslation);
     }
     return grasped;
 }

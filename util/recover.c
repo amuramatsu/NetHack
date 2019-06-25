@@ -15,6 +15,21 @@
 #include <errno.h>
 #include "win32api.h"
 #endif
+#if 1 /*JP*//* copy from lint.h */
+#ifdef __GNUC__
+#define PRAGMA_IGNORE_HELPER0(x) #x
+#define PRAGMA_IGNORE_HELPER1(x) PRAGMA_IGNORE_HELPER0(GCC diagnostic ignored x)
+#define PRAGMA_IGNORE_HELPER2(y) PRAGMA_IGNORE_HELPER1(#y)
+#define _pragma_ignore(opt) _Pragma("GCC diagnostic push") \
+    _Pragma(PRAGMA_IGNORE_HELPER2(opt))
+#define _pragma_pop _Pragma("GCC diagnostic pop")
+#else
+#define _pragma_push
+#define _pragma_ignore(opt)
+#define _pragma_pop
+#endif
+#endif
+
 
 #ifdef VMS
 extern int FDECL(vms_creat, (const char *, unsigned));
@@ -116,8 +131,10 @@ char *argv[];
         && strcmp(dir, HACKDIR)
 #endif
             ) {
+_pragma_ignore(-Wunused-result)
         (void) setgid(getgid());
         (void) setuid(getuid());
+_pragma_pop
     }
 #endif /* SECURE && !VMS */
 
@@ -356,7 +373,9 @@ char *basename;
             if (lfd >= 0) {
                 /* any or all of these may not exist */
                 levc = (xchar) lev;
+_pragma_ignore(-Wunused-result)
                 write(sfd, (genericptr_t) &levc, sizeof(levc));
+_pragma_pop
                 copy_bytes(lfd, sfd);
                 Close(lfd);
                 (void) unlink(lock);

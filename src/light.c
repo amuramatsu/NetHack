@@ -2,6 +2,10 @@
 /* Copyright (c) Dean Luick, 1994                                       */
 /* NetHack may be freely redistributed.  See license for details.       */
 
+/* JNetHack Copyright */
+/* For 3.6-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "lev.h" /* for checking save modes */
 
@@ -683,15 +687,30 @@ struct obj *obj;
 {
     switch (arti_light_radius(obj)) {
     case 3:
+#if 0 /*JP*/
         return "brilliantly"; /* blessed */
+#else
+        return "キラキラと"; /* blessed */
+#endif
     case 2:
+#if 0 /*JP*/
         return "brightly"; /* uncursed */
+#else
+        return "明るく"; /* uncursed */
+#endif
     case 1:
+#if 0 /*JP*/
         return "dimly"; /* cursed */
+#else
+        return "薄暗く"; /* cursed */
+#endif
     default:
         break;
     }
+/*JP
     return "strangely";
+*/
+    return "不思議に";
 }
 
 int

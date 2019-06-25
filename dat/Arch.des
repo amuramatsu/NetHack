@@ -200,10 +200,10 @@ OBJECT:random,random
 OBJECT:random,random
 OBJECT:random,random
 # Treasure?
-ENGRAVING:random,engrave,"X marks the spot."
-ENGRAVING:random,engrave,"X marks the spot."
-ENGRAVING:random,engrave,"X marks the spot."
-ENGRAVING:random,engrave,"X marks the spot."
+ENGRAVING:random,engrave,"×印地点"
+ENGRAVING:random,engrave,"×印地点"
+ENGRAVING:random,engrave,"×印地点"
+ENGRAVING:random,engrave,"×印地点"
 # Random traps
 TRAP:"spiked pit",(24,02)
 TRAP:"spiked pit",(37,00)
@@ -321,7 +321,7 @@ NON_DIGGABLE:(00,00,75,19)
 # The altar of Huhetotl.  Unattended.
 ALTAR:(50,14),chaos,altar
 # Objects
-OBJECT:('(',"crystal ball"),(50,14),blessed,5,name:"The Orb of Detection"
+OBJECT:('(',"crystal ball"),(50,14),blessed,5,name:"探索のオーブ"
 OBJECT:random,random
 OBJECT:random,random
 OBJECT:random,random

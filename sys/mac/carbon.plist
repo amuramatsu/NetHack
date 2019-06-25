@@ -7,7 +7,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>org.nethack.carbon</string>
 	<key>CFBundleLongVersionString</key>
-	<string>3.5.0 © 1985-2005 devteam@nethack.org</string>
+	<string>3.5.0 息 1985-2005 devteam@nethack.org</string>
 	<key>CFBundleName</key>
 	<string>NetHack</string>
 	<key>CFBundlePackageType</key>
@@ -23,6 +23,6 @@
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>© 1985-2005 devteam@nethack.org</string>
+	<string>息 1985-2005 devteam@nethack.org</string>
 </dict>
 </plist>

@@ -3,6 +3,11 @@
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "mfndpos.h"
 #include "artifact.h"
@@ -24,9 +29,15 @@ struct monst *mtmp;
 {
     if (flags.verbose) {
         if (cansee(mtmp->mx, mtmp->my) && !Unaware)
+/*JP
             pline("KABOOM!!  You see a door explode.");
+*/
+            pline("ちゅどーん！ドアが爆発するのを見た．");
         else if (!Deaf)
+/*JP
             You_hear("a distant explosion.");
+*/
+            You_hear("遠方で爆発する音を聞いた．");
     }
     wake_nearto(mtmp->mx, mtmp->my, 7 * 7);
     mtmp->mstun = 1;
@@ -62,17 +73,30 @@ const char *shout;
             /* Sidenote on "A watchman angrily waves her arms!"
              * Female being called watchman is correct (career name).
              */
+#if 0 /*JP*/
             pline("%s angrily %s %s %s!",
                 Amonnam(mon),
                 nolimbs(mon->data) ? "shakes" : "waves",
                 mhis(mon),
                 nolimbs(mon->data) ? mbodypart(mon, HEAD)
                                    : makeplural(mbodypart(mon, ARM)));
+#else
+            pline("%sは怒って%sを振った！",
+                Amonnam(mon),
+                nolimbs(mon->data) ? mbodypart(mon, HEAD)
+                                   : makeplural(mbodypart(mon, ARM)));
+#endif
     } else {
         if (canspotmon(mon))
-            pline("%s yells:", Amonnam(mon));
+/*JP
+        pline("%s yells:", Amonnam(mon));
+*/
+        pline("%sは叫んだ：", Amonnam(mon));
         else
-            You_hear("someone yell:");
+/*JP
+        You_hear("someone yell:");
+*/
+        pline("何者かは叫んだ：");
         verbalize1(shout);
     }
 }
@@ -89,10 +113,16 @@ register struct monst *mtmp;
             && (levl[x][y].doormask & D_LOCKED)) {
             if (couldsee(mtmp->mx, mtmp->my)) {
                 if (levl[x][y].looted & D_WARNED) {
+/*JP
                     mon_yells(mtmp, "Halt, thief!  You're under arrest!");
+*/
+                    verbalize("待て！ぬすっと！おまえを逮捕する！");
                     (void) angry_guards(!!Deaf);
                 } else {
+/*JP
                     mon_yells(mtmp, "Hey, stop picking that lock!");
+*/
+                    verbalize("おい，鍵を勝手に開けるんじゃない！");
                     levl[x][y].looted |= D_WARNED;
                 }
                 stop_occupation();
@@ -248,7 +278,10 @@ struct monst *mon;
             expels(mon, mon->data, TRUE);
         } else if (!sticks(youmonst.data)) {
             unstuck(mon); /* let go */
+/*JP
             You("get released!");
+*/
+            You("解放された！");
         }
     }
 }
@@ -288,9 +321,15 @@ boolean fleemsg;
                sleep and temporary paralysis, so both conditions
                receive the same alternate message */
             if (!mtmp->mcanmove || !mtmp->data->mmove)
+/*JP
                 pline("%s seems to flinch.", Adjmonnam(mtmp, "immobile"));
+*/
+                pline("%sはしりごみしているようだ．", Monnam(mtmp));
             else
+/*JP
                 pline("%s turns to flee.", Monnam(mtmp));
+*/
+                pline("%sはおびえて逃げ出した！", Monnam(mtmp));
         }
         mtmp->mflee = 1;
     }
@@ -453,8 +492,13 @@ register struct monst *mtmp;
     if (nearby && mdat->msound == MS_BRIBE && mtmp->mpeaceful && !mtmp->mtame
         && !u.uswallow) {
         if (mtmp->mux != u.ux || mtmp->muy != u.uy) {
+#if 0 /*JP*/
             pline("%s whispers at thin air.",
                   cansee(mtmp->mux, mtmp->muy) ? Monnam(mtmp) : "It");
+#else
+            pline("%sがささやいた．",
+                  cansee(mtmp->mux, mtmp->muy) ? Monnam(mtmp) : "何か");
+#endif
 
             if (is_demon(youmonst.data)) {
                 /* "Good hunting, brother" */
@@ -463,7 +507,10 @@ register struct monst *mtmp;
             } else {
                 mtmp->minvis = mtmp->perminvis = 0;
                 /* Why?  For the same reason in real demon talk */
+/*JP
                 pline("%s gets angry!", Amonnam(mtmp));
+*/
+                pline("%sは怒った！", Amonnam(mtmp));
                 mtmp->mpeaceful = 0;
                 set_malign(mtmp);
                 /* since no way is an image going to pay it off */
@@ -480,27 +527,48 @@ register struct monst *mtmp;
         struct monst *m2, *nmon = (struct monst *) 0;
 
         if (canseemon(mtmp))
+/*JP
             pline("%s concentrates.", Monnam(mtmp));
+*/
+            pline("%sは精神を集中している．", Monnam(mtmp));
         if (distu(mtmp->mx, mtmp->my) > BOLT_LIM * BOLT_LIM) {
+/*JP
             You("sense a faint wave of psychic energy.");
+*/
+            You("サイコエネルギーの波動を感じた．");
             goto toofar;
         }
+/*JP
         pline("A wave of psychic energy pours over you!");
+*/
+        pline("あなたはサイコエネルギーの波動を浴びた！");
         if (mtmp->mpeaceful
             && (!Conflict || resist(mtmp, RING_CLASS, 0, 0))) {
+/*JP
             pline("It feels quite soothing.");
+*/
+            pline("心がなごんだ．");
         } else if (!u.uinvulnerable) {
             register boolean m_sen = sensemon(mtmp);
 
             if (m_sen || (Blind_telepat && rn2(2)) || !rn2(10)) {
                 int dmg;
+#if 0 /*JP*/
                 pline("It locks on to your %s!",
                       m_sen ? "telepathy" : Blind_telepat ? "latent telepathy"
                                                           : "mind");
+#else
+                pline("それはあなたの%sを直撃した！",
+                      m_sen ? "テレパシー能力" : Blind_telepat ? "潜在能力"
+                                                               : "精神");
+#endif
                 dmg = rnd(15);
                 if (Half_spell_damage)
                     dmg = (dmg + 1) / 2;
+/*JP
                 losehp(dmg, "psychic blast", KILLED_BY_AN);
+*/
+                losehp(dmg, "サイコ攻撃で", KILLED_BY_AN);
             }
         }
         for (m2 = fmon; m2; m2 = nmon) {
@@ -516,7 +584,10 @@ register struct monst *mtmp;
             if ((telepathic(m2->data) && (rn2(2) || m2->mblinded))
                 || !rn2(10)) {
                 if (cansee(m2->mx, m2->my))
+/*JP
                     pline("It locks on to %s.", mon_nam(m2));
+*/
+                    pline("%sを直撃した．", mon_nam(m2));
                 m2->mhp -= rnd(15);
                 if (m2->mhp <= 0)
                     monkilled(m2, "", AD_DRIN);
@@ -660,7 +731,10 @@ itsstuck(mtmp)
 register struct monst *mtmp;
 {
     if (sticks(youmonst.data) && mtmp == u.ustuck && !u.uswallow) {
+/*JP
         pline("%s cannot escape from you!", Monnam(mtmp));
+*/
+        pline("%sはあなたから逃げられない！", Monnam(mtmp));
         return TRUE;
     }
     return FALSE;
@@ -864,7 +938,10 @@ register int after;
 #ifdef MAIL
     if (ptr == &mons[PM_MAIL_DAEMON]) {
         if (!Deaf && canseemon(mtmp))
+/*JP
             verbalize("I'm late!");
+*/
+            verbalize("遅くなってすまない！");
         mongone(mtmp);
         return 2;
     }
@@ -1275,11 +1352,19 @@ postmov:
                     /* update cached value for vamp_shift() case */
                     ptr = mtmp->data;
                     if (flags.verbose && canseemon(mtmp))
+#if 0 /*JP*/
                         pline("%s %s under the door.", Monnam(mtmp),
                               (ptr == &mons[PM_FOG_CLOUD]
                                || ptr->mlet == S_LIGHT)
                                   ? "flows"
                                   : "oozes");
+#else
+                        pline("%sは扉の下から%s．", Monnam(mtmp),
+                              (ptr == &mons[PM_FOG_CLOUD]
+                               || ptr->mlet == S_LIGHT)
+                                  ? "流れでた"
+                                  : "にじみでた");
+#endif
                 } else if (here->doormask & D_LOCKED && can_unlock) {
                     if (btrapped) {
                         here->doormask = D_NODOOR;
@@ -1290,12 +1375,21 @@ postmov:
                     } else {
                         if (flags.verbose) {
                             if (observeit)
+/*JP
                                 pline("%s unlocks and opens a door.",
+*/
+                                pline("%sは鍵をはずして扉を開けた．",
                                       Monnam(mtmp));
                             else if (canseeit)
+/*JP
                                 You_see("a door unlock and open.");
+*/
+                                You("扉の鍵がはずれ，開くのを見た．");
                             else if (!Deaf)
+/*JP
                                 You_hear("a door unlock and open.");
+*/
+                                You_hear("扉の鍵がはずれ，開く音を聞いた．");
                         }
                         here->doormask = D_ISOPEN;
                         /* newsym(mtmp->mx, mtmp->my); */
@@ -1311,11 +1405,20 @@ postmov:
                     } else {
                         if (flags.verbose) {
                             if (observeit)
+/*JP
                                 pline("%s opens a door.", Monnam(mtmp));
+*/
+                                pline("%sは扉を開けた．", Monnam(mtmp));
                             else if (canseeit)
+/*JP
                                 You_see("a door open.");
+*/
+                                You("扉が開くのを見た．");
                             else if (!Deaf)
+/*JP
                                 You_hear("a door open.");
+*/
+                                You_hear("扉が開く音を聞いた．");
                         }
                         here->doormask = D_ISOPEN;
                         /* newsym(mtmp->mx, mtmp->my); */  /* done below */
@@ -1332,12 +1435,21 @@ postmov:
                     } else {
                         if (flags.verbose) {
                             if (observeit)
+/*JP
                                 pline("%s smashes down a door.",
+*/
+                                pline("%sは扉を破壊した．",
                                       Monnam(mtmp));
                             else if (canseeit)
+/*JP
                                 You_see("a door crash open.");
+*/
+                                You("扉が破壊されるのを見た．");
                             else if (!Deaf)
+/*JP
                                 You_hear("a door crash open.");
+*/
+                                You_hear("扉が破壊される音を聞いた．");
                         }
                         if ((here->doormask & D_LOCKED) != 0 && !rn2(2))
                             here->doormask = D_NODOOR;
@@ -1354,14 +1466,22 @@ postmov:
                 if (may_dig(mtmp->mx, mtmp->my)
                     && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {
                     if (canseemon(mtmp))
+/*JP
                         pline("%s eats through the iron bars.", Monnam(mtmp));
+*/
+                        pline("%sは鉄の棒を食べて通り抜けた．", Monnam(mtmp));
                     dissolve_bars(mtmp->mx, mtmp->my);
                     return 3;
                 } else if (flags.verbose && canseemon(mtmp))
+#if 0 /*JP*/
                     Norep("%s %s %s the iron bars.", Monnam(mtmp),
                           /* pluralization fakes verb conjugation */
                           makeplural(locomotion(ptr, "pass")),
                           passes_walls(ptr) ? "through" : "between");
+#else
+                    Norep("%sは鉄の棒%sをすり抜けた．", Monnam(mtmp),
+                          passes_walls(ptr) ? "" : "の間");
+#endif
             }
 
             /* possibly dig */
@@ -1663,9 +1783,15 @@ boolean domsg;
     }
 
     if (reslt && domsg) {
+#if 0 /*JP*/
         pline("You %s %s where %s was.",
               !canseemon(mon) ? "now detect" : "observe",
               noname_monnam(mon, ARTICLE_A), oldmtype);
+#else
+        pline("あなたは%sがいた場所に%sを%s．",
+              oldmtype, noname_monnam(mon, ARTICLE_A),
+              !canseemon(mon) ? "感知した" : "見つけた");
+#endif
     }
 
     return reslt;

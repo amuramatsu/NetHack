@@ -3,6 +3,11 @@
 /*-Copyright (c) Robert Patrick Rankin, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include <limits.h>
 
@@ -197,7 +202,10 @@ const char *drainer; /* cause of death, if drain should be fatal */
         return;
 
     if (u.ulevel > 1) {
+/*JP
         pline("%s level %d.", Goodbye(), u.ulevel--);
+*/
+        pline("さようならレベル%d．", u.ulevel--);
         /* remove intrinsic abilities */
         adjabil(u.ulevel + 1, u.ulevel);
         reset_rndmonst(NON_PM); /* new monster selection */
@@ -265,7 +273,10 @@ boolean incr; /* true iff via incremental experience growth */
     int hpinc, eninc;
 
     if (!incr)
+/*JP
         You_feel("more experienced.");
+*/
+        You("より経験をつんだような気がした．");
 
     /* increase hit points (when polymorphed, do monster form first
        in order to retain normal human/whatever increase for later) */
@@ -294,9 +305,15 @@ boolean incr; /* true iff via incremental experience growth */
             u.uexp = newuexp(u.ulevel);
         }
         ++u.ulevel;
+#if 0 /*JP*/
         pline("Welcome %sto experience level %d.",
               u.ulevelmax < u.ulevel ? "" : "back ",
               u.ulevel);
+#else
+        pline("%sレベル%dにようこそ．",
+              u.ulevelmax < u.ulevel ? "" : "再び",
+              u.ulevel);
+#endif
         if (u.ulevelmax < u.ulevel)
             u.ulevelmax = u.ulevel;
         adjabil(u.ulevel - 1, u.ulevel); /* give new intrinsics */

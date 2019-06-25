@@ -38,6 +38,9 @@
 
 static BOOL FDECL(CtrlHandler, (DWORD));
 static void FDECL(xputc_core, (char));
+#if 1 /*JP*/
+static void FDECL(xputc2_core, (unsigned int, unsigned int));
+#endif
 void FDECL(cmov, (int, int));
 void FDECL(nocmov, (int, int));
 int FDECL(process_keystroke,
@@ -470,6 +473,52 @@ char ch;
     console.cursor.Y = ttyDisplay->cury;
     xputc_core(ch);
 }
+
+#if 1 /*JP*/
+void
+xputc2_core(ch1, ch2)
+unsigned int ch1;
+unsigned int ch2;
+{
+    unsigned char buf[2];
+    WORD attrs[2];
+    boolean inverse = FALSE;
+
+    buf[0] = ch1;
+    buf[1] = ch2;
+
+    /* xputc_core()からのコピー */
+    inverse = (console.current_nhattr[ATR_INVERSE] && iflags.wc_inverse);
+    console.attr = (inverse) ?
+                    ttycolors_inv[console.current_nhcolor] :
+                    ttycolors[console.current_nhcolor];
+    if (console.current_nhattr[ATR_BOLD])
+            console.attr |= (inverse) ?
+                            BACKGROUND_INTENSITY : FOREGROUND_INTENSITY;
+
+    attrs[0] = attrs[1] = console.attr;
+
+    WriteConsoleOutputAttribute(hConOut, attrs, 2,
+                                console.cursor, &acount);
+    WriteConsoleOutputCharacter(hConOut, buf, 2,
+                                console.cursor, &ccount);
+    console.cursor.X += 2;
+}
+
+void
+xputc2(ch1, ch2)
+int ch1;
+int ch2;
+{
+    /* wintty.c では 1 バイト毎に curx を加算するが、ここは
+       2 バイトたまってから呼び出されるので、1 文字分先に進んで
+      しまっている。従って 1 を引く。 */
+    console.cursor.X = ttyDisplay->curx - 1;
+    console.cursor.Y = ttyDisplay->cury;
+
+    xputc2_core(ch1, ch2);
+}
+#endif
 
 void
 xputs(s)
@@ -1064,7 +1113,20 @@ VA_DECL(const char *, fmt)
         if(!init_ttycolor_completed)
             init_ttycolor();
 
+#if 0 /*JP*/
         xputs(buf);
+#else
+        if(ttyDisplay){
+            console.cursor.X = ttyDisplay->curx;
+            console.cursor.Y = ttyDisplay->cury;
+        }
+        {
+            char *str = buf;
+            while(*str){
+                jbuffer(*(str++), NULL, (void (__cdecl *)(unsigned int))xputc_core, xputc2_core);
+            }
+        }
+#endif
         if (ttyDisplay)
             curs(BASE_WINDOW, console.cursor.X + 1, console.cursor.Y);
     }
@@ -1506,11 +1568,13 @@ static int CALLBACK EnumFontCallback(
 void
 check_and_set_font()
 {
+#if 0 /*JP*//* コードページは変更しない。932を仮定する。*/
     if (!check_font_widths()) {
         raw_print("WARNING: glyphs too wide in console font."
                   "  Changing code page to 437 and font to Consolas\n");
         set_known_good_console_font();
     }
+#endif
 }
 
 /* check_font_widths returns TRUE if all glyphs in current console font

@@ -2,6 +2,11 @@
 /* Copyright (c) Izchak Miller, Steve Linhart, 1989.              */
 /* NetHack may be freely redistributed.  See license for details. */
 
+/* JNetHack Copyright */
+/* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* JNetHack may be freely redistributed.  See license for details. */
+
 #include "hack.h"
 #include "mfndpos.h"
 
@@ -123,8 +128,13 @@ pick_move:
             check_special_room(FALSE);
         if (ib) {
             if (cansee(mtmp->mx, mtmp->my))
+#if 0 /*JP*/
                 pline("%s picks up %s.", Monnam(mtmp),
                       distant_name(ib, doname));
+#else
+                pline("%sは%sを拾った．", Monnam(mtmp),
+                      distant_name(ib, doname));
+#endif
             obj_extract_self(ib);
             (void) mpickobj(mtmp, ib);
         }
@@ -198,7 +208,10 @@ register struct monst *priest;
         || (Conflict && !resist(priest, RING_CLASS, 0, 0))) {
         if (monnear(priest, u.ux, u.uy)) {
             if (Displaced)
+/*JP
                 Your("displaced image doesn't fool %s!", mon_nam(priest));
+*/
+                Your("幻影は%sをだませなかった！", mon_nam(priest));
             (void) mattacku(priest);
             return 0;
         } else if (index(u.urooms, temple)) {
@@ -303,38 +316,80 @@ char *pname; /* caller-supplied output buffer */
         return strcpy(pname, what);       /* caller must be confused */
 
     *pname = '\0';
+#if 0 /*JP*//*日本語では不要*/
     if (!do_hallu || !bogon_is_pname(whatcode))
         Strcat(pname, "the ");
+#endif
     if (mon->minvis)
+/*JP
         Strcat(pname, "invisible ");
+*/
+        Strcat(pname, "透明な");
     if (mon->isminion && EMIN(mon)->renegade)
+/*JP
         Strcat(pname, "renegade ");
+*/
+        Strcat(pname, "裏切り者の");
 
+#if 1 /*JP*//*属性はここで付ける*/
+    if (do_hallu || !high_priest || !Is_astralevel(&u.uz)
+        || distu(mon->mx, mon->my) <= 2 || program_state.gameover) {
+        Strcat(pname, halu_gname(mon_aligntyp(mon)));
+        Strcat(pname, "の");
+    }
+#endif
     if (mon->ispriest || aligned_priest) { /* high_priest implies ispriest */
         if (!aligned_priest && !high_priest) {
             ; /* polymorphed priest; use ``what'' as is */
         } else {
             if (high_priest)
+#if 0 /*JP*/
                 Strcat(pname, "high ");
+#else
+                {
+                    if (Hallucination)
+                        what = "無能高級官僚";
+                    else
+                        what = "法王";
+                }
+            else /* 上記で完成させて、以下のコードは通らなくする */
+#endif
             if (Hallucination)
+/*JP
                 what = "poohbah";
+*/
+                what = "無能官僚";
             else if (mon->female)
+/*JP
                 what = "priestess";
+*/
+                what = "尼僧";
             else
+/*JP
                 what = "priest";
+*/
+                what = "僧侶";
         }
     } else {
+/*JP
         if (mon->mtame && !strcmpi(what, "Angel"))
+*/
+        if (mon->mtame && !strcmpi(what, "天使"))
+/*JP
             Strcat(pname, "guardian ");
+*/
+            Strcat(pname, "警護");
     }
 
     Strcat(pname, what);
+#if 0 /*JP*//*属性はすでに付けている*/
     /* same as distant_monnam(), more or less... */
     if (do_hallu || !high_priest || !Is_astralevel(&u.uz)
         || distu(mon->mx, mon->my) <= 2 || program_state.gameover) {
         Strcat(pname, " of ");
         Strcat(pname, halu_gname(mon_aligntyp(mon)));
     }
+#endif
     return pname;
 }
 
@@ -410,8 +465,13 @@ int roomno;
                Moloch so suppress the "of Moloch" for him here too */
             if (sanctum && !Hallucination)
                 priest->ispriest = 0;
+#if 0 /*JP*/
             pline("%s intones:",
                   canseemon(priest) ? Monnam(priest) : "A nearby voice");
+#else
+            pline("%sが詠唱した：",
+                  canseemon(priest) ? Monnam(priest) : "近くで誰か");
+#endif
             priest->ispriest = save_priest;
             epri_p->intone_time = moves + (long) d(10, 500); /* ~2505 */
             /* make sure that we don't suppress entry message when
@@ -422,18 +482,32 @@ int roomno;
         if (sanctum && Is_sanctum(&u.uz)) {
             if (priest->mpeaceful) {
                 /* first time inside */
+/*JP
                 msg1 = "Infidel, you have entered Moloch's Sanctum!";
+*/
+                msg1 = "異端者よ！ここは，モーロックの聖域だ！";
+/*JP
                 msg2 = "Be gone!";
+*/
+                msg2 = "立ちされ！";
                 priest->mpeaceful = 0;
                 /* became angry voluntarily; no penalty for attacking him */
                 set_malign(priest);
             } else {
                 /* repeat visit, or attacked priest before entering */
+/*JP
                 msg1 = "You desecrate this place by your presence!";
+*/
+                msg1 = "おまえはこの神聖な場所を汚している！";
             }
         } else if (moves >= epri_p->enter_time) {
+#if 0 /*JP*/
             Sprintf(buf, "Pilgrim, you enter a %s place!",
                     !shrined ? "desecrated" : "sacred");
+#else
+            Sprintf(buf, "巡礼者よ，おまえは%s地にいる！",
+                    !shrined ? "不浄の" : "神聖なる");
+#endif
             msg1 = buf;
         }
         if (msg1 && can_speak && !Deaf) {
@@ -445,13 +519,25 @@ int roomno;
         if (!sanctum) {
             if (!shrined || !p_coaligned(priest)
                 || u.ualign.record <= ALGN_SINNED) {
+/*JP
                 msg1 = "have a%s forbidding feeling...";
+*/
+                msg1 = "%s近づきがたい気持がした．．．";
+/*JP
                 msg2 = (!shrined || !p_coaligned(priest)) ? "" : " strange";
+*/
+                msg2 = (!shrined || !p_coaligned(priest)) ? "" : "奇妙な";
                 this_time = &epri_p->hostile_time;
                 other_time = &epri_p->peaceful_time;
             } else {
+/*JP
                 msg1 = "experience %s sense of peace.";
+*/
+                msg1 = "%s満ち足りた気持ちになった．";
+/*JP
                 msg2 = (u.ualign.record >= ALGN_PIOUS) ? "a" : "an unusual";
+*/
+                msg2 = (u.ualign.record >= ALGN_PIOUS) ? "a" : "いつになく";
                 this_time = &epri_p->peaceful_time;
                 other_time = &epri_p->hostile_time;
             }
@@ -475,13 +561,22 @@ int roomno;
 
         switch (rn2(4)) {
         case 0:
+/*JP
             You("have an eerie feeling...");
+*/
+            You("ぞっとした．．．");
             break;
         case 1:
+/*JP
             You_feel("like you are being watched.");
+*/
+            You("見つめられているような気がした．");
             break;
         case 2:
+/*JP
             pline("A shiver runs down your %s.", body_part(SPINE));
+*/
+            pline("あなたの%sを震えが走った．", body_part(SPINE));
             break;
         default:
             break; /* no message; unfortunately there's no
@@ -493,18 +588,36 @@ int roomno;
                    != 0) {
             int ngen = mvitals[PM_GHOST].born;
             if (canspotmon(mtmp))
+#if 0 /*JP:T*/
                 pline("A%s ghost appears next to you%c",
                       ngen < 5 ? "n enormous" : "",
                       ngen < 10 ? '!' : '.');
+#else
+                pline("%s幽霊があなたのすぐそばに現われた%s",
+                      ngen < 5 ? "巨大な" : "",
+                      ngen < 10 ? "！" : "．");
+#endif
             else
+/*JP
                 You("sense a presence close by!");
+*/
+                You("すぐそばに何かがいるのを感じた！");
             mtmp->mpeaceful = 0;
             set_malign(mtmp);
             if (flags.verbose)
+/*JP
                 You("are frightened to death, and unable to move.");
+*/
+                You("まっさおになって驚き，動けなくなった．");
             nomul(-3);
+/*JP
             multi_reason = "being terrified of a ghost";
+*/
+            multi_reason = "幽霊に恐怖している時に";
+/*JP
             nomovemsg = "You regain your composure.";
+*/
+            nomovemsg = "あなたは平静を取り戻した．";
         }
     }
 }
@@ -536,7 +649,10 @@ register struct monst *priest;
     u.uconduct.gnostic++;
 
     if (priest->mflee || (!priest->ispriest && coaligned && strayed)) {
+/*JP
         pline("%s doesn't want anything to do with you!", Monnam(priest));
+*/
+        pline("%sはあなたに構いたくないようだ！", Monnam(priest));
         priest->mpeaceful = 0;
         return;
     }
@@ -545,14 +661,27 @@ register struct monst *priest;
     if (!inhistemple(priest) || !priest->mpeaceful
         || !priest->mcanmove || priest->msleeping) {
         static const char *cranky_msg[3] = {
+/*JP
             "Thou wouldst have words, eh?  I'll give thee a word or two!",
+*/
+            "汝言葉を望むのか？",
+/*JP
             "Talk?  Here is what I have to say!",
+*/
+            "話す？何を言えばよいのだ！",
+/*JP
             "Pilgrim, I would speak no longer with thee."
+*/
+            "巡礼者よ，汝に語ることなどない．"
         };
 
         if (!priest->mcanmove || priest->msleeping) {
+#if 0 /*JP*/
             pline("%s breaks out of %s reverie!", Monnam(priest),
                   mhis(priest));
+#else
+            pline("%sは瞑想を中断した！", Monnam(priest));
+#endif
             priest->mfrozen = priest->msleeping = 0;
             priest->mcanmove = 1;
         }
@@ -565,7 +694,10 @@ register struct monst *priest;
     if (priest->mpeaceful && *in_rooms(priest->mx, priest->my, TEMPLE)
         && !has_shrine(priest)) {
         verbalize(
+/*JP
               "Begone!  Thou desecratest this holy place with thy presence.");
+*/
+              "立ち去れ！汝はこの神聖なる場所を汚している．");
         priest->mpeaceful = 0;
         return;
     }
@@ -574,38 +706,67 @@ register struct monst *priest;
             long pmoney = money_cnt(priest->minvent);
             if (pmoney > 0L) {
                 /* Note: two bits is actually 25 cents.  Hmm. */
+#if 0 /*JP*/
                 pline("%s gives you %s for an ale.", Monnam(priest),
                       (pmoney == 1L) ? "one bit" : "two bits");
+#else
+                pline("%sはあなたがエール酒を飲めるように，%sを与えた．", Monnam(priest),
+                      (pmoney == 1L) ? "金貨1枚" : "金貨2枚");
+#endif
                 money2u(priest, pmoney > 1L ? 2 : 1);
             } else
+/*JP
                 pline("%s preaches the virtues of poverty.", Monnam(priest));
+*/
+                pline("%sは清貧の美徳について説教した．", Monnam(priest));
             exercise(A_WIS, TRUE);
         } else
+/*JP
             pline("%s is not interested.", Monnam(priest));
+*/
+            pline("%sは興味を示さない．", Monnam(priest));
         return;
     } else {
         long offer;
 
+/*JP
         pline("%s asks you for a contribution for the temple.",
+*/
+        pline("%sはあなたに寺院への寄贈を求めた．",
               Monnam(priest));
         if ((offer = bribe(priest)) == 0) {
+/*JP
             verbalize("Thou shalt regret thine action!");
+*/
+            verbalize("汝の行為は神を冒涜するものなり！");
             if (coaligned)
                 adjalign(-1);
         } else if (offer < (u.ulevel * 200)) {
             if (money_cnt(invent) > (offer * 2L)) {
+/*JP
                 verbalize("Cheapskate.");
+*/
+                verbalize("ケチめ．");
             } else {
+/*JP
                 verbalize("I thank thee for thy contribution.");
+*/
+                verbalize("汝の寄贈に報いようぞ．");
                 /* give player some token */
                 exercise(A_WIS, TRUE);
             }
         } else if (offer < (u.ulevel * 400)) {
+/*JP
             verbalize("Thou art indeed a pious individual.");
+*/
+            verbalize("汝，まさに敬虔なり．");
             if (money_cnt(invent) < (offer * 2L)) {
                 if (coaligned && u.ualign.record <= ALGN_SINNED)
                     adjalign(1);
+/*JP
                 verbalize("I bestow upon thee a blessing.");
+*/
+                verbalize("汝に祝福を．");
                 incr_itimeout(&HClairvoyant, rn1(500, 500));
             }
         } else if (offer < (u.ulevel * 600)
@@ -616,7 +777,10 @@ register struct monst *priest;
                    && (!(HProtection & INTRINSIC)
                        || (u.ublessed < 20
                            && (u.ublessed < 9 || !rn2(u.ublessed))))) {
+/*JP
             verbalize("Thy devotion has been rewarded.");
+*/
+            verbalize("汝が献身に報わん．");
             if (!(HProtection & INTRINSIC)) {
                 HProtection |= FROMOUTSIDE;
                 if (!u.ublessed)
@@ -624,7 +788,10 @@ register struct monst *priest;
             } else
                 u.ublessed++;
         } else {
+/*JP
             verbalize("Thy selfless generosity is deeply appreciated.");
+*/
+            verbalize("汝自身の真価は大いに認められた．");
             if (money_cnt(invent) < (offer * 2L) && coaligned) {
                 if (strayed && (moves - u.ucleansed) > 5000L) {
                     u.ualign.record = 0; /* cleanse thee */
@@ -768,15 +935,26 @@ struct monst *priest;
 
     switch (rn2(3)) {
     case 0:
+/*JP
         pline("%s roars in anger:  \"Thou shalt suffer!\"",
+*/
+        pline("%sは怒りの声をあげた：「汝，苦しむがよい！」",
               a_gname_at(ax, ay));
         break;
     case 1:
+#if 0 /*JP*/
         pline("%s voice booms:  \"How darest thou harm my servant!\"",
               s_suffix(a_gname_at(ax, ay)));
+#else
+        pline("%sの声が響いた：「わが下僕に苦しむがよい！」",
+              a_gname_at(ax, ay));
+#endif
         break;
     default:
+/*JP
         pline("%s roars:  \"Thou dost profane my shrine!\"",
+*/
+        pline("%sの声が聞こえる：「汝，我が聖堂を汚したり！」",
               a_gname_at(ax, ay));
         break;
     }
@@ -871,15 +1049,30 @@ aligntyp alignment;
 {
     switch ((int) alignment) {
     case A_CHAOTIC:
+/*JP
         return "chaotic";
+*/
+        return "混沌";
     case A_NEUTRAL:
+/*JP
         return "neutral";
+*/
+        return "中立";
     case A_LAWFUL:
+/*JP
         return "lawful";
+*/
+        return "秩序";
     case A_NONE:
+/*JP
         return "unaligned";
+*/
+        return "無心";
     }
+/*JP
     return "unknown";
+*/
+    return "不明";
 }
 
 /* used for self-probing */
@@ -893,32 +1086,64 @@ const char *suffix;
 
     /* note: piousness 20 matches MIN_QUEST_ALIGN (quest.h) */
     if (u.ualign.record >= 20)
+/*JP
         pio = "piously";
+*/
+        pio = "敬虔な";
     else if (u.ualign.record > 13)
+/*JP
         pio = "devoutly";
+*/
+        pio = "信心深い";
     else if (u.ualign.record > 8)
+/*JP
         pio = "fervently";
+*/
+        pio = "熱心な";
     else if (u.ualign.record > 3)
+/*JP
         pio = "stridently";
+*/
+        pio = "大げさな";
     else if (u.ualign.record == 3)
         pio = "";
     else if (u.ualign.record > 0)
+/*JP
         pio = "haltingly";
+*/
+        pio = "不完全な";
     else if (u.ualign.record == 0)
+/*JP
         pio = "nominally";
+*/
+        pio = "形だけの";
     else if (!showneg)
+/*JP
         pio = "insufficiently";
+*/
+        pio = "不十分な";
     else if (u.ualign.record >= -3)
+/*JP
         pio = "strayed";
+*/
+        pio = "迷いを持った";
     else if (u.ualign.record >= -8)
+/*JP
         pio = "sinned";
+*/
+        pio = "罪を負った";
     else
+/*JP
         pio = "transgressed";
+*/
+        pio = "逸脱した";
 
     Sprintf(buf, "%s", pio);
     if (suffix && (!showneg || u.ualign.record >= 0)) {
+#if 0 /*JP*/
         if (u.ualign.record != 3)
             Strcat(buf, " ");
+#endif
         Strcat(buf, suffix);
     }
     return buf;
@@ -934,7 +1159,10 @@ struct monst *mtmp;
 
     info[0] = 0;
     if (mtmp->mtame) {
+/*JP
         Strcat(info, ", tame");
+*/
+        Strcat(info, ", 飼いならされている");
         if (wizard) {
             Sprintf(eos(info), " (%d", mtmp->mtame);
             if (!mtmp->isminion)
@@ -943,7 +1171,10 @@ struct monst *mtmp;
             Strcat(info, ")");
         }
     } else if (mtmp->mpeaceful)
+/*JP
         Strcat(info, ", peaceful");
+*/
+        Strcat(info, ", 友好的");
 
     if (mtmp->data == &mons[PM_LONG_WORM]) {
         int segndx, nsegs = count_wsegs(mtmp);
@@ -952,72 +1183,137 @@ struct monst *mtmp;
            the worm's segments, but we count it as such when presenting
            worm feedback to the player */
         if (!nsegs) {
+/*JP
             Strcat(info, ", single segment");
+*/
+            Strcat(info, ", 全体");
         } else {
             ++nsegs; /* include head in the segment count */
             segndx = wseg_at(mtmp, bhitpos.x, bhitpos.y);
+#if 0 /*JP*/
             Sprintf(eos(info), ", %d%s of %d segments",
                     segndx, ordin(segndx), nsegs);
+#else
+            Sprintf(eos(info), ", %d節のうち%d番目",
+                    nsegs, segndx);
+#endif
         }
     }
     if (mtmp->cham >= LOW_PM && mtmp->data != &mons[mtmp->cham])
         /* don't reveal the innate form (chameleon, vampire, &c),
            just expose the fact that this current form isn't it */
+/*JP
         Strcat(info, ", shapechanger");
+*/
+        Strcat(info, ", 変化");
     /* pets eating mimic corpses mimic while eating, so this comes first */
     if (mtmp->meating)
+/*JP
         Strcat(info, ", eating");
+*/
+        Strcat(info, ", 食事中");
     /* a stethoscope exposes mimic before getting here so this
        won't be relevant for it, but wand of probing doesn't */
     if (mtmp->mundetected || mtmp->m_ap_type)
         mhidden_description(mtmp, TRUE, eos(info));
     if (mtmp->mcan)
+/*JP
         Strcat(info, ", cancelled");
+*/
+        Strcat(info, ", 無力");
     if (mtmp->mconf)
+/*JP
         Strcat(info, ", confused");
+*/
+        Strcat(info, ", 混乱状態");
     if (mtmp->mblinded || !mtmp->mcansee)
+/*JP
         Strcat(info, ", blind");
+*/
+        Strcat(info, ", 盲目");
     if (mtmp->mstun)
+/*JP
         Strcat(info, ", stunned");
+*/
+        Strcat(info, ", くらくら状態");
     if (mtmp->msleeping)
+/*JP
         Strcat(info, ", asleep");
+*/
+        Strcat(info, ", 睡眠状態");
 #if 0 /* unfortunately mfrozen covers temporary sleep and being busy \
          (donning armor, for instance) as well as paralysis */
     else if (mtmp->mfrozen)
         Strcat(info, ", paralyzed");
 #else
     else if (mtmp->mfrozen || !mtmp->mcanmove)
+/*JP
         Strcat(info, ", can't move");
+*/
+        Strcat(info, ", 動けない");
 #endif
     /* [arbitrary reason why it isn't moving] */
     else if (mtmp->mstrategy & STRAT_WAITMASK)
+/*JP
         Strcat(info, ", meditating");
+*/
+        Strcat(info, ", 冥想中");
     if (mtmp->mflee)
+/*JP
         Strcat(info, ", scared");
+*/
+        Strcat(info, ", 怯えている");
     if (mtmp->mtrapped)
+/*JP
         Strcat(info, ", trapped");
+*/
+        Strcat(info, ", 罠にかかっている");
     if (mtmp->mspeed)
+#if 0 /*JP:T*/
         Strcat(info, (mtmp->mspeed == MFAST) ? ", fast"
                       : (mtmp->mspeed == MSLOW) ? ", slow"
                          : ", [? speed]");
+#else
+        Strcat(info, (mtmp->mspeed == MFAST) ? ", 素早い"
+                      : (mtmp->mspeed == MSLOW) ? ", 遅い"
+                         : ", 速度不明");
+#endif
     if (mtmp->minvis)
+/*JP
         Strcat(info, ", invisible");
+*/
+        Strcat(info, ", 不可視");
     if (mtmp == u.ustuck)
+#if 0 /*JP*/
         Strcat(info, sticks(youmonst.data) ? ", held by you"
                       : !u.uswallow ? ", holding you"
                          : attacktype_fordmg(u.ustuck->data, AT_ENGL, AD_DGST)
                             ? ", digesting you"
                             : is_animal(u.ustuck->data) ? ", swallowing you"
                                : ", engulfing you");
+#else
+        Strcat(info, sticks(youmonst.data) ? ", あなたが掴まえている"
+                      : !u.uswallow ? ", 掴まえている"
+                         : attacktype_fordmg(u.ustuck->data, AT_ENGL, AD_DGST)
+                            ? ", 消化している"
+                            : is_animal(u.ustuck->data) ? ", 飲み込んでいる"
+                               : ", 巻き込んでいる");
+#endif
     if (mtmp == u.usteed)
+/*JP
         Strcat(info, ", carrying you");
+*/
+        Strcat(info, ", あなたを乗せている");
 
     /* avoid "Status of the invisible newt ..., invisible" */
     /* and unlike a normal mon_nam, use "saddled" even if it has a name */
     Strcpy(monnambuf, x_monnam(mtmp, ARTICLE_THE, (char *) 0,
                                (SUPPRESS_IT | SUPPRESS_INVISIBLE), FALSE));
 
+/*JP
     pline("Status of %s (%s):  Level %d  HP %d(%d)  AC %d%s.", monnambuf,
+*/
+    pline("%sの状態 (%s)： Level %d  HP %d(%d)  AC %d%s", monnambuf,
           align_str(alignment), mtmp->m_lev, mtmp->mhp, mtmp->mhpmax,
           find_mac(mtmp), info);
 }
@@ -1030,6 +1326,7 @@ ustatusline()
 
     info[0] = '\0';
     if (Sick) {
+#if 0 /*JP*/
         Strcat(info, ", dying from");
         if (u.usick_type & SICK_VOMITABLE)
             Strcat(info, " food poisoning");
@@ -1038,18 +1335,46 @@ ustatusline()
                 Strcat(info, " and");
             Strcat(info, " illness");
         }
+#else
+        Strcat(info, ", ");
+        if (u.usick_type & SICK_VOMITABLE)
+            Strcat(info, "食中毒");
+        if (u.usick_type & SICK_NONVOMITABLE) {
+            if (u.usick_type & SICK_VOMITABLE)
+                Strcat(info, "と");
+            Strcat(info, "病気");
+        }
+        Strcat(info, "で死につつある");
+#endif
     }
     if (Stoned)
+/*JP
         Strcat(info, ", solidifying");
+*/
+        Strcat(info, ", 石化しつつある");
     if (Slimed)
+/*JP
         Strcat(info, ", becoming slimy");
+*/
+        Strcat(info, ", スライムになりつつある");
     if (Strangled)
+/*JP
         Strcat(info, ", being strangled");
+*/
+        Strcat(info, ", 首を絞められている");
     if (Vomiting)
+#if 0 /*JP*/
         Strcat(info, ", nauseated"); /* !"nauseous" */
+#else
+        Strcat(info, ", 吐き気がする");
+#endif
     if (Confusion)
+/*JP
         Strcat(info, ", confused");
+*/
+        Strcat(info, ", 混乱状態");
     if (Blind) {
+#if 0 /*JP*/
         Strcat(info, ", blind");
         if (u.ucreamed) {
             if ((long) u.ucreamed < Blinded || Blindfolded
@@ -1057,34 +1382,77 @@ ustatusline()
                 Strcat(info, ", cover");
             Strcat(info, "ed by sticky goop");
         } /* note: "goop" == "glop"; variation is intentional */
+#else
+        Strcat(info, ", ");
+        if (u.ucreamed) {
+            Strcat(info, "ねばねばべとつくもので");
+            if ((long)u.ucreamed < Blinded || Blindfolded
+                || !haseyes(youmonst.data))
+              Strcat(info, "覆われて");
+        }
+        Strcat(info, "盲目状態");
+#endif
     }
     if (Stunned)
+/*JP
         Strcat(info, ", stunned");
+*/
+        Strcat(info, ", くらくら状態");
     if (!u.usteed && Wounded_legs) {
         const char *what = body_part(LEG);
         if ((Wounded_legs & BOTH_SIDES) == BOTH_SIDES)
             what = makeplural(what);
+/*JP
         Sprintf(eos(info), ", injured %s", what);
+*/
+        Sprintf(eos(info), ", %sにけがをしている", what);
     }
     if (Glib)
+/*JP
         Sprintf(eos(info), ", slippery %s", makeplural(body_part(HAND)));
+*/
+        Sprintf(eos(info), ", %sがぬるぬる", makeplural(body_part(HAND)));
     if (u.utrap)
+/*JP
         Strcat(info, ", trapped");
+*/
+        Strcat(info, ", 罠にかかっている");
     if (Fast)
+/*JP
         Strcat(info, Very_fast ? ", very fast" : ", fast");
+*/
+        Strcat(info, Very_fast ? ", とても素早い" : ", 素早い");
     if (u.uundetected)
+/*JP
         Strcat(info, ", concealed");
+*/
+        Strcat(info, ", 隠れている");
     if (Invis)
+/*JP
         Strcat(info, ", invisible");
+*/
+        Strcat(info, ", 不可視");
     if (u.ustuck) {
+#if 0 /*JP*/
         if (sticks(youmonst.data))
             Strcat(info, ", holding ");
         else
             Strcat(info, ", held by ");
         Strcat(info, mon_nam(u.ustuck));
+#else
+        Strcat(info, ", ");
+        Strcat(info, mon_nam(u.ustuck));
+        if (sticks(youmonst.data))
+            Strcat(info, "を掴まえている");
+        else
+            Strcat(info, "に掴まえられている");
+#endif
     }
 
+/*JP
     pline("Status of %s (%s):  Level %d  HP %d(%d)  AC %d%s.", plname,
+*/
+    pline("%sの状態 (%s)： Level %d  HP %d(%d)  AC %d%s", plname,
           piousness(FALSE, align_str(u.ualign.type)),
           Upolyd ? mons[u.umonnum].mlevel : u.ulevel, Upolyd ? u.mh : u.uhp,
           Upolyd ? u.mhmax : u.uhpmax, u.uac, info);
