@@ -168,6 +168,9 @@ static void NDECL(release_yn_widgets);
 static int FDECL(input_event, (int));
 static void FDECL(win_visible, (Widget, XtPointer, XEvent *, Boolean *));
 static void NDECL(init_standard_windows);
+#ifdef XI18N
+static String FDECL(lang_proc, (Display *,String, XtPointer));
+#endif
 
 #ifdef  INSTALLCOLORMAP
 Colormap     cmap;
@@ -1283,7 +1286,7 @@ char **argv;
     XSetIOErrorHandler((XIOErrorHandler) hangup);
 
 #ifdef XI18N
-    XtSetLanguageProc(NULL, NULL, NULL);
+    XtSetLanguageProc(NULL, lang_proc, NULL);
 #endif
 #if 1 /*JP*/
     XSetIOErrorHandler((XIOErrorHandler) hangup);
@@ -2656,5 +2659,19 @@ Cardinal *num_params;
         }
     }
 }
+
+#ifdef XI18N
+static String lang_proc (Display *did, String lid, XtPointer cdata)
+{
+    if (! XSupportsLocale()) {
+       XtWarning("Current locale is not supported\n");
+       setlocale(LC_ALL, "C");
+    }
+    if (XSetLocaleModifiers("") == NULL) {
+       XtWarning("Can't set locale modifiers\n");
+    }
+    return setlocale(LC_ALL, NULL);
+}
+#endif
 
 /*winX.c*/

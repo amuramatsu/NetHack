@@ -3366,7 +3366,7 @@ int in_ch;
 #   if 0 /*JP*/
         (void) putchar(ch);
 #   else
-        (void) cputchar(ch);
+        (void) gputchar(ch);
 #   endif
     } else if (ch & 0x80) {
         if (!GFlag || HE_resets_AS) {
@@ -3386,7 +3386,7 @@ int in_ch;
 # if 0 /*JP*/
         (void) putchar(ch);
 # else
-        (void) jputchar(ch);
+        (void) cputchar(ch);
 # endif
     }
 

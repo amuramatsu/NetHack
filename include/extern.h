@@ -2908,12 +2908,12 @@ E void FDECL(setkcode,(int));
 E unsigned char *FDECL(e2sj, (unsigned char *));
 E unsigned char *FDECL(sj2e, (unsigned char *));
 E const char *FDECL(str2ic, (const char *));
-#ifdef SJIS_FILESYSTEM
 E const char *FDECL(ic2str, (const char *));
-#endif
+E const char *FDECL(gc2str, (const char *));
 E int FDECL(jbuffer, (unsigned int, unsigned int *, void (*)(unsigned int), void (*)(unsigned int, unsigned int)));
 E int FDECL(cbuffer, (unsigned int, unsigned int *, void (*)(unsigned int), void (*)(unsigned int, unsigned int)));
 E void FDECL(cputchar,(int));
+E void FDECL(gputchar,(int));
 E void FDECL(jputchar,(int));
 E void FDECL(jputs,(const char *));
 E int FDECL(is_kanji2, (const char *,int));

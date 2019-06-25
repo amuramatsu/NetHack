@@ -18,6 +18,8 @@
 
 #ifdef XI18N
 #include <X11/Xlocale.h>
+#else
+#include <locale.h>
 #endif
 
 #if !defined(_BULL_SOURCE) && !defined(__sgi) && !defined(_M_UNIX)
@@ -68,7 +70,15 @@ char *argv[];
     setkcode('U');
 #endif
 
-#ifdef XI18N
+#if 1 /*JP*/
+    {
+        char *locale, *dot;
+        locale = setlocale(LC_ALL, "");
+        dot = strchr(locale, '.');
+        if (dot) setkcode(*(dot+1));
+        setlocale(LC_ALL, "ja_JP.eucJP");
+    }
+#elif defined(XI18N)
     setlocale(LC_ALL, "");
 #endif
 #if defined(__APPLE__)
@@ -107,7 +117,7 @@ char *argv[];
     hackpid = getpid();
     (void) umask(0777 & ~FCMASK);
 
-    choose_windows(DEFAULT_WINDOW_SYS);
+    choose_windows(getenv("DISPLAY") ? DEFAULT_WINDOW_SYS : "tty");
 
 #ifdef CHDIR /* otherwise no chdir() */
     /*
@@ -166,7 +176,6 @@ char *argv[];
 #if 0 /*JP*/
             prscore(argc, argv);
 #else
-            setkcode('I');
             initoptions();
             prscore(argc, argv);
             jputchar('\0'); /* reset */
