@@ -162,11 +162,11 @@ CONFIG_H = ../src/config.h-t
 HACK_H	 = ../src/hack.h-t
 
 # utility .c files
-MAKESRC = makedefs.c
-SPLEVSRC = lev_yacc.c lev_lex.c lev_main.c
-DGNCOMPSRC = dgn_yacc.c dgn_lex.c dgn_main.c
+MAKESRC = makedefs.c ../src/my_vsprintf.c
+SPLEVSRC = lev_yacc.c lev_lex.c lev_main.c ../src/my_vsprintf.c
+DGNCOMPSRC = dgn_yacc.c dgn_lex.c dgn_main.c ../src/my_vsprintf.c
 RECOVSRC = recover.c
-DLBSRC = dlb_main.c
+DLBSRC = dlb_main.c ../src/my_vsprintf.c
 UTILSRCS = $(MAKESRC) panic.c $(SPLEVSRC) $(DGNCOMPSRC) $(RECOVSRC) $(DLBSRC)
 
 # files that define all monsters and objects
@@ -180,19 +180,19 @@ CALLOC = ../src/alloc.c panic.c
 OALLOC = $(OBJDIR)/alloc.o panic.o
 
 # object files for makedefs
-MAKEOBJS = makedefs.o $(OMONOBJ)
+MAKEOBJS = makedefs.o $(OBJDIR)/my_vsprintf.o $(OMONOBJ)
 
 # object files for special levels compiler
-SPLEVOBJS = lev_yacc.o lev_lex.o lev_main.o $(OALLOC) $(ONAMING)
+SPLEVOBJS = lev_yacc.o lev_lex.o lev_main.o $(OBJDIR)/my_vsprintf.o $(OALLOC) $(ONAMING)
 
 # object files for dungeon compiler
-DGNCOMPOBJS = dgn_yacc.o dgn_lex.o dgn_main.o $(OALLOC)
+DGNCOMPOBJS = dgn_yacc.o dgn_lex.o dgn_main.o $(OBJDIR)/my_vsprintf.o $(OALLOC)
 
 # object files for recovery utility
 RECOVOBJS = recover.o
 
 # object files for the data librarian
-DLBOBJS = dlb_main.o $(OBJDIR)/dlb.o $(OALLOC)
+DLBOBJS = dlb_main.o $(OBJDIR)/dlb.o $(OBJDIR)/my_vsprintf.o $(OALLOC)
 
 # flags for creating distribution versions of sys/share/*_lex.c, using
 # a more portable flex skeleton, which is not included in the distribution.

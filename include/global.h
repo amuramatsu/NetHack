@@ -243,13 +243,18 @@ typedef uchar nhsym;
 #undef SAFERHANGUP
 #endif
 
+#ifdef USE_MY_VSPRINTF
+#include "my_vsprintf.h"
+#define Sprintf (void) __sprintf
+#else
 #define Sprintf (void) sprintf
+#endif
 #define Strcat (void) strcat
 #define Strcpy (void) strcpy
 #ifdef NEED_VARARGS
 #define Vprintf (void) vprintf
 #define Vfprintf (void) vfprintf
-#define Vsprintf (void) vsprintf
+#define Vsprintf (void) __vsprintf
 #endif
 
 /* primitive memory leak debugging; see alloc.c */
