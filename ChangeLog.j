@@ -1,3 +1,10 @@
+Sun Dec  8 2019  Kentaro Shirakata  <argrath@ub32.org>
+
+	* NetHack-3.6.2ベース JNetHackテストリリース(3.6.2-0.1)
+	* 次の問題を修正
+	  * 銀が苦手な怪物を銀の武器で攻撃したときのメッセージがおかしい
+	    (#39767)
+
 Sun Jun  2 2019  Kentaro Shirakata  <argrath@ub32.org>
 
 	* JNetHack-3.6.1-0.4リリース

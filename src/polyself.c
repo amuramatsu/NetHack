@@ -1,4 +1,4 @@
-/* NetHack 3.6	polyself.c	$NHDT-Date: 1520797126 2018/03/11 19:38:46 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.117 $ */
+/* NetHack 3.6	polyself.c	$NHDT-Date: 1556497911 2019/04/29 00:31:51 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.132 $ */
 /*      Copyright (C) 1987, 1988, 1989 by Ken Arromdee */
 /* NetHack may be freely redistributed.  See license for details. */
 
@@ -30,7 +30,6 @@ STATIC_DCL void FDECL(check_strangling, (BOOLEAN_P));
 STATIC_DCL void FDECL(polyman, (const char *, const char *));
 STATIC_DCL void NDECL(break_armor);
 STATIC_DCL void FDECL(drop_weapon, (int));
-STATIC_DCL void NDECL(uunstick);
 STATIC_DCL int FDECL(armor_to_dragon, (int));
 STATIC_DCL void NDECL(newman);
 STATIC_DCL void NDECL(polysense);
@@ -50,9 +49,8 @@ void
 set_uasmon()
 {
     struct permonst *mdat = &mons[u.umonnum];
-    int new_speed, old_speed = youmonst.data ? youmonst.data->mmove : 0;
 
-    set_mon_data(&youmonst, mdat, 0);
+    set_mon_data(&youmonst, mdat);
 
 #define PROPSET(PropIndx, ON)                          \
     do {                                               \
@@ -89,12 +87,16 @@ set_uasmon()
     PROPSET(HALLUC_RES, dmgtype(mdat, AD_HALU));
     PROPSET(SEE_INVIS, perceives(mdat));
     PROPSET(TELEPAT, telepathic(mdat));
-    PROPSET(INFRAVISION, infravision(mdat));
+    /* note that Infravision uses mons[race] rather than usual mons[role] */
+    PROPSET(INFRAVISION, infravision(Upolyd ? mdat : &mons[urace.malenum]));
     PROPSET(INVIS, pm_invisible(mdat));
     PROPSET(TELEPORT, can_teleport(mdat));
     PROPSET(TELEPORT_CONTROL, control_teleport(mdat));
     PROPSET(LEVITATION, is_floater(mdat));
-    PROPSET(FLYING, is_flyer(mdat));
+    /* floating eye is the only 'floater'; it is also flagged as a 'flyer';
+       suppress flying for it so that enlightenment doesn't confusingly
+       show latent flight capability always blocked by levitation */
+    PROPSET(FLYING, (is_flyer(mdat) && !is_floater(mdat)));
     PROPSET(SWIMMING, is_swimmer(mdat));
     /* [don't touch MAGICAL_BREATHING here; both Amphibious and Breathless
        key off of it but include different monster forms...] */
@@ -106,17 +108,9 @@ set_uasmon()
     float_vs_flight(); /* maybe toggle (BFlying & I_SPECIAL) */
     polysense();
 
-    if (youmonst.movement) {
-        new_speed = mdat->mmove;
-        /* prorate unused movement if new form is slower so that
-           it doesn't get extra moves leftover from previous form;
-           if new form is faster, leave unused movement as is */
-        if (new_speed < old_speed)
-            youmonst.movement = new_speed * youmonst.movement / old_speed;
-    }
-
 #ifdef STATUS_HILITES
-    status_initialize(REASSESS_ONLY);
+    if (VIA_WINDOWPORT())
+        status_initialize(REASSESS_ONLY);
 #endif
 }
 
@@ -124,12 +118,21 @@ set_uasmon()
 void
 float_vs_flight()
 {
-    /* floating overrides flight; normally float_up() and float_down()
-       handle this, but sometimes they're skipped */
-    if (HLevitation || ELevitation)
+    boolean stuck_in_floor = (u.utrap && u.utraptype != TT_PIT);
+
+    /* floating overrides flight; so does being trapped in the floor */
+    if ((HLevitation || ELevitation)
+        || ((HFlying || EFlying) && stuck_in_floor))
         BFlying |= I_SPECIAL;
     else
         BFlying &= ~I_SPECIAL;
+    /* being trapped on the ground (bear trap, web, molten lava survived
+       with fire resistance, former lava solidified via cold, tethered
+       to a buried iron ball) overrides floating--the floor is reachable */
+    if ((HLevitation || ELevitation) && stuck_in_floor)
+        BLevitation |= I_SPECIAL;
+    else
+        BLevitation &= ~I_SPECIAL;
     context.botl = TRUE;
 }
 
@@ -178,7 +181,7 @@ polyman(fmt, arg)
 const char *fmt, *arg;
 {
     boolean sticky = (sticks(youmonst.data) && u.ustuck && !u.uswallow),
-            was_mimicking = (youmonst.m_ap_type == M_AP_OBJECT);
+            was_mimicking = (U_AP_TYPE == M_AP_OBJECT);
     boolean was_blind = !!Blind;
 
     if (Upolyd) {
@@ -228,8 +231,8 @@ const char *fmt, *arg;
     if (u.twoweap && !could_twoweap(youmonst.data))
         untwoweapon();
 
-    if (u.utraptype == TT_PIT && u.utrap) {
-        u.utrap = rn1(6, 2); /* time to escape resets */
+    if (u.utrap && u.utraptype == TT_PIT) {
+        set_utrap(rn1(6, 2), TT_PIT); /* time to escape resets */
     }
     if (was_blind && !Blind) { /* reverting from eyeless */
         Blinded = 1L;
@@ -694,7 +697,7 @@ int mntmp;
     }
 
     /* if stuck mimicking gold, stop immediately */
-    if (multi < 0 && youmonst.m_ap_type == M_AP_OBJECT
+    if (multi < 0 && U_AP_TYPE == M_AP_OBJECT
         && youmonst.data->mlet != S_MIMIC)
         unmul("");
     /* if becoming a non-mimic, stop mimicking anything */
@@ -820,8 +823,8 @@ int mntmp;
     drop_weapon(1);
     (void) hideunder(&youmonst);
 
-    if (u.utraptype == TT_PIT && u.utrap) {
-        u.utrap = rn1(6, 2); /* time to escape resets */
+    if (u.utrap && u.utraptype == TT_PIT) {
+        set_utrap(rn1(6, 2), TT_PIT); /* time to escape resets */
     }
     if (was_blind && !Blind) { /* previous form was eyeless */
         Blinded = 1L;
@@ -829,10 +832,14 @@ int mntmp;
     }
     newsym(u.ux, u.uy); /* Change symbol */
 
+    /* [note:  this 'sticky' handling is only sufficient for changing from
+       grabber to engulfer or vice versa because engulfing by poly'd hero
+       always ends immediately so won't be in effect during a polymorph] */
     if (!sticky && !u.uswallow && u.ustuck && sticks(youmonst.data))
         u.ustuck = 0;
     else if (sticky && !sticks(youmonst.data))
         uunstick();
+
     if (u.usteed) {
         if (touch_petrifies(u.usteed->data) && !Stone_resistance && rnl(3)) {
 #if 0 /*JP:T*/
@@ -920,11 +927,16 @@ int mntmp;
 */
             pline(use_thec, monsterc, "姿を変える");
 
-        if (lays_eggs(youmonst.data) && flags.female)
-/*JP
-            pline(use_thec, "sit", "lay an egg");
-*/
+        if (lays_eggs(youmonst.data) && flags.female &&
+            !(youmonst.data == &mons[PM_GIANT_EEL]
+                || youmonst.data == &mons[PM_ELECTRIC_EEL]))
+#if 0 /*JP*/
+            pline(use_thec, "sit",
+                  eggs_in_water(youmonst.data) ?
+                      "spawn in the water" : "lay an egg");
+#else /* 日本語では水中でも「卵を産む」で問題ない */
             pline(use_thec, "sit", "卵を産む");
+#endif
     }
 
     /* you now know what an egg of your type looks like */
@@ -939,26 +951,26 @@ int mntmp;
         spoteffects(TRUE);
     if (Passes_walls && u.utrap
         && (u.utraptype == TT_INFLOOR || u.utraptype == TT_BURIEDBALL)) {
-        u.utrap = 0;
-        if (u.utraptype == TT_INFLOOR)
+        if (u.utraptype == TT_INFLOOR) {
 /*JP
             pline_The("rock seems to no longer trap you.");
 */
             pline("岩に閉じ込められることはないだろう．");
-        else {
+        } else {
 /*JP
             pline_The("buried ball is no longer bound to you.");
 */
             pline_The("埋まった球が邪魔になることはないだろう．");
             buried_ball_to_freedom();
         }
+        reset_utrap(TRUE);
     } else if (likes_lava(youmonst.data) && u.utrap
                && u.utraptype == TT_LAVA) {
-        u.utrap = 0;
 /*JP
         pline_The("%s now feels soothing.", hliquid("lava"));
 */
         pline_The("%sが精神を落ちつかせてくれる．", hliquid("溶岩"));
+        reset_utrap(TRUE);
     }
     if (amorphous(youmonst.data) || is_whirly(youmonst.data)
         || unsolid(youmonst.data)) {
@@ -988,14 +1000,14 @@ int mntmp;
             u.utraptype == TT_WEB ? "くもの巣" : "熊の罠");
 #endif
         /* probably should burn webs too if PM_FIRE_ELEMENTAL */
-        u.utrap = 0;
+        reset_utrap(TRUE);
     }
     if (webmaker(youmonst.data) && u.utrap && u.utraptype == TT_WEB) {
 /*JP
         You("orient yourself on the web.");
 */
         You("くもの巣に適応した．");
-        u.utrap = 0;
+        reset_utrap(TRUE);
     }
     check_strangling(TRUE); /* maybe start strangling */
 
@@ -1262,6 +1274,8 @@ int alone;
 void
 rehumanize()
 {
+    boolean was_flying = (Flying != 0);
+
     /* You can't revert back while unchanging */
     if (Unchanging) {
         if (u.mh < 1) {
@@ -1274,7 +1288,10 @@ rehumanize()
 #endif
             done(DIED);
         } else if (uamul && uamul->otyp == AMULET_OF_UNCHANGING) {
+/*JP
             Your("%s %s!", simpleonames(uamul), otense(uamul, "fail"));
+*/
+            Your("%sに失敗した！", simpleonames(uamul));
             uamul->dknown = 1;
             makeknown(AMULET_OF_UNCHANGING);
         }
@@ -1306,7 +1323,14 @@ rehumanize()
     context.botl = 1;
     vision_full_recalc = 1;
     (void) encumber_msg();
-
+    if (was_flying && !Flying && u.usteed)
+#if 0 /*JP*/
+        You("and %s return gently to the %s.",
+            mon_nam(u.usteed), surface(u.ux, u.uy));
+#else
+        You("と%sは%sに着地した．",
+            mon_nam(u.usteed), surface(u.ux, u.uy));
+#endif
     retouch_equipment(2);
     if (!uarmg)
         selftouch(no_longer_petrify_resistant);
@@ -1367,7 +1391,7 @@ dospit()
             break;
         default:
             impossible("bad attack type in dospit");
-        /* fall through */
+            /*FALLTHRU*/
         case AD_ACID:
             otmp = mksobj(ACID_VENOM, TRUE, FALSE);
             break;
@@ -1657,8 +1681,8 @@ dogaze()
                 You_cant("see where to gaze at %s.", Monnam(mtmp));
 */
                 You("%sは見えないので，にらめない", Monnam(mtmp));
-            } else if (mtmp->m_ap_type == M_AP_FURNITURE
-                       || mtmp->m_ap_type == M_AP_OBJECT) {
+            } else if (M_AP_TYPE(mtmp) == M_AP_FURNITURE
+                       || M_AP_TYPE(mtmp) == M_AP_OBJECT) {
                 looked--;
                 continue;
             } else if (flags.safe_dog && mtmp->mtame && !Confusion) {
@@ -1724,7 +1748,7 @@ dogaze()
                         (void) destroy_mitem(mtmp, SPBOOK_CLASS, AD_FIRE);
                     if (dmg)
                         mtmp->mhp -= dmg;
-                    if (mtmp->mhp <= 0)
+                    if (DEADMONSTER(mtmp))
                         killed(mtmp);
                 }
                 /* For consistency with passive() in uhitm.c, this only
@@ -1821,7 +1845,7 @@ dohide()
                                                 : "怪物をつかんでいる");
 #endif
         if (u.uundetected
-            || (ismimic && youmonst.m_ap_type != M_AP_NOTHING)) {
+            || (ismimic && U_AP_TYPE != M_AP_NOTHING)) {
             u.uundetected = 0;
             youmonst.m_ap_type = M_AP_NOTHING;
             newsym(u.ux, u.uy);
@@ -1874,7 +1898,7 @@ dohide()
      * else make youhiding() give smarter messages at such spots.
      */
 
-    if (u.uundetected || (ismimic && youmonst.m_ap_type != M_AP_NOTHING)) {
+    if (u.uundetected || (ismimic && U_AP_TYPE != M_AP_NOTHING)) {
         youhiding(FALSE, 1); /* "you are already hiding" */
         return 0;
     }
@@ -1953,16 +1977,20 @@ domindblast()
                       : telepathic(mtmp->data) ? "潜在的精神に入" : "深層意識に潜");
 #endif
             mtmp->mhp -= rnd(15);
-            if (mtmp->mhp <= 0)
+            if (DEADMONSTER(mtmp))
                 killed(mtmp);
         }
     }
     return 1;
 }
 
-STATIC_OVL void
+void
 uunstick()
 {
+    if (!u.ustuck) {
+        impossible("uunstick: no ustuck?");
+        return;
+    }
 /*JP
     pline("%s is no longer in your clutches.", Monnam(u.ustuck));
 */
@@ -1993,7 +2021,7 @@ struct monst *mon;
 int part;
 {
     static NEARDATA const char
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *humanoid_parts[] = { "arm",       "eye",  "face",         "finger",
                               "fingertip", "foot", "hand",         "handed",
                               "head",      "leg",  "light headed", "neck",
@@ -2007,7 +2035,7 @@ int part;
             "背骨", "爪先", "髪",  "血",
             "肺", "鼻", "胃"},
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *jelly_parts[] = { "pseudopod", "dark spot", "front",
                            "pseudopod extension", "pseudopod extremity",
                            "pseudopod root", "grasp", "grasped",
@@ -2025,7 +2053,7 @@ int part;
             "波紋", "体液", "表面", "感覚器",
             "胃"},
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *animal_parts[] = { "forelimb",  "eye",           "face",
                             "foreclaw",  "claw tip",      "rear claw",
                             "foreclaw",  "clawed",        "head",
@@ -2043,7 +2071,7 @@ int part;
             "血", "肺", "鼻",
             "胃"},
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *bird_parts[] = { "wing",     "eye",  "face",         "wing",
                           "wing tip", "foot", "wing",         "winged",
                           "head",     "leg",  "light headed", "neck",
@@ -2057,7 +2085,7 @@ int part;
             "背骨", "爪先", "羽毛", "血",
             "肺", "くちばし", "胃" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *horse_parts[] = { "foreleg",  "eye",           "face",
                            "forehoof", "hoof tip",      "rear hoof",
                            "forehoof", "hooved",        "head",
@@ -2075,7 +2103,7 @@ int part;
             "血", "肺", "鼻",
             "胃" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *sphere_parts[] = { "appendage", "optic nerve", "body", "tentacle",
                             "tentacle tip", "lower appendage", "tentacle",
                             "tentacled", "body", "lower tentacle",
@@ -2091,7 +2119,7 @@ int part;
             "下の触手の先", "繊毛", "生命力",
             "網膜", "嗅覚中枢", "内部" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *fungus_parts[] = { "mycelium", "visual area", "front",
                             "hypha",    "hypha",       "root",
                             "strand",   "stranded",    "cap area",
@@ -2109,7 +2137,7 @@ int part;
             "体液", "えら", "えら",
             "内部"},
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *vortex_parts[] = { "region",        "eye",           "front",
                             "minor current", "minor current", "lower current",
                             "swirl",         "swirled",       "central core",
@@ -2127,7 +2155,7 @@ int part;
             "生命力", "中心", "前縁",
             "内部" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *snake_parts[] = { "vestigial limb", "eye", "face", "large scale",
                            "large scale tip", "rear region", "scale gap",
                            "scale gapped", "head", "rear region",
@@ -2143,7 +2171,7 @@ int part;
             "鱗", "血", "肺", "舌",
             "胃" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *worm_parts[] = { "anterior segment", "light sensitive cell",
                           "clitellum", "setae", "setae", "posterior segment",
                           "segment", "segmented", "anterior segment",
@@ -2159,7 +2187,7 @@ int part;
             "体", "後部の角", "角", "血",
             "皮膚", "口前葉", "胃" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         *fish_parts[] = { "fin", "eye", "premaxillary", "pelvic axillary",
                           "pelvic fin", "anal fin", "pectoral fin", "finned",
                           "head", "peduncle", "played out", "gills",

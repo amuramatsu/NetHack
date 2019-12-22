@@ -6,7 +6,7 @@ NetHackにJNetHackのパッチを当てた状態、あるいはgitレポジト�
 
 ## Windows
 
-VisualStudio 2015に対応しています。「開発者コマンド プロンプト for VS2015」から実行します。
+VisualStudio 2017に対応しています。「開発者コマンド プロンプト for VS2017」から実行します。
 
 ```
 sys/winnt/setup.bat
@@ -27,7 +27,7 @@ make install
 
 NetHackのビルド環境に加えて `GCC@5以上`, `nkf` が必要です。XCodeに含まれている`gcc`ではビルドできませんので、homebrewでインストールしてください。
 
-設定ファイルはGCC@5を前提として書かれています。6以上でもビルドできますが、`sys/unix/hints` と `japanese/set_mac.sh` の修正が必要です。
+設定ファイルはGCC@8を前提として書かれています。それ以外のバージョンの場合は`sys/unix/hints` と `japanese/set_mac.sh` の修正が必要です。
 
 ```
 sh japanese/set_mac.sh
