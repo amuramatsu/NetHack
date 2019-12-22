@@ -261,7 +261,11 @@ typedef uchar nhsym;
 #ifdef NEED_VARARGS
 #define Vprintf (void) vprintf
 #define Vfprintf (void) vfprintf
+#ifdef USE_MY_VSPRINTF
 #define Vsprintf (void) __vsprintf
+#else
+#define Vsprintf (void) vsprintf
+#endif
 #endif
 
 /* primitive memory leak debugging; see alloc.c */
