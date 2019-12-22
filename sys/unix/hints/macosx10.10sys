@@ -141,7 +141,7 @@ ifdef WANT_SHARE_INSTALL
 # if $GAMEUID is root, we install into roughly proper Mac locations, otherwise
 # we install into ~/nethackdir
 ifeq ($(GAMEUID),root)
-PREFIX:=/usr/local/stow/jnethack-3.6.1-0.4
+PREFIX:=/usr/local/stow/jnethack-3.6.2-0.1
 SHELLDIR=$(PREFIX)/bin
 HACKDIR=$(PREFIX)/share/jnethackdir
 CHOWN=chown

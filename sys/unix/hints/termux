@@ -10,8 +10,8 @@
 
 
 PREFIX=/data/data/com.termux/files/usr
-HACKDIR=$(PREFIX)/local/stow/jnethack-3.6.1-0.3/lib/$(GAME)dir
-SHELLDIR=$(PREFIX)/local/stow/jnethack-3.6.1-0.3/bin
+HACKDIR=$(PREFIX)/local/stow/jnethack-3.6.2-0.1/lib/$(GAME)dir
+SHELLDIR=$(PREFIX)/local/stow/jnethack-3.6.2-0.1/bin
 INSTDIR=$(HACKDIR)
 VARDIR=$(HACKDIR)
 
