@@ -5,7 +5,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -266,7 +266,7 @@ struct obj *obj; /* aatyp == AT_WEAP, AT_SPIT */
     if (check_visor) {
         o = (mdef == &youmonst) ? invent : mdef->minvent;
         for (; o; o = o->nobj)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             if ((o->owornmask & W_ARMH)
                 && (s = OBJ_DESCR(objects[o->otyp])) != (char *) 0
                 && !strcmp(s, "visored helmet"))

@@ -1,11 +1,11 @@
-/* NetHack 3.6	timeout.c	$NHDT-Date: 1545182148 2018/12/19 01:15:48 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.89 $ */
+/* NetHack 3.6	timeout.c	$NHDT-Date: 1573290422 2019/11/09 09:07:02 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.93 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -17,6 +17,8 @@ STATIC_DCL void NDECL(choke_dialogue);
 STATIC_DCL void NDECL(levitation_dialogue);
 STATIC_DCL void NDECL(slime_dialogue);
 STATIC_DCL void FDECL(slimed_to_death, (struct kinfo *));
+STATIC_DCL void NDECL(phaze_dialogue);
+STATIC_DCL void FDECL(done_timeout, (int, int));
 STATIC_DCL void NDECL(slip_or_trip);
 STATIC_DCL void FDECL(see_lamp_flicker, (struct obj *, const char *));
 STATIC_DCL void FDECL(lantern_message, (struct obj *));
@@ -97,14 +99,14 @@ const struct propname {
     { UNCHANGING, "unchanging" },
     { REFLECTING, "reflecting" },
     { FREE_ACTION, "free action" },
-    { FIXED_ABIL, "fixed abilites" },
+    { FIXED_ABIL, "fixed abilities" },
     { LIFESAVED, "life will be saved" },
     {  0, 0 },
 };
 
 /* He is being petrified - dialogue by inmet!tower */
 static NEARDATA const char *const stoned_texts[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "You are slowing down.",            /* 5 */
     "Your limbs are stiffening.",       /* 4 */
     "Your limbs have turned to stone.", /* 3 */
@@ -128,7 +130,7 @@ stoned_dialogue()
         char buf[BUFSZ];
 
         Strcpy(buf, stoned_texts[SIZE(stoned_texts) - i]);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         if (nolimbs(youmonst.data) && strstri(buf, "limbs"))
             (void) strsubst(buf, "limbs", "extremities");
 #else
@@ -286,7 +288,7 @@ static NEARDATA const char *const choke_texts[] = {
 };
 
 static NEARDATA const char *const choke_texts2[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "Your %s is becoming constricted.",
     "Your blood is having trouble reaching your brain.",
     "The pressure on your %s increases.",
@@ -364,7 +366,7 @@ levitation_dialogue()
 }
 
 static NEARDATA const char *const slime_texts[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "You are turning a little %s.",   /* 5 */
     "Your limbs are getting oozy.",   /* 4 */
     "Your skin begins to peel away.", /* 3 */
@@ -395,7 +397,7 @@ slime_dialogue()
         char buf[BUFSZ];
 
         Strcpy(buf, slime_texts[SIZE(slime_texts) - i - 1L]);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         if (nolimbs(youmonst.data) && strstri(buf, "limbs"))
             (void) strsubst(buf, "limbs", "extremities");
 #else
@@ -493,24 +495,41 @@ struct kinfo *kptr;
         del_light_source(LS_MONSTER, monst_to_any(&youmonst));
     save_mvflags = mvitals[PM_GREEN_SLIME].mvflags;
     mvitals[PM_GREEN_SLIME].mvflags = save_mvflags & ~G_GENOD;
+    /* become a green slime; also resets youmonst.m_ap_type+.mappearance */
     (void) polymon(PM_GREEN_SLIME);
     mvitals[PM_GREEN_SLIME].mvflags = save_mvflags;
-    done(TURNED_SLIME);
+    done_timeout(TURNED_SLIME, SLIMED);
 
     /* life-saved; even so, hero still has turned into green slime;
        player may have genocided green slimes after being infected */
     if ((mvitals[PM_GREEN_SLIME].mvflags & G_GENOD) != 0) {
+        char slimebuf[BUFSZ];
+
         killer.format = KILLED_BY;
 /*JP
         Strcpy(killer.name, "slimicide");
 */
         Strcpy(killer.name, "スライム虐殺");
-        /* immediately follows "OK, so you don't die." */
+        /* vary the message depending upon whether life-save was due to
+           amulet or due to declining to die in explore or wizard mode */
 /*JP
-        pline("Yes, you do.  Green slime has been genocided...");
+        Strcpy(slimebuf, "green slime has been genocided...");
 */
-        pline("はい，そうです．緑スライムは虐殺されました．．．");
-        done(GENOCIDED);
+        Strcpy(slimebuf, "緑スライムは虐殺されました．．．");
+        if (iflags.last_msg == PLNMSG_OK_DONT_DIE)
+            /* follows "OK, so you don't die." and arg is second sentence */
+/*JP
+            pline("Yes, you do.  %s", upstart(slimebuf));
+*/
+            pline("はい，そうです．%s", upstart(slimebuf));
+        else
+            /* follows "The medallion crumbles to dust." */
+/*JP
+            pline("Unfortunately, %s", slimebuf);
+*/
+            pline("ざんねんですが%s", slimebuf);
+        /* die again; no possibility of amulet this time */
+        done(GENOCIDED); /* [should it be done_timeout(GENOCIDED, SLIMED)?] */
         /* could be life-saved again (only in explore or wizard mode)
            but green slimes are gone; just stay in current form */
     }
@@ -525,7 +544,7 @@ struct kinfo *kptr;
    move between things which are closely packed--like the substance of
    solid rock! */
 static NEARDATA const char *const phaze_texts[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "You start to feel bloated.",
     "You are feeling rather flabby.",
 #else
@@ -544,6 +563,23 @@ phaze_dialogue()
 
     if (((HPasses_walls & TIMEOUT) % 2L) && i > 0L && i <= SIZE(phaze_texts))
         pline1(phaze_texts[SIZE(phaze_texts) - i]);
+}
+
+/* when a status timeout is fatal, keep the status line indicator shown
+   during end of game rundown (and potential dumplog);
+   timeout has already counted down to 0 by the time we get here */
+STATIC_OVL void
+done_timeout(how, which)
+int how, which;
+{
+    long *intrinsic_p = &u.uprops[which].intrinsic;
+
+    *intrinsic_p |= I_SPECIAL; /* affects final disclosure */
+    done(how);
+
+    /* life-saved */
+    *intrinsic_p &= ~I_SPECIAL;
+    context.botl = TRUE;
 }
 
 void
@@ -606,7 +642,7 @@ nh_timeout()
             u.uspellprot--;
             find_ac();
             if (!Blind)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Norep("The %s haze around you %s.", hcolor(NH_GOLDEN),
                       u.uspellprot ? "becomes less dense" : "disappears");
 #else
@@ -648,10 +684,10 @@ nh_timeout()
                 }
                 dealloc_killer(kptr);
                 /* (unlike sliming, you aren't changing form here) */
-                done(STONING);
+                done_timeout(STONING, STONED);
                 break;
             case SLIMED:
-                slimed_to_death(kptr); /* done(TURNED_SLIME) */
+                slimed_to_death(kptr); /* done_timeout(TURNED_SLIME,SLIMED) */
                 break;
             case VOMITING:
                 make_vomiting(0L, TRUE);
@@ -678,12 +714,12 @@ nh_timeout()
                         killer.format = KILLED_BY;
                     }
                 }
+                done_timeout(POISONING, SICK);
                 u.usick_type = 0;
-                done(POISONING);
                 break;
             case FAST:
                 if (!Very_fast)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You_feel("yourself slowing down%s.",
                              Fast ? " a bit" : "");
 #else
@@ -720,7 +756,7 @@ nh_timeout()
             case INVIS:
                 newsym(u.ux, u.uy);
                 if (!Invis && !BInvis && !Blind) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You(!See_invisible
                             ? "are no longer invisible."
                             : "can no longer see through yourself.");
@@ -787,7 +823,7 @@ nh_timeout()
                 if (!Warn_of_mon) {
                     context.warntype.speciesidx = NON_PM;
                     if (context.warntype.species) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         You("are no longer warned about %s.",
                             makeplural(context.warntype.species->mname));
 #else
@@ -806,7 +842,7 @@ nh_timeout()
 */
                         You_feel("また閉じ込められたようだ．");
                     else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         pline("You're back to your %s self again.",
                               !Upolyd ? "normal" : "unusual");
 #else
@@ -817,14 +853,14 @@ nh_timeout()
                 break;
             case STRANGLED:
                 killer.format = KILLED_BY;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Strcpy(killer.name,
                        (u.uburied) ? "suffocation" : "strangulation");
 #else
                 Strcpy(killer.name,
                        (u.uburied) ? "窒息して" : "首を絞められて");
 #endif
-                done(DIED);
+                done_timeout(DIED, STRANGLED);
                 /* must be declining to die in explore|wizard mode;
                    treat like being cured of strangulation by prayer */
                 if (uamul && uamul->otyp == AMULET_OF_STRANGULATION) {
@@ -866,6 +902,9 @@ nh_timeout()
                 break;
             case DETECT_MONSTERS:
                 see_monsters();
+                break;
+            case GLIB:
+                make_glib(0); /* might update persistent inventory */
                 break;
             }
         }
@@ -1026,7 +1065,7 @@ long timeout;
         if (cansee_hatchspot) {
             /* [bug?  m_monnam() yields accurate monster type
                regardless of hallucination] */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(monnambuf, "%s%s", siblings ? "some " : "",
                     siblings ? makeplural(m_monnam(mon)) : an(m_monnam(mon)));
 #else
@@ -1044,7 +1083,7 @@ long timeout;
         case OBJ_INVENT:
             knows_egg = TRUE; /* true even if you are blind */
             if (!cansee_hatchspot)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You_feel("%s %s from your pack!", something,
                          locomotion(mon->data, "drop"));
 #else
@@ -1052,7 +1091,7 @@ long timeout;
                       jpast(locomotion(mon->data, "落ちる")));
 #endif
             else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You_see("%s %s out of your pack!", monnambuf,
                         locomotion(mon->data, "drop"));
 #else
@@ -1060,7 +1099,7 @@ long timeout;
                     jpast(locomotion(mon->data, "落ちる")));
 #endif
             if (yours) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s cries sound like \"%s%s\"",
                       siblings ? "Their" : "Its",
                       flags.female ? "mommy" : "daddy", egg->spe ? "." : "?");
@@ -1069,7 +1108,7 @@ long timeout;
                       flags.female ? "ママ" : "パパ", egg->spe ? "" : "？");
 #endif
             } else if (mon->data->mlet == S_DRAGON && !Deaf) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 verbalize("Gleep!"); /* Mything eggs :-) */
 #else
                 verbalize("ブォー！"); /* Mything eggs :-) */
@@ -1203,7 +1242,7 @@ slip_or_trip()
           name; if not, look for rocks to trip over; trip over
           anonymous "something" if there aren't any rocks.
         */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         what = (iflags.last_msg == PLNMSG_ONE_ITEM_HERE)
                 ? ((otmp->quan == 1L) ? "it"
                       : Hallucination ? "they" : "them")
@@ -1224,7 +1263,7 @@ slip_or_trip()
         if (Hallucination) {
             what = strcpy(buf, what);
             buf[0] = highc(buf[0]);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("Egads!  %s bite%s your %s!", what,
                   (!otmp || otmp->quan == 1L) ? "s" : "", body_part(FOOT));
 #else
@@ -1238,7 +1277,7 @@ slip_or_trip()
         }
         if (!uarmf && otmp->otyp == CORPSE
             && touch_petrifies(&mons[otmp->corpsenm]) && !Stone_resistance) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(killer.name, "tripping over %s corpse",
                     an(mons[otmp->corpsenm].mname));
 #else
@@ -1248,7 +1287,7 @@ slip_or_trip()
             instapetrify(killer.name);
         }
     } else if (rn2(3) && is_ice(u.ux, u.uy)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s %s%s on the ice.",
               u.usteed ? upstart(x_monnam(u.usteed,
                                           (has_mname(u.usteed)) ? ARTICLE_NONE
@@ -1268,7 +1307,7 @@ slip_or_trip()
         if (on_foot) {
             switch (rn2(4)) {
             case 1:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You("trip over your own %s.",
                     Hallucination ? "elbow" : makeplural(body_part(FOOT)));
 #else
@@ -1277,7 +1316,7 @@ slip_or_trip()
 #endif
                 break;
             case 2:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You("slip %s.",
                     Hallucination ? "on a banana peel" : "and nearly fall");
 #else
@@ -1301,7 +1340,7 @@ slip_or_trip()
         } else {
             switch (rn2(4)) {
             case 1:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Your("%s slip out of the stirrups.",
                      makeplural(body_part(FOOT)));
 #else
@@ -1587,7 +1626,7 @@ long timeout;
                 switch (obj->where) {
                 case OBJ_INVENT:
                 case OBJ_MINVENT:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s%scandle%s getting short.", whose,
                           menorah ? "candelabrum's " : "",
                           many ? "s are" : " is");
@@ -1597,7 +1636,7 @@ long timeout;
 #endif
                     break;
                 case OBJ_FLOOR:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You_see("%scandle%s getting short.",
                             menorah ? "a candelabrum's " : many ? "some "
                                                                 : "a ",
@@ -1615,7 +1654,7 @@ long timeout;
                 switch (obj->where) {
                 case OBJ_INVENT:
                 case OBJ_MINVENT:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s%scandle%s flame%s flicker%s low!", whose,
                           menorah ? "candelabrum's " : "", many ? "s'" : "'s",
                           many ? "s" : "", many ? "" : "s");
@@ -1625,7 +1664,7 @@ long timeout;
 #endif
                     break;
                 case OBJ_FLOOR:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You_see("%scandle%s flame%s flicker low!",
                             menorah ? "a candelabrum's " : many ? "some "
                                                                 : "a ",
@@ -1655,7 +1694,7 @@ long timeout;
 #endif
                         break;
                     case OBJ_FLOOR:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         You_see("a candelabrum's flame%s die.",
                                 many ? "s" : "");
 #else
@@ -1670,7 +1709,7 @@ long timeout;
                            useupall() -> freeinv() handles it */
                         /*FALLTHRU*/
                     case OBJ_MINVENT:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         pline("%s %s consumed!", Yname2(obj),
                               many ? "are" : "is");
 #else
@@ -1682,7 +1721,7 @@ long timeout;
                           You see some wax candles consumed!
                           You see a wax candle consumed!
                          */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         You_see("%s%s consumed!", many ? "some " : "",
                                 many ? xname(obj) : an(xname(obj)));
 #else
@@ -1693,7 +1732,7 @@ long timeout;
                     }
 
                     /* post message */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline(Hallucination
                               ? (many ? "They shriek!" : "It shrieks!")
                               : Blind ? "" : (many ? "Their flames die."
@@ -1739,7 +1778,7 @@ long timeout;
         break; /* case [otyp ==] candelabrum|tallow_candle|wax_candle */
 
     default:
-        impossible("burn_object: unexpeced obj %s", xname(obj));
+        impossible("burn_object: unexpected obj %s", xname(obj));
         break;
     }
     if (need_newsym)
@@ -2240,13 +2279,32 @@ short kind;
 short func_index;
 anything *arg;
 {
-    timer_element *gnu;
+    timer_element *gnu, *dup;
 
-    if (func_index < 0 || func_index >= NUM_TIME_FUNCS)
-        panic("start_timer");
+    if (kind < 0 || kind >= NUM_TIMER_KINDS
+        || func_index < 0 || func_index >= NUM_TIME_FUNCS)
+        panic("start_timer (%s: %d)", kind_name(kind), (int) func_index);
 
-    gnu = (timer_element *) alloc(sizeof(timer_element));
-    (void) memset((genericptr_t)gnu, 0, sizeof(timer_element));
+    /* fail if <arg> already has a <func_index> timer running */
+    for (dup = timer_base; dup; dup = dup->next)
+        if (dup->kind == kind
+            && dup->func_index == func_index
+            && dup->arg.a_void == arg->a_void)
+            break;
+    if (dup) {
+        char idbuf[QBUFSZ];
+
+#ifdef VERBOSE_TIMER
+        Sprintf(idbuf, "%s timer", timeout_funcs[func_index].name);
+#else
+        Sprintf(idbuf, "%s timer (%d)", kind_name(kind), (int) func_index);
+#endif
+        impossible("Attempted to start duplicate %s, aborted.", idbuf);
+        return FALSE;
+    }
+
+    gnu = (timer_element *) alloc(sizeof *gnu);
+    (void) memset((genericptr_t) gnu, 0, sizeof *gnu);
     gnu->next = 0;
     gnu->tid = timer_id++;
     gnu->timeout = monstermoves + when;
@@ -2259,7 +2317,6 @@ anything *arg;
     if (kind == TIMER_OBJECT) /* increment object's timed count */
         (arg->a_obj)->timed++;
 
-    /* should check for duplicates and fail if any */
     return TRUE;
 }
 

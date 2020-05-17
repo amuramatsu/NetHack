@@ -1,4 +1,4 @@
-/* NetHack 3.6	do.c	$NHDT-Date: 1548978604 2019/01/31 23:50:04 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.189 $ */
+/* NetHack 3.6	do.c	$NHDT-Date: 1576638499 2019/12/18 03:08:19 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.198 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Derek S. Ray, 2015. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,7 +7,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -88,7 +88,7 @@ boolean pushing;
                 Strcpy(whobuf, "あなた");
                 if (u.usteed)
                     Strcpy(whobuf, y_monnam(u.usteed));
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %s %s into the %s.", upstart(whobuf),
                       vtense(whobuf, "push"), the(xname(otmp)), what);
 #else
@@ -106,7 +106,7 @@ boolean pushing;
         if (!fills_up || !pushing) { /* splashing occurs */
             if (!u.uinwater) {
                 if (pushing ? !Blind : cansee(rx, ry)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     There("is a large splash as %s %s the %s.",
                           the(xname(otmp)), fills_up ? "fills" : "falls into",
                           what);
@@ -183,8 +183,10 @@ const char *verb;
     struct trap *t;
     struct monst *mtmp;
     struct obj *otmp;
+#if 0 /*JP*//*unused*/
     boolean tseen;
     int ttyp = NO_TRAP;
+#endif
 
     if (obj->where != OBJ_FREE)
         panic("flooreffects: obj not free");
@@ -196,12 +198,14 @@ const char *verb;
         return TRUE;
     } else if (obj->otyp == BOULDER && (t = t_at(x, y)) != 0
                && (is_pit(t->ttyp) || is_hole(t->ttyp))) {
+#if 0 /*JP*/
         ttyp = t->ttyp;
         tseen = t->tseen ? TRUE : FALSE;
+#endif
         if (((mtmp = m_at(x, y)) && mtmp->mtrapped)
             || (u.utrap && u.ux == x && u.uy == y)) {
             if (*verb && (cansee(x, y) || distu(x, y) == 0))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s boulder %s into the pit%s.",
                       Blind ? "A" : "The",
                       vtense((const char *) 0, verb),
@@ -217,7 +221,7 @@ const char *verb;
                        since trapped target is a sitting duck */
                     int damage, dieroll = 1;
 
-                    /* 3.6.2: this was calling hmon() unconditionally
+                    /* As of 3.6.2: this was calling hmon() unconditionally
                        so always credited/blamed the hero but the boulder
                        might have been thrown by a giant or launched by
                        a rolling boulder trap triggered by a monster or
@@ -229,7 +233,7 @@ const char *verb;
                         mtmp->mhp -= damage;
                         if (DEADMONSTER(mtmp)) {
                             if (canspotmon(mtmp))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                                 pline("%s is %s!", Monnam(mtmp),
                                       (nonliving(mtmp->data)
                                        || is_vampshifter(mtmp))
@@ -270,7 +274,7 @@ const char *verb;
 */
                 You_hear("足元で何かが砕ける音を聞いた．");
             } else if (!Blind && cansee(x, y)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline_The("boulder %s%s.",
                           (ttyp == TRAPDOOR && !tseen)
                               ? "triggers and " : "",
@@ -327,7 +331,7 @@ const char *verb;
         }
         return water_damage(obj, NULL, FALSE) == ER_DESTROYED;
     } else if (u.ux == x && u.uy == y && (t = t_at(x, y)) != 0
-               && uteetering_at_seen_pit(t)) {
+               && (uteetering_at_seen_pit(t) || uescaped_shaft(t))) {
         if (Blind && !Deaf)
 /*JP
             You_hear("%s tumble downwards.", the(xname(obj)));
@@ -335,10 +339,11 @@ const char *verb;
             You_hear("%sが下の方へ転がっていく音を聞いた．", xname(obj));
         else
 #if 0 /*JP*/
-            pline("%s %s into %s pit.", The(xname(obj)),
-                  otense(obj, "tumble"), the_your[t->madeby_u]);
+            pline("%s %s into %s %s.", The(xname(obj)),
+                  otense(obj, "tumble"), the_your[t->madeby_u],
+                  is_pit(t->ttyp) ? "pit" : "hole");
 #else
-            pline("%sは%s落とし穴に転がりおちた．", xname(obj),
+            pline("%sは%s穴に転がりおちた．", xname(obj),
                   set_you[t->madeby_u]);
 #endif
     } else if (obj->globby) {
@@ -371,7 +376,7 @@ register struct obj *obj;
     }
 
     if (obj->blessed || obj->cursed) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         There("is %s flash as %s %s the altar.",
               an(hcolor(obj->blessed ? NH_AMBER : NH_BLACK)), doname(obj),
               otense(obj, "hit"));
@@ -381,14 +386,14 @@ register struct obj *obj;
               jconj_adj(hcolor(obj->blessed ? NH_AMBER : NH_BLACK)));
 #endif
         if (!Hallucination)
-            obj->bknown = 1;
+            obj->bknown = 1; /* ok to bypass set_bknown() */
     } else {
 /*JP
         pline("%s %s on the altar.", Doname2(obj), otense(obj, "land"));
 */
         pline("%sを祭壇の上に置いた．", Doname2(obj));
         if (obj->oclass != COIN_CLASS)
-            obj->bknown = 1;
+            obj->bknown = 1; /* ok to bypass set_bknown() */
     }
 }
 
@@ -407,6 +412,7 @@ polymorph_sink()
 {
     uchar sym = S_sink;
     boolean sinklooted;
+    int algn;
 
     if (levl[u.ux][u.uy].typ != SINK)
         return;
@@ -433,7 +439,11 @@ polymorph_sink()
     case 2:
         sym = S_altar;
         levl[u.ux][u.uy].typ = ALTAR;
-        levl[u.ux][u.uy].altarmask = Align2amask(rn2((int) A_LAWFUL + 2) - 1);
+        /* 3.6.3: this used to pass 'rn2(A_LAWFUL + 2) - 1' to
+           Align2amask() but that evaluates its argument more than once */
+        algn = rn2(3) - 1; /* -1 (A_Cha) or 0 (A_Neu) or +1 (A_Law) */
+        levl[u.ux][u.uy].altarmask = ((Inhell && rn2(3)) ? AM_NONE
+                                      : Align2amask(algn));
         break;
     case 3:
         sym = S_room;
@@ -609,7 +619,7 @@ register struct obj *obj;
             if (otmp != uball && otmp != uchain
                 && !obj_resists(otmp, 1, 99)) {
                 if (!Blind) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("Suddenly, %s %s from the sink!", doname(otmp),
                           otense(otmp, "vanish"));
 #else
@@ -676,7 +686,7 @@ register struct obj *obj;
             pline("指輪が排水口をするりと避けるのを見た！");
             break;
         case RIN_SEE_INVISIBLE:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You_see("some %s in the sink.",
                     Hallucination ? "oxygen molecules" : "air");
 #else
@@ -794,7 +804,7 @@ const char *word;
             if (!strcmp(word, "throw") && obj->quan > 1L)
                 obj->corpsenm = 1;
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("For some reason, you cannot %s%s the stone%s!", word,
                   obj->corpsenm ? " any of" : "", plur(obj->quan));
 #else
@@ -803,7 +813,7 @@ const char *word;
 #endif
         }
         obj->corpsenm = 0; /* reset */
-        obj->bknown = 1;
+        set_bknown(obj, 1);
         return FALSE;
     }
     if (obj->otyp == LEASH && obj->leashmon != 0) {
@@ -858,7 +868,7 @@ register struct obj *obj;
             /* doname can call s_suffix, reusing its buffer */
             Strcpy(monbuf, s_suffix(mon_nam(u.ustuck)));
             onam_p = is_unpaid(obj) ? yobjnam(obj, (char *) 0) : doname(obj);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("drop %s into %s %s.", onam_p, monbuf,
                 mbodypart(u.ustuck, STOMACH));
 #else
@@ -1136,7 +1146,7 @@ int retry;
         bypass_objlist(invent, FALSE);
     } else {
         /* should coordinate with perm invent, maybe not show worn items */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         n = query_objlist("What would you like to drop?", &invent,
                           (USE_INVLET | INVORDER_SORT), &pick_list, PICK_ANY,
                           all_categories ? allow_all : allow_category);
@@ -1255,7 +1265,7 @@ dodown()
 */
             You("%sの中に浮いている．", surface(u.ux, u.uy));
         else if (Is_waterlevel(&u.uz))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("are floating in %s.",
                 is_pool(u.ux, u.uy) ? "the water" : "a bubble of air");
 #else
@@ -1274,9 +1284,33 @@ dodown()
 #endif
         return 0; /* didn't move */
     }
+
+    if (Upolyd && ceiling_hider(&mons[u.umonnum]) && u.uundetected) {
+        u.uundetected = 0;
+        if (Flying) { /* lurker above */
+/*JP
+            You("fly out of hiding.");
+*/
+            You("隠れるのをやめて飛び出した．");
+        } else { /* piercer */
+/*JP
+            You("drop to the %s.", surface(u.ux, u.uy));
+*/
+            You("%sに落ちた．", surface(u.ux, u.uy));
+            if (is_pool_or_lava(u.ux, u.uy)) {
+                pooleffects(FALSE);
+            } else {
+                (void) pickup(1);
+                if ((trap = t_at(u.ux, u.uy)) != 0)
+                    dotrap(trap, TOOKPLUNGE);
+            }
+        }
+        return 1; /* came out of hiding; might need '>' again to go down */
+    }
+
     if (!stairs_down && !ladder_down) {
         trap = t_at(u.ux, u.uy);
-        if (trap && uteetering_at_seen_pit(trap)) {
+        if (trap && (uteetering_at_seen_pit(trap) || uescaped_shaft(trap))) {
             dotrap(trap, TOOKPLUNGE);
             return 1;
         } else if (!trap || !is_hole(trap->ttyp)
@@ -1337,7 +1371,9 @@ dodown()
     }
 
     if (trap) {
+#if 0 /*JP*/
         const char *down_or_thru = trap->ttyp == HOLE ? "down" : "through";
+#endif
 #if 0 /*JP*/
         const char *actn = Flying ? "fly" : locomotion(youmonst.data, "jump");
 #else
@@ -1347,7 +1383,7 @@ dodown()
         if (youmonst.data->msize >= MZ_HUGE) {
             char qbuf[QBUFSZ];
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("don't fit %s easily.", down_or_thru);
             Sprintf(qbuf, "Try to squeeze %s?", down_or_thru);
 #else
@@ -1379,7 +1415,7 @@ dodown()
                 return 0;
             }
         }
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("%s %s the %s.", actn, down_or_thru,
             trap->ttyp == HOLE ? "hole" : "trap door");
 #else
@@ -1424,7 +1460,7 @@ doup()
         return 0;
     }
     if (u.ustuck) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("are %s, and cannot go up.",
             !u.uswallow ? "being held" : is_animal(u.ustuck->data)
                                              ? "swallowed"
@@ -1439,7 +1475,7 @@ doup()
     }
     if (near_capacity() > SLT_ENCUMBER) {
         /* No levitation check; inv_weight() already allows for it */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("load is too heavy to climb the %s.",
              levl[u.ux][u.uy].typ == STAIRS ? "stairs" : "ladder");
 #else
@@ -1729,6 +1765,16 @@ boolean at_stairs, falling, portal;
     }
     savelev(fd, ledger_no(&u.uz),
             cant_go_back ? FREE_SAVE : (WRITE_SAVE | FREE_SAVE));
+    /* air bubbles and clouds are saved in game-state rather than with the
+       level they're used on; in normal play, you can't leave and return
+       to any endgame level--bubbles aren't needed once you move to the
+       next level so used to be discarded when the next special level was
+       loaded; but in wizard mode you can leave and return, and since they
+       aren't saved with the level and restored upon return (new ones are
+       created instead), we need to discard them to avoid a memory leak;
+       so bubbles are now discarded as we leave the level they're used on */
+    if (Is_waterlevel(&u.uz) || Is_airlevel(&u.uz))
+        save_waterlevel(-1, FREE_SAVE);
     bclose(fd);
     if (cant_go_back) {
         /* discard unreachable levels; keep #0 */
@@ -1788,10 +1834,16 @@ boolean at_stairs, falling, portal;
         reseed_random(rn2_on_display_rng);
         minit(); /* ZEROCOMP */
         getlev(fd, hackpid, new_ledger, FALSE);
+        /* when in wizard mode, it is possible to leave from and return to
+           any level in the endgame; above, we discarded bubble/cloud info
+           when leaving Plane of Water or Air so recreate some now */
+        if (Is_waterlevel(&u.uz) || Is_airlevel(&u.uz))
+            restore_waterlevel(-1);
         (void) nhclose(fd);
         oinit(); /* reassign level dependent obj probabilities */
     }
     reglyph_darkroom();
+    u.uinwater = 0;
     /* do this prior to level-change pline messages */
     vision_reset();         /* clear old level's line-of-sight */
     vision_full_recalc = 0; /* don't let that reenable vision yet */
@@ -1880,7 +1932,7 @@ boolean at_stairs, falling, portal;
                 selftouch("落ちながら，あなたは");
             } else { /* ordinary descent */
                 if (flags.verbose)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You("%s.", at_ladder ? "climb down the ladder"
                                          : "descend the stairs");
 #else
@@ -1990,7 +2042,7 @@ boolean at_stairs, falling, portal;
             "You feel like you've been here before.",
 */
             "前にここに来たことがあるような気がした．",
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             "This place %s familiar...", 0 /* no message */
 #else
             "この場所は懐かしい．．．", 0 /* no message */
@@ -2005,7 +2057,7 @@ boolean at_stairs, falling, portal;
             "You are surrounded by twisty little passages, all alike.",
 */
             "あなたはまがりくねった通路にかこまれていた．．．",
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             "Gee, this %s like uncle Conan's place...", 0 /* no message */
 #else
             "ゲー！コナンおじさんの場所に似ている．．．", 0 /* no message */
@@ -2199,7 +2251,7 @@ struct obj *corpse;
     where = corpse->where;
     is_uwep = (corpse == uwep);
     chewed = (corpse->oeaten != 0);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Strcpy(cname, corpse_xname(corpse,
                                chewed ? "bite-covered" : (const char *) 0,
                                CXN_SINGULAR));
@@ -2239,7 +2291,7 @@ struct obj *corpse;
 
         case OBJ_FLOOR:
             if (cansee(mtmp->mx, mtmp->my))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s rises from the dead!",
                       chewed ? Adjmonnam(mtmp, "bite-covered")
                              : Monnam(mtmp));
@@ -2253,7 +2305,7 @@ struct obj *corpse;
         case OBJ_MINVENT: /* probably a nymph's */
             if (cansee(mtmp->mx, mtmp->my)) {
                 if (canseemon(mcarry))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("Startled, %s drops %s as it revives!",
                           mon_nam(mcarry), an(cname));
 #else
@@ -2261,7 +2313,7 @@ struct obj *corpse;
                           cname, mon_nam(mcarry), cname);
 #endif
                 else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s suddenly appears!",
                           chewed ? Adjmonnam(mtmp, "bite-covered")
                                  : Monnam(mtmp));
@@ -2284,7 +2336,7 @@ struct obj *corpse;
                       yname(container));
             } else if (container_where == OBJ_INVENT && container) {
                 Strcpy(sackname, an(xname(container)));
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %s out of %s in your pack!",
                       Blind ? Something : Amonnam(mtmp),
                       locomotion(mtmp->data, "writhes"), sackname);
@@ -2339,13 +2391,13 @@ long timeout UNUSED;
 */
                 pline("%sは消えた．", monname);
             else if (!notice_it && canseemon(mtmp))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s appears.", Monnam(mtmp)); /* not pre-rloc monname */
 #else
                 pline("%sが現れた．", Monnam(mtmp)); /* not pre-rloc monname */
 #endif
             else if (notice_it && dist2(mtmp->mx, mtmp->my, x, y) > 2)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s teleports.", monname); /* saw it and still see it */
 #else
                 pline("%sは瞬間移動した．", monname); /* saw it and still see it */
@@ -2475,7 +2527,7 @@ int how; /* 0: ordinary, 1: dismounting steed, 2: limbs turn to stone */
            before the final stages and that calls us (how==2) to cure
            wounded legs, but we want to suppress the feel better message */
         if (!u.usteed && how != 2) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             const char *legs = body_part(LEG);
 
             if ((EWounded_legs & BOTH_SIDES) == BOTH_SIDES)

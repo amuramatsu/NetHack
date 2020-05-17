@@ -1,11 +1,11 @@
-/* NetHack 3.6	wield.c	$NHDT-Date: 1543492132 2018/11/29 11:48:52 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.58 $ */
+/* NetHack 3.6	wield.c	$NHDT-Date: 1559670611 2019/06/04 17:50:11 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.59 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -133,7 +133,7 @@ struct obj *obj;
         return FALSE;
 
     /* Prevent wielding cockatrice when not wearing gloves --KAA */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     You("wield %s in your bare %s.",
         corpse_xname(obj, (const char *) 0, CXN_PFX_THE),
         makeplural(body_part(HAND)));
@@ -175,7 +175,7 @@ struct obj *wep;
         /* hero must have been life-saved to get here; use a turn */
         res++; /* corpse won't be wielded */
     } else if (uarms && bimanual(wep)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("cannot wield a two-handed %s while wearing a shield.",
             is_sword(wep) ? "sword" : wep->otyp == BATTLE_AXE ? "axe"
                                                               : "weapon");
@@ -207,7 +207,7 @@ struct obj *wep;
             pline("%sは勝手にあなたの%sに装備された．",
                   xname(wep), body_part(HAND));
 #endif
-            wep->bknown = TRUE;
+            set_bknown(wep, 1);
         } else {
             /* The message must be printed before setuwep (since
              * you might die and be revived from changing weapons),
@@ -238,7 +238,7 @@ struct obj *wep;
         if (artifact_light(wep) && !wep->lamplit) {
             begin_burn(wep, FALSE);
             if (!Blind)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s to shine %s!", Tobjnam(wep, "begin"),
                       arti_light_description(wep));
 #else
@@ -263,7 +263,7 @@ struct obj *wep;
 
             if ((this_shkp = shop_keeper(inside_shop(u.ux, u.uy)))
                 != (struct monst *) 0) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s says \"You be careful with my %s!\"",
                       shkname(this_shkp), xname(wep));
 #else
@@ -529,7 +529,7 @@ dowieldquiver()
         /* require confirmation to ready the main weapon */
         if (ynq(qbuf) != 'y') {
             (void) Shk_Your(qbuf, uwep); /* replace qbuf[] contents */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s%s %s wielded.", qbuf,
                   simpleonames(uwep), otense(uwep, "remain"));
 #else
@@ -589,7 +589,7 @@ dowieldquiver()
         /* require confirmation to ready the alternate weapon */
         if (ynq(qbuf) != 'y') {
             (void) Shk_Your(qbuf, uswapwep); /* replace qbuf[] contents */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s%s %s %s.", qbuf,
                   simpleonames(uswapwep), otense(uswapwep, "remain"),
                   u.twoweap ? "wielded" : "as secondary weapon");
@@ -662,7 +662,7 @@ const char *verb; /* "rub",&c */
 #endif
 
     if (obj->owornmask & (W_ARMOR | W_ACCESSORY)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You_cant("%s %s while wearing %s.", verb, yname(obj),
                  more_than_1 ? "them" : "it");
 #else
@@ -702,7 +702,7 @@ const char *verb; /* "rub",&c */
     }
     /* check shield */
     if (uarms && bimanual(obj)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("cannot %s a two-handed %s while wearing a shield.", verb,
             (obj->oclass == WEAPON_CLASS) ? "weapon" : "tool");
 #else
@@ -792,7 +792,7 @@ can_twoweapon()
 */
         You("盾を持っている間は両手持ちできない．");
     else if (uswapwep->oartifact)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s being held second to another weapon!",
               Yobjnam2(uswapwep, "resist"));
 #else
@@ -804,7 +804,7 @@ can_twoweapon()
         ; /* must be life-saved to reach here; return FALSE */
     } else if (Glib || uswapwep->cursed) {
         if (!Glib)
-            uswapwep->bknown = TRUE;
+            set_bknown(uswapwep, 1);
         drop_uswapwep();
     } else
         return TRUE;
@@ -925,14 +925,14 @@ register int amount;
 
         if (amount >= 0 && uwep && will_weld(uwep)) { /* cursed tin opener */
             if (!Blind) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(buf, "%s with %s aura.",
                         Yobjnam2(uwep, "glow"), an(hcolor(NH_AMBER)));
 #else
                 Sprintf(buf, "%sは%sオーラにつつまれた．",
                         xname(uwep), hcolor(NH_AMBER));
 #endif
-                uwep->bknown = !Hallucination;
+                uwep->bknown = !Hallucination; /* ok to bypass set_bknown() */
             } else {
                 /* cursed tin opener is wielded in right hand */
 /*JP
@@ -943,7 +943,7 @@ register int amount;
             uncurse(uwep);
             update_inventory();
         } else {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(buf, "Your %s %s.", makeplural(body_part(HAND)),
                     (amount >= 0) ? "twitch" : "itch");
 #else
@@ -962,7 +962,7 @@ register int amount;
     if (uwep->otyp == WORM_TOOTH && amount >= 0) {
         multiple = (uwep->quan > 1L);
         /* order: message, transformation, shop handling */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("%s %s much sharper now.", simpleonames(uwep),
              multiple ? "fuse, and become" : "is");
 #else
@@ -988,7 +988,7 @@ register int amount;
     } else if (uwep->otyp == CRYSKNIFE && amount < 0) {
         multiple = (uwep->quan > 1L);
         /* order matters: message, shop handling, transformation */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("%s %s much duller now.", simpleonames(uwep),
              multiple ? "fuse, and become" : "is");
 #else
@@ -1023,7 +1023,7 @@ register int amount;
     if (((uwep->spe > 5 && amount >= 0) || (uwep->spe < -5 && amount < 0))
         && rn2(3)) {
         if (!Blind)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s %s for a while and then %s.",
                   Yobjnam2(uwep, "violently glow"), color,
                   otense(uwep, "evaporate"));
@@ -1045,7 +1045,7 @@ register int amount;
         xtime = (amount * amount == 1) ? "moment" : "while";
 */
         xtime = (amount*amount == 1) ? "一瞬" : "しばらくの間";
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s %s for a %s.",
               Yobjnam2(uwep, amount == 0 ? "violently glow" : "glow"), color,
               xtime);
@@ -1075,7 +1075,7 @@ register int amount;
      * spe dependent.  Give an obscure clue here.
      */
     if (uwep->oartifact == ART_MAGICBANE && uwep->spe >= 0) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("right %s %sches!", body_part(HAND),
              (((amount > 1) && (uwep->spe > 1)) ? "flin" : "it"));
 #else
@@ -1102,7 +1102,7 @@ welded(obj)
 register struct obj *obj;
 {
     if (obj && obj == uwep && will_weld(obj)) {
-        obj->bknown = TRUE;
+        set_bknown(obj, 1);
         return 1;
     }
     return 0;

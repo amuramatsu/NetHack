@@ -4,7 +4,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -610,7 +610,7 @@ int how;
     if (qt_msg->summary_size) {
         (void) dlb_fgets(in_line, sizeof in_line, msg_file);
         convert_line(in_line, out_line);
-#ifdef BETA
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
     } else if (qt_msg->delivery == 'c') { /* skip for 'qtdump' of 'p' */
         /* delivery 'c' and !summary_size, summary expected but not present;
            this doesn't prefix the number with role code vs 'general'
@@ -623,7 +623,7 @@ int how;
         putmsghistory(out_line, FALSE);
 }
 
-boolean
+STATIC_OVL boolean
 skip_pager(common)
 boolean common;
 {

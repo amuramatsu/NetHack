@@ -1,11 +1,11 @@
-/* NetHack 3.6	mthrowu.c	$NHDT-Date: 1542765360 2018/11/21 01:56:00 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.78 $ */
+/* NetHack 3.6	mthrowu.c	$NHDT-Date: 1573688695 2019/11/13 23:44:55 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.86 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2016. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -26,7 +26,7 @@ STATIC_DCL boolean FDECL(m_lined_up, (struct monst *, struct monst *));
  * Keep consistent with breath weapons in zap.c, and AD_* in monattk.h.
  */
 STATIC_OVL NEARDATA const char *breathwep[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "fragments", "fire", "frost", "sleep gas", "a disintegration blast",
     "lightning", "poison gas", "acid", "strange breath #8",
     "strange breath #9"
@@ -229,7 +229,10 @@ struct obj *otmp, *mwep;
         /* Elven Craftsmanship makes for light, quick bows */
         if (otmp->otyp == ELVEN_ARROW && !otmp->cursed)
             multishot++;
-        if (ammo_and_launcher(otmp, uwep) && mwep->otyp == ELVEN_BOW
+        /* for arrow, we checked bow&arrow when entering block, but for
+           bow, so far we've only validated that otmp is a weapon stack;
+           need to verify that it's a stack of arrows rather than darts */
+        if (mwep && mwep->otyp == ELVEN_BOW && ammo_and_launcher(otmp, mwep)
             && !mwep->cursed)
             multishot++;
         /* 1/3 of launcher enchantment */
@@ -322,7 +325,7 @@ struct obj *otmp, *mwep;
         if (!strcmp(trgbuf, "it"))
             Strcpy(trgbuf, humanoid(mtmp->data) ? "someone" : something);
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s %s %s%s%s!", Monnam(mtmp),
               m_shot.s ? "shoots" : "throws", onm,
               mtarg ? " at " : "", trgbuf);
@@ -412,6 +415,10 @@ boolean verbose;    /* give message(s) even when you can't see what happened */
         damage = dmgval(otmp, mtmp);
         if (otmp->otyp == ACID_VENOM && resists_acid(mtmp))
             damage = 0;
+#if 0 /* can't use this because we don't have the attacker */
+        if (is_orc(mtmp->data) && is_elf(?magr?))
+            damage++;
+#endif
         if (ismimic)
             seemimic(mtmp);
         mtmp->msleeping = 0;
@@ -458,16 +465,28 @@ boolean verbose;    /* give message(s) even when you can't see what happened */
         }
         if (objects[otmp->otyp].oc_material == SILVER
             && mon_hates_silver(mtmp)) {
-            if (vis)
+            boolean flesh = (!noncorporeal(mtmp->data)
+                             && !amorphous(mtmp->data));
+
+            /* note: extra silver damage is handled by dmgval() */
+            if (vis) {
+                char *m_name = mon_nam(mtmp);
+
+                if (flesh) /* s_suffix returns a modifiable buffer */
 /*JP
-                pline_The("silver sears %s flesh!", s_suffix(mon_nam(mtmp)));
+                    m_name = strcat(s_suffix(m_name), " flesh");
 */
-                pline("%sの体は銀で焼かれた！", mon_nam(mtmp));
-            else if (verbose && !target)
+                    m_name = strcat(s_suffix(m_name), "の体");
 /*JP
-                pline("Its flesh is seared!");
+                pline_The("silver sears %s!", m_name);
 */
-                pline("何者かの体は焼かれた！");
+                pline("%sは銀で焼かれた！", m_name);
+            } else if (verbose && !target) {
+/*JP
+                pline("%s is seared!", flesh ? "Its flesh" : "It");
+*/
+                pline("何%sは焼かれた！", flesh ? "者かの体" : "か");
+            }
         }
         if (otmp->otyp == ACID_VENOM && cansee(mtmp->mx, mtmp->my)) {
             if (resists_acid(mtmp)) {
@@ -613,7 +632,7 @@ struct obj *obj;         /* missile (or stack providing it) */
 */
                 pline("%sははずした！", Monnam(mon));
             else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s as %s throws it!", Tobjnam(singleobj, "slip"),
                       mon_nam(mon));
 #else
@@ -645,7 +664,12 @@ struct obj *obj;         /* missile (or stack providing it) */
     while (range-- > 0) { /* Actually the loop is always exited by break */
         bhitpos.x += dx;
         bhitpos.y += dy;
-        if ((mtmp = m_at(bhitpos.x, bhitpos.y)) != 0) {
+        mtmp = m_at(bhitpos.x, bhitpos.y);
+        if (mtmp && shade_miss(mon, mtmp, singleobj, TRUE, TRUE)) {
+            /* if mtmp is a shade and missile passes harmlessly through it,
+               give message and skip it in order to keep going */
+            mtmp = (struct monst *) 0;
+        } else if (mtmp) {
             if (ohitmon(mtmp, singleobj, range, TRUE))
                 break;
         } else if (bhitpos.x == u.ux && bhitpos.y == u.uy) {
@@ -660,7 +684,7 @@ struct obj *obj;         /* missile (or stack providing it) */
                     You("catch the %s.", xname(singleobj));
 */
                     You("%sをつかまえた．", xname(singleobj));
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You("are not interested in %s junk.",
                         s_suffix(mon_nam(mon)));
 #else
@@ -676,7 +700,7 @@ struct obj *obj;         /* missile (or stack providing it) */
 */
                      "これが欲しかったんだと思いながら%sの贈り物を受けとった．",
                         s_suffix(mon_nam(mon)));
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     (void) hold_another_object(singleobj,
                                                "You catch, but drop, %s.",
                                                xname(singleobj),
@@ -754,7 +778,7 @@ struct obj *obj;         /* missile (or stack providing it) */
 */
                         pline("ウェー．クリームをかぶった．");
                     else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         pline("There's %s sticky all over your %s.",
                               something, body_part(FACE));
 #else
@@ -901,7 +925,7 @@ struct attack *mattk;
             break;
         default:
             impossible("bad attack type in spitmu");
-            /* fall through */
+            /*FALLTHRU*/
         case AD_ACID:
             otmp = mksobj(ACID_VENOM, TRUE, FALSE);
             break;
@@ -1056,7 +1080,7 @@ struct monst *mtmp;
 
         if (canseemon(mtmp)) {
             onm = xname(otmp);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s thrusts %s.", Monnam(mtmp),
                   obj_is_pname(otmp) ? the(onm) : an(onm));
 #else
@@ -1106,7 +1130,7 @@ struct attack *mattk;
 
     if (mtmp->mcan) {
         if (!Deaf)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("A dry rattle comes from %s throat.",
                   s_suffix(mon_nam(mtmp)));
 #else
@@ -1175,7 +1199,7 @@ struct attack *mattk;
         if (!mtmp->mspec_used && rn2(3)) {
             if ((typ >= AD_MAGM) && (typ <= AD_ACID)) {
                 if (canseemon(mtmp))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s breathes %s!", Monnam(mtmp),
                           breathwep[typ - 1]);
 #else

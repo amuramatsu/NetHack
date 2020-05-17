@@ -1,4 +1,4 @@
-/* NetHack 3.6	detect.c	$NHDT-Date: 1544437284 2018/12/10 10:21:24 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.91 $ */
+/* NetHack 3.6	detect.c	$NHDT-Date: 1575245054 2019/12/02 00:04:14 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.100 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -10,7 +10,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -373,7 +373,7 @@ register struct obj *sobj;
 */
                    "あなたは将来の経済状況が心配になった．");
             else if (steedgold)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(buf, "You feel interested in %s financial situation.",
                         s_suffix(x_monnam(u.usteed,
                                           u.usteed->mtame ? ARTICLE_YOUR
@@ -407,7 +407,7 @@ register struct obj *sobj;
     You("%sの間に金貨が落ちていることに気がついた．", body_part(FOOT));
     return 0;
 
-outgoldmap:
+ outgoldmap:
     cls();
 
     (void) unconstrain_map();
@@ -605,7 +605,7 @@ register struct obj *sobj;
         }
         if (sobj) {
             if (sobj->blessed) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Your("%s %s to tingle and you smell %s.", body_part(NOSE),
                      u.uedibility ? "continues" : "starts", what);
 #else
@@ -668,13 +668,13 @@ int class;            /* an object class, 0 for all */
     }
 
     /* Special boulder symbol check - does the class symbol happen
-     * to match iflags.bouldersym which is a user-defined?
+     * to match showsyms[SYM_BOULDER + SYM_OFF_X] which is user-defined.
      * If so, that means we aren't sure what they really wanted to
      * detect. Rather than trump anything, show both possibilities.
      * We can exclude checking the buried obj chain for boulders below.
      */
     sym = class ? def_oc_syms[class].sym : 0;
-    if (sym && iflags.bouldersym && sym == iflags.bouldersym)
+    if (sym && showsyms[SYM_BOULDER + SYM_OFF_X] && sym == showsyms[SYM_BOULDER + SYM_OFF_X])
         boulder = ROCK_CLASS;
 
     if (Hallucination || (Confusion && class == SCROLL_CLASS))
@@ -1102,7 +1102,7 @@ struct obj *sobj; /* null if crystal ball, *scroll if gold detection scroll */
     Your("%sはむずむずした．", makeplural(body_part(TOE)));
     return 0;
 
-outtrapmap:
+ outtrapmap:
     cls();
 
     (void) unconstrain_map();
@@ -1164,76 +1164,76 @@ d_level *where;
 /*JP
                 return "far away";
 */
-              return "はるか彼方に";
+                return "はるか彼方に";
             else
 /*JP
                 return "far below";
 */
-        return "はるか下方に";
+                return "はるか下方に";
         else if (ll < -1)
             if (!indun)
 /*JP
                 return "away below you";
 */
-              return "ずっと下方に";
+                return "ずっと下方に";
             else
 /*JP
                 return "below you";
 */
-              return "下方に";
+                return "下方に";
         else if (!indun)
 /*JP
             return "in the distance";
 */
-          return "遠くに";
+            return "遠くに";
         else
 /*JP
             return "just below";
 */
-          return "真下に";
+            return "真下に";
     } else if (ll > 0) {
         if (ll > (8 + rn2(3)))
             if (!indun)
 /*JP
                 return "far away";
 */
-              return "はるか彼方に";
+                return "はるか彼方に";
             else
 /*JP
                 return "far above";
 */
-              return "はるか上方に";
+                return "はるか上方に";
         else if (ll > 1)
             if (!indun)
 /*JP
                 return "away above you";
 */
-              return "ずっと上方に";
+                return "ずっと上方に";
             else
 /*JP
                 return "above you";
 */
-              return "上方に";
+                return "上方に";
         else if (!indun)
 /*JP
             return "in the distance";
 */
-          return "遠くに";
+            return "遠くに";
         else
 /*JP
             return "just above";
 */
-          return "真上に";
+            return "真上に";
     } else if (!indun)
 /*JP
         return "in the distance";
 */
-      return "遠くに";
+        return "遠くに";
     else
 /*JP
         return "near you";
 */
-      return "近くに";
+        return "近くに";
 }
 
 static const struct {
@@ -1374,7 +1374,7 @@ struct obj **optr;
                 You("蛍光岩の上を金魚が泳いでいるのを見た．");
                 break;
             case 5:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You_see(
                     "tiny snowflakes spinning around a miniature farmhouse.");
 #else
@@ -1441,7 +1441,8 @@ struct obj **optr;
             ret = object_detect((struct obj *) 0, class);
         else if ((class = def_char_to_monclass(ch)) != MAXMCLASSES)
             ret = monster_detect((struct obj *) 0, class);
-        else if (iflags.bouldersym && (ch == iflags.bouldersym))
+        else if (showsyms[SYM_BOULDER + SYM_OFF_X]
+                 && (ch == showsyms[SYM_BOULDER + SYM_OFF_X]))
             ret = object_detect((struct obj *) 0, ROCK_CLASS);
         else
             switch (ch) {
@@ -1536,7 +1537,7 @@ do_mapping()
     if (!level.flags.hero_memory || unconstrained) {
         flush_screen(1);                 /* flush temp screen */
         /* browse_map() instead of display_nhwindow(WIN_MAP, TRUE) */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         browse_map(TER_DETECT | TER_MAP | TER_TRP | TER_OBJ,
                    "anything of interest");
 #else
@@ -1584,7 +1585,7 @@ struct obj *sobj; /* scroll--actually fake spellbook--object */
      * Unlike when casting the spell, it is much too intrustive when
      * in the midst of walking around or combatting monsters.
      *
-     * For 3.6.2, show terrain, then object, then monster like regular
+     * As of 3.6.2, show terrain, then object, then monster like regular
      * map updating, except in this case the map locations get marked
      * as seen from every direction rather than just from direction of
      * hero.  Skilled spell marks revealed objects as 'seen up close'
@@ -1670,8 +1671,13 @@ struct obj *sobj; /* scroll--actually fake spellbook--object */
                 continue;
             newglyph = glyph_at(zx, zy);
             if (glyph_is_monster(newglyph)
-                && glyph_to_mon(newglyph) != PM_LONG_WORM_TAIL)
-                map_invisible(zx, zy);
+                && glyph_to_mon(newglyph) != PM_LONG_WORM_TAIL) {
+                /* map_invisible() was unconditional here but that made
+                   remembered objects be forgotten for the case where a
+                   monster is immediately redrawn by see_monsters() */
+                if ((mtmp = m_at(zx, zy)) == 0 || !canspotmon(mtmp))
+                    map_invisible(zx, zy);
+            }
         }
     see_monsters();
 
@@ -1698,6 +1704,8 @@ struct rm *lev;
     lev->doormask = newmask;
 }
 
+/* find something at one location; it should find all somethings there
+   since it is used for magical detection rather than physical searching */
 STATIC_PTR void
 findone(zx, zy, num)
 int zx, zy;
@@ -1705,6 +1713,13 @@ genericptr_t num;
 {
     register struct trap *ttmp;
     register struct monst *mtmp;
+
+    /*
+     * This used to use if/else-if/else-if/else/end-if but that only
+     * found the first hidden thing at the location.  Two hidden things
+     * at the same spot is uncommon, but it's possible for an undetected
+     * monster to be hiding at the location of an unseen trap.
+     */
 
     if (levl[zx][zy].typ == SDOOR) {
         cvt_sdoor_to_door(&levl[zx][zy]); /* .typ = DOOR */
@@ -1717,19 +1732,25 @@ genericptr_t num;
         magic_map_background(zx, zy, 0);
         newsym(zx, zy);
         (*(int *) num)++;
-    } else if ((ttmp = t_at(zx, zy)) != 0) {
-        if (!ttmp->tseen && ttmp->ttyp != STATUE_TRAP) {
-            ttmp->tseen = 1;
-            newsym(zx, zy);
-            (*(int *) num)++;
-        }
-    } else if ((mtmp = m_at(zx, zy)) != 0) {
+    }
+
+    if ((ttmp = t_at(zx, zy)) != 0 && !ttmp->tseen
+        /* [shouldn't successful 'find' reveal and activate statue traps?] */
+        && ttmp->ttyp != STATUE_TRAP) {
+        ttmp->tseen = 1;
+        newsym(zx, zy);
+        (*(int *) num)++;
+    }
+
+    if ((mtmp = m_at(zx, zy)) != 0
+        /* brings hidden monster out of hiding even if already sensed */
+        && (!canspotmon(mtmp) || mtmp->mundetected || M_AP_TYPE(mtmp))) {
         if (M_AP_TYPE(mtmp)) {
             seemimic(mtmp);
             (*(int *) num)++;
-        }
-        if (mtmp->mundetected
-            && (is_hider(mtmp->data) || mtmp->data->mlet == S_EEL)) {
+        } else if (mtmp->mundetected && (is_hider(mtmp->data)
+                                         || hides_under(mtmp->data)
+                                         || mtmp->data->mlet == S_EEL)) {
             mtmp->mundetected = 0;
             newsym(zx, zy);
             (*(int *) num)++;
@@ -1771,7 +1792,7 @@ genericptr_t num;
 */
                 b_trapped("扉", 0);
             else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Norep("You %s an explosion!",
                       cansee(zx, zy) ? "see" : (!Deaf ? "hear"
                                                       : "feel the shock of"));
@@ -1872,8 +1893,7 @@ struct trap *trap;
 
     /* The "Hallucination ||" is to preserve 3.6.1 behaviour, but this
        behaviour might need a rework in the hallucination case
-       (e.g. to not prompt if any trap glyph appears on the
-       square). */
+       (e.g. to not prompt if any trap glyph appears on the square). */
     if (Hallucination ||
         levl[trap->tx][trap->ty].glyph !=
         trap_to_glyph(trap, rn2_on_display_rng)) {
@@ -1909,11 +1929,15 @@ boolean via_warning;
     if (M_AP_TYPE(mtmp)) {
         seemimic(mtmp);
         found_something = TRUE;
-    } else if (!canspotmon(mtmp)) {
-        if (mtmp->mundetected
-            && (is_hider(mtmp->data) || mtmp->data->mlet == S_EEL)) {
+    } else {
+        /* this used to only be executed if a !canspotmon() test passed
+           but that failed to bring sensed monsters out of hiding */
+        found_something = !canspotmon(mtmp);
+        if (mtmp->mundetected && (is_hider(mtmp->data)
+                                  || hides_under(mtmp->data)
+                                  || mtmp->data->mlet == S_EEL)) {
             if (via_warning) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Your("warning senses cause you to take a second %s.",
                      Blind ? "to check nearby" : "look close by");
 #else
@@ -1923,9 +1947,9 @@ boolean via_warning;
                 display_nhwindow(WIN_MESSAGE, FALSE); /* flush messages */
             }
             mtmp->mundetected = 0;
+            found_something = TRUE;
         }
         newsym(x, y);
-        found_something = TRUE;
     }
 
     if (found_something) {
@@ -2209,7 +2233,7 @@ dump_map()
 
             glyph = reveal_terrain_getglyph(x, y, FALSE, u.uswallow,
                                             default_glyph, subset);
-            (void) mapglyph(glyph, &ch, &color, &special, x, y);
+            (void) mapglyph(glyph, &ch, &color, &special, x, y, 0);
             buf[x - 1] = ch;
             if (ch != ' ') {
                 blankrow = FALSE;
@@ -2311,7 +2335,10 @@ int which_subset; /* when not full, whether to suppress objs and/or traps */
         /* allow player to move cursor around and get autodescribe feedback
            based on what is visible now rather than what is on 'real' map */
         which_subset |= TER_MAP; /* guarantee non-zero */
+/*JP
         browse_map(which_subset, "anything of interest");
+*/
+        browse_map(which_subset, "関心のあるもの");
 
         reconstrain_map();
         docrt(); /* redraw the screen, restoring regular map */

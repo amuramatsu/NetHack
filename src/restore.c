@@ -1,11 +1,11 @@
-/* NetHack 3.6	restore.c	$NHDT-Date: 1555201698 2019/04/14 00:28:18 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.129 $ */
+/* NetHack 3.6	restore.c	$NHDT-Date: 1575245087 2019/12/02 00:04:47 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.136 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2009. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -317,7 +317,7 @@ boolean ghostly, frozen;
             /*
              * TODO:  Remove this after 3.6.x save compatibility is dropped.
              *
-             * For 3.6.2, SchroedingersBox() always has a cat corpse in it.
+             * As of 3.6.2, SchroedingersBox() always has a cat corpse in it.
              * For 3.6.[01], it was empty and its weight was falsified
              * to have the value it would have had if there was one inside.
              * Put a non-rotting cat corpse in this box to convert to 3.6.2.
@@ -548,7 +548,8 @@ unsigned int *stuckid, *steedid;
     struct sysflag newgamesysflags;
 #endif
     struct context_info newgamecontext; /* all 0, but has some pointers */
-    struct obj *otmp, *tmp_bc;
+    struct obj *otmp;
+    struct obj *bc_obj;
     char timebuf[15];
     unsigned long uid;
     boolean defer_perm_invent;
@@ -629,7 +630,7 @@ unsigned int *stuckid, *steedid;
 #endif
     if (u.uhp <= 0 && (!Upolyd || u.mh <= 0)) {
         u.ux = u.uy = 0; /* affects pline() [hence You()] */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("were not healthy enough to survive restoration.");
 #else
         You("再開できるほど健康ではなかった．");
@@ -658,22 +659,21 @@ unsigned int *stuckid, *steedid;
     restore_timers(fd, RANGE_GLOBAL, FALSE, 0L);
     restore_light_sources(fd);
     invent = restobjchn(fd, FALSE, FALSE);
-    /* tmp_bc only gets set here if the ball & chain were orphaned
-       because you were swallowed; otherwise they will be on the floor
-       or in your inventory */
-    tmp_bc = restobjchn(fd, FALSE, FALSE);
-    if (tmp_bc) {
-        for (otmp = tmp_bc; otmp; otmp = otmp->nobj) {
-            if (otmp->owornmask)
-                setworn(otmp, otmp->owornmask);
-        }
-        if (!uball || !uchain)
-            impossible("restgamestate: lost ball & chain");
+
+    /* restore dangling (not on floor or in inventory) ball and/or chain */
+    bc_obj = restobjchn(fd, FALSE, FALSE);
+    while (bc_obj) {
+        struct obj *nobj = bc_obj->nobj;
+
+        if (bc_obj->owornmask)
+            setworn(bc_obj, bc_obj->owornmask);
+        bc_obj->nobj = (struct obj *) 0;
+        bc_obj = nobj;
     }
 
     migrating_objs = restobjchn(fd, FALSE, FALSE);
     migrating_mons = restmonchn(fd, FALSE);
-    mread(fd, (genericptr_t) mvitals, sizeof(mvitals));
+    mread(fd, (genericptr_t) mvitals, sizeof mvitals);
 
     /*
      * There are some things after this that can have unintended display
@@ -686,6 +686,7 @@ unsigned int *stuckid, *steedid;
     for (otmp = invent; otmp; otmp = otmp->nobj)
         if (otmp->owornmask)
             setworn(otmp, otmp->owornmask);
+
     /* reset weapon so that player will get a reminder about "bashing"
        during next fight when bare-handed or wielding an unconventional
        item; for pick-axe, we aren't able to distinguish between having
@@ -866,7 +867,7 @@ register int fd;
         clear_nhwindow(WIN_MAP);
 #endif
     clear_nhwindow(WIN_MESSAGE);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     You("return to level %d in %s%s.", depth(&u.uz),
         dungeons[u.uz.dnum].dname,
         flags.debug ? " while in debug mode"
@@ -940,6 +941,13 @@ register int fd;
     for (otmp = fobj; otmp; otmp = otmp->nobj)
         if (otmp->owornmask)
             setworn(otmp, otmp->owornmask);
+
+    if ((uball && !uchain) || (uchain && !uball)) {
+        impossible("restgamestate: lost ball & chain");
+        /* poor man's unpunish() */
+        setworn((struct obj *) 0, W_CHAIN);
+        setworn((struct obj *) 0, W_BALL);
+    }
 
     /* in_use processing must be after:
      *    + The inventory has been read so that freeinv() works.
@@ -1169,7 +1177,7 @@ boolean ghostly;
            them is different now than when the level was saved */
         restore_cham(mtmp);
         /* give hiders a chance to hide before their next move */
-        if (ghostly || elapsed > (long) rnd(10))
+        if (ghostly || (elapsed > 00 && elapsed > (long) rnd(10)))
             hide_monst(mtmp);
     }
 
@@ -1390,7 +1398,7 @@ winid bannerwin; /* if not WIN_ERR, clear window and show copyright in menu */
             add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE, "",
                      MENU_UNSELECTED);
         }
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         add_menu(tmpwin, NO_GLYPH, &any, 0, 0, ATR_NONE,
                  "Select one of your saved games", MENU_UNSELECTED);
 #else
@@ -1404,7 +1412,7 @@ winid bannerwin; /* if not WIN_ERR, clear window and show copyright in menu */
         }
         clet = (k <= 'n' - 'a') ? 'n' : 0; /* new game */
         any.a_int = -1;                    /* not >= 0 */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         add_menu(tmpwin, NO_GLYPH, &any, clet, 0, ATR_NONE,
                  "Start a new character", MENU_UNSELECTED);
 #else
@@ -1413,7 +1421,7 @@ winid bannerwin; /* if not WIN_ERR, clear window and show copyright in menu */
 #endif
         clet = (k + 1 <= 'q' - 'a') ? 'q' : 0; /* quit */
         any.a_int = -2;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         add_menu(tmpwin, NO_GLYPH, &any, clet, 0, ATR_NONE,
                  "Never mind (quit)", MENU_SELECTED);
 #else

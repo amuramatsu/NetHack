@@ -1,4 +1,4 @@
-/* NetHack 3.6	dothrow.c	$NHDT-Date: 1556201496 2019/04/25 14:11:36 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.160 $ */
+/* NetHack 3.6	dothrow.c	$NHDT-Date: 1573688688 2019/11/13 23:44:48 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.164 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2013. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -7,7 +7,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -103,7 +103,7 @@ int shotlimit;
     u_wipe_engr(2);
     if (!uarmg && obj->otyp == CORPSE && touch_petrifies(&mons[obj->corpsenm])
         && !Stone_resistance) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("throw %s with your bare %s.",
             corpse_xname(obj, (const char *) 0, CXN_PFX_THE),
             /* throwing with one hand, but pluralize since the
@@ -231,7 +231,7 @@ int shotlimit;
        attempted to specify a count */
     if (multishot > 1 || shotlimit > 0) {
         /* "You shoot N arrows." or "You throw N daggers." */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("%s %d %s.", m_shot.s ? "shoot" : "throw",
             multishot, /* (might be 1 if player gave shotlimit) */
             (multishot == 1) ? singular(obj, xname) : xname(obj));
@@ -282,7 +282,7 @@ int *shotlimit_p; /* (see dothrow()) */
         You("何かを投げるのは物理的に無理だ．");
         return FALSE;
     } else if (nohands(youmonst.data)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You_cant("throw or shoot without hands."); /* not body_part(HAND) */
 #else
         You("手がない．"); /* not body_part(HAND) */
@@ -460,7 +460,7 @@ boolean verbose;
 {
     if (m_shot.i < m_shot.n) {
         if (verbose && !context.mon_moving) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("stop %s after the %d%s %s.",
                 m_shot.s ? "firing" : "throwing", m_shot.i, ordin(m_shot.i),
                 m_shot.s ? "shot" : "toss");
@@ -488,7 +488,7 @@ boolean verbosely; /* usually True; False if caller has given drop message */
     if (IS_ALTAR(levl[u.ux][u.uy].typ))
         doaltarobj(obj);
     else if (verbosely)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s %s the %s.", Doname2(obj), otense(obj, "hit"),
               surface(u.ux, u.uy));
 #else
@@ -696,7 +696,7 @@ int x, y;
 */
             You("鉄の棒にぶちあたった．いてっ！");
             dmg = rnd(2 + *range);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             losehp(Maybe_Half_Phys(dmg), "crashing into iron bars",
                    KILLED_BY);
 #else
@@ -726,7 +726,7 @@ int x, y;
 */
             You("何かにぶちあたった！");
             dmg = rnd(2 + *range);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             losehp(Maybe_Half_Phys(dmg), "touching the edge of the universe",
                    KILLED_BY);
 #else
@@ -742,7 +742,7 @@ int x, y;
 
             /* Move at a diagonal. */
             if (bigmonst(youmonst.data) || too_much) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You("%sget forcefully wedged into a crevice.",
                     too_much ? "and all your belongings " : "");
 #else
@@ -750,7 +750,7 @@ int x, y;
                     too_much ? "と全部の荷物" : "");
 #endif
                 dmg = rnd(2 + *range);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 losehp(Maybe_Half_Phys(dmg), "wedging into a narrow crevice",
                        KILLED_BY);
 #else
@@ -791,7 +791,7 @@ int x, y;
 #endif
         }
         if (!glyph_is_monster(glyph) && !glyph_is_invisible(glyph))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("find %s by bumping into %s.", mnam, pronoun);
 #else
             You("ぶちあたったことで%sを見つけた．", mnam);
@@ -895,7 +895,7 @@ int x, y;
             return TRUE;
         } else {
             if (ttmp->tseen)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You("pass right over %s.",
                     an(defsyms[trap_to_defsym(ttmp->ttyp)].explanation));
 #else
@@ -963,7 +963,7 @@ boolean verbose;
         nomul(0);
         return;
     } else if (u.utrap) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("are anchored by the %s.",
             u.utraptype == TT_WEB
                 ? "web"
@@ -1238,7 +1238,7 @@ boolean hitsroof;
                         && polymon(PM_STONE_GOLEM))) {
  petrify:
             killer.format = KILLED_BY;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Strcpy(killer.name, "elementary physics"); /* "what goes up..." */
 #else
             Strcpy(killer.name, "初等物理により"); /* "what goes up..." */
@@ -1255,7 +1255,7 @@ boolean hitsroof;
         }
         hitfloor(obj, TRUE);
         thrownobj = 0;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         losehp(Maybe_Half_Phys(dmg), "falling object", KILLED_BY_AN);
 #else
         losehp(Maybe_Half_Phys(dmg), "落下物で", KILLED_BY_AN);
@@ -1305,10 +1305,11 @@ long wep_mask; /* used to re-equip returning boomerang */
 boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
 {
     register struct monst *mon;
-    register int range, urange;
-    boolean crossbowing, impaired = (Confusion || Stunned || Blind
-                                     || Hallucination || Fumbling);
-    boolean tethered_weapon = (obj->otyp == AKLYS && (wep_mask & W_WEP) != 0);
+    int range, urange;
+    boolean crossbowing, clear_thrownobj = FALSE,
+            impaired = (Confusion || Stunned || Blind
+                        || Hallucination || Fumbling),
+            tethered_weapon = (obj->otyp == AKLYS && (wep_mask & W_WEP) != 0);
 
     notonhead = FALSE; /* reset potentially stale value */
     if ((obj->cursed || obj->greased) && (u.dx || u.dy) && !rn2(7)) {
@@ -1358,8 +1359,18 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
 
     thrownobj = obj;
     thrownobj->was_thrown = 1;
+    iflags.returning_missile = ((obj->oartifact == ART_MJOLLNIR
+                                 && Role_if(PM_VALKYRIE))
+                                || tethered_weapon) ? (genericptr_t) obj
+                                                    : (genericptr_t) 0;
+    /* NOTE:  No early returns after this point or returning_missile
+       will be left with a stale pointer. */
 
     if (u.uswallow) {
+        if (obj == uball) {
+            uball->ox = uchain->ox = u.ux;
+            uball->oy = uchain->oy = u.uy;
+        }
         mon = u.ustuck;
         bhitpos.x = mon->mx;
         bhitpos.y = mon->my;
@@ -1369,10 +1380,9 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         if (u.dz < 0
             /* Mjollnir must we wielded to be thrown--caller verifies this;
                aklys must we wielded as primary to return when thrown */
-            && ((Role_if(PM_VALKYRIE) && obj->oartifact == ART_MJOLLNIR)
-                || tethered_weapon)
+            && iflags.returning_missile
             && !impaired) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s the %s and returns to your hand!", Tobjnam(obj, "hit"),
                   ceiling(u.ux, u.uy));
 #else
@@ -1395,8 +1405,8 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         } else {
             hitfloor(obj, TRUE);
         }
-        thrownobj = (struct obj *) 0;
-        return;
+        clear_thrownobj = TRUE;
+        goto throwit_return;
 
     } else if (obj->otyp == BOOMERANG && !Underwater) {
         if (Is_airlevel(&u.uz) || Levitation)
@@ -1410,8 +1420,8 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
                 setworn(obj, wep_mask);
                 u.twoweap = twoweap;
             }
-            thrownobj = (struct obj *) 0;
-            return;
+            clear_thrownobj = TRUE;
+            goto throwit_return;
         }
     } else {
         /* crossbow range is independent of strength */
@@ -1486,7 +1496,7 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
                we're about to return */
             if (tethered_weapon)
                 tmp_at(DISP_END, 0);
-            return;
+            goto throwit_return;
         }
     }
 
@@ -1494,13 +1504,13 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         boolean obj_gone;
 
         if (mon->isshk && obj->where == OBJ_MINVENT && obj->ocarry == mon) {
-            thrownobj = (struct obj *) 0;
-            return; /* alert shk caught it */
+            clear_thrownobj = TRUE;
+            goto throwit_return; /* alert shk caught it */
         }
         (void) snuff_candle(obj);
         notonhead = (bhitpos.x != mon->mx || bhitpos.y != mon->my);
         obj_gone = thitmonst(mon, obj);
-        /* Monster may have been tamed; this frees old mon */
+        /* Monster may have been tamed; this frees old mon [obsolete] */
         mon = m_at(bhitpos.x, bhitpos.y);
 
         /* [perhaps this should be moved into thitmonst or hmon] */
@@ -1510,36 +1520,24 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
             hot_pursuit(mon);
 
         if (obj_gone)
-            thrownobj = 0;
+            thrownobj = (struct obj *) 0;
     }
 
     if (!thrownobj) {
         /* missile has already been handled */
-        if (tethered_weapon) tmp_at(DISP_END, 0);
-    } else if (u.uswallow) {
-        if (tethered_weapon) {
+        if (tethered_weapon)
             tmp_at(DISP_END, 0);
-/*JP
-            pline("%s returns to your hand!", The(xname(thrownobj)));
-*/
-            pline("%sはあなたの手に戻ってきた！", The(xname(thrownobj)));
-            thrownobj = addinv(thrownobj);
-            (void) encumber_msg();
-            /* in case addinv() autoquivered */
-            if (thrownobj->owornmask & W_QUIVER)
-                setuqwep((struct obj *) 0);
-            setuwep(thrownobj);
-        } else {
-            /* ball is not picked up by monster */
-            if (obj != uball)
-                (void) mpickobj(u.ustuck, obj);
-            thrownobj = (struct obj *) 0;
-        }
+    } else if (u.uswallow && !iflags.returning_missile) {
+ swallowit:
+        if (obj != uball)
+            (void) mpickobj(u.ustuck, obj); /* clears 'thrownobj' */
+        else
+            clear_thrownobj = TRUE;
+        goto throwit_return;
     } else {
-        /* Mjollnir must we wielded to be thrown--caller verifies this;
-           aklys must we wielded as primary to return when thrown */
-        if ((obj->oartifact == ART_MJOLLNIR && Role_if(PM_VALKYRIE))
-            || tethered_weapon) {
+        /* Mjollnir must be wielded to be thrown--caller verifies this;
+           aklys must be wielded as primary to return when thrown */
+        if (iflags.returning_missile) { /* Mjollnir or aklys */
             if (rn2(100)) {
                 if (tethered_weapon)
                     tmp_at(DISP_END, BACKTRACK);
@@ -1605,14 +1603,14 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
                         }
 #endif
                     }
-                    if (ship_object(obj, u.ux, u.uy, FALSE)) {
-                        thrownobj = (struct obj *) 0;
-                        return;
-                    }
-                    dropy(obj);
+
+                    if (u.uswallow)
+                        goto swallowit;
+                    if (!ship_object(obj, u.ux, u.uy, FALSE))
+                        dropy(obj);
                 }
-                thrownobj = (struct obj *) 0;
-                return;
+                clear_thrownobj = TRUE;
+                goto throwit_return;
             } else {
                 if (tethered_weapon)
                     tmp_at(DISP_END, 0);
@@ -1627,6 +1625,9 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
                 pline("%s to return!", Tobjnam(obj, "fail"));
 */
                 pline("%sは戻るのに失敗した！", xname(obj));
+
+                if (u.uswallow)
+                    goto swallowit;
                 /* continue below with placing 'obj' at target location */
             }
         }
@@ -1641,15 +1642,15 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
             tmp_at(DISP_END, 0);
             breakmsg(obj, cansee(bhitpos.x, bhitpos.y));
             breakobj(obj, bhitpos.x, bhitpos.y, TRUE, TRUE);
-            thrownobj = (struct obj *) 0;
-            return;
+            clear_thrownobj = TRUE;
+            goto throwit_return;
         }
 /*JP
         if (flooreffects(obj, bhitpos.x, bhitpos.y, "fall")) {
 */
         if (flooreffects(obj,bhitpos.x, bhitpos.y, "落ちる")) {
-            thrownobj = (struct obj *) 0;
-            return;
+            clear_thrownobj = TRUE;
+            goto throwit_return;
         }
         obj_no_longer_held(obj);
         if (mon && mon->isshk && is_pick(obj)) {
@@ -1661,13 +1662,13 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
             if (*u.ushops || obj->unpaid)
                 check_shop_obj(obj, bhitpos.x, bhitpos.y, FALSE);
             (void) mpickobj(mon, obj); /* may merge and free obj */
-            thrownobj = (struct obj *) 0;
-            return;
+            clear_thrownobj = TRUE;
+            goto throwit_return;
         }
         (void) snuff_candle(obj);
         if (!mon && ship_object(obj, bhitpos.x, bhitpos.y, FALSE)) {
-            thrownobj = (struct obj *) 0;
-            return;
+            clear_thrownobj = TRUE;
+            goto throwit_return;
         }
         thrownobj = (struct obj *) 0;
         place_object(obj, bhitpos.x, bhitpos.y);
@@ -1690,6 +1691,12 @@ boolean twoweap; /* used to restore twoweapon mode if wielded weapon returns */
         if (obj_sheds_light(obj))
             vision_full_recalc = 1;
     }
+
+ throwit_return:
+    iflags.returning_missile = (genericptr_t) 0;
+    if (clear_thrownobj)
+        thrownobj = (struct obj *) 0;
+    return;
 }
 
 /* an object may hit a monster; various factors adjust chance of hitting */
@@ -1880,7 +1887,7 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
                 boolean next2u = monnear(mon, u.ux, u.uy);
 
                 finish_quest(obj); /* acknowledge quest completion */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %s %s back to you.", Monnam(mon),
                       (next2u ? "hands" : "tosses"), the(xname(obj)));
 #else
@@ -2054,7 +2061,7 @@ register struct obj *obj; /* thrownobj or kickedobj or uwep */
                 }
             }
         }
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s into %s %s.", Tobjnam(obj, "vanish"),
               s_suffix(mon_nam(mon)),
               is_animal(u.ustuck->data) ? "entrails" : "currents");
@@ -2239,7 +2246,7 @@ xchar x, y;
         && (mtmp = makemon(&mons[rn2(3) ? PM_HOMUNCULUS : PM_IMP], x, y,
                            NO_MM_FLAGS)) != 0) {
         if (canspotmon(mtmp))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s is released!", Hallucination
                                          ? An(rndmonnam(NULL))
                                          : "The picture-painting demon");
@@ -2285,7 +2292,7 @@ boolean from_invent;
 */
                         You("薬っぽい匂いがした．．．");
                     } else {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         const char *eyes = body_part(EYE);
 
                         if (eyecount(youmonst.data) != 1)
@@ -2459,7 +2466,7 @@ struct obj *obj;
     }
     freeinv(obj);
     if (u.uswallow) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline(is_animal(u.ustuck->data) ? "%s in the %s's entrails."
                                         : "%s into %s.",
               "The money disappears", mon_nam(u.ustuck));
@@ -2475,7 +2482,7 @@ struct obj *obj;
     if (u.dz) {
         if (u.dz < 0 && !Is_airlevel(&u.uz) && !Underwater
             && !Is_waterlevel(&u.uz)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline_The("gold hits the %s, then falls back on top of your %s.",
                       ceiling(u.ux, u.uy), body_part(HEAD));
 #else

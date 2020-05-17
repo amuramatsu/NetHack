@@ -1,11 +1,11 @@
-/* NetHack 3.6	mhitm.c	$NHDT-Date: 1555720096 2019/04/20 00:28:16 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.113 $ */
+/* NetHack 3.6	mhitm.c	$NHDT-Date: 1583606861 2020/03/07 18:47:41 $  $NHDT-Branch: NetHack-3.6-Mar2020 $:$NHDT-Revision: 1.119 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -23,7 +23,6 @@ static const char brief_feeling[] =
 */
     "%s気持におそわれたが，すぐに過ぎさった．";
 
-STATIC_DCL char *FDECL(mon_nam_too, (char *, struct monst *, struct monst *));
 STATIC_DCL int FDECL(hitmm, (struct monst *, struct monst *,
                              struct attack *));
 STATIC_DCL int FDECL(gazemm, (struct monst *, struct monst *,
@@ -48,34 +47,6 @@ STATIC_DCL int FDECL(passivemm, (struct monst *, struct monst *,
  */
 static int dieroll;
 
-/* returns mon_nam(mon) relative to other_mon; normal name unless they're
-   the same, in which case the reference is to {him|her|it} self */
-STATIC_OVL char *
-mon_nam_too(outbuf, mon, other_mon)
-char *outbuf;
-struct monst *mon, *other_mon;
-{
-    if (mon != other_mon)
-        Strcpy(outbuf, mon_nam(mon));
-    else
-#if 0 /*JP*/
-        switch (pronoun_gender(mon, FALSE)) {
-        case 0:
-            Strcpy(outbuf, "himself");
-            break;
-        case 1:
-            Strcpy(outbuf, "herself");
-            break;
-        default:
-            Strcpy(outbuf, "itself");
-            break;
-        }
-#else
-        Strcpy(outbuf, "自分自身");
-#endif
-    return outbuf;
-}
-
 STATIC_OVL void
 noises(magr, mattk)
 register struct monst *magr;
@@ -86,7 +57,7 @@ register struct attack *mattk;
     if (!Deaf && (farq != far_noise || moves - noisetime > 10)) {
         far_noise = farq;
         noisetime = moves;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You_hear("%s%s.",
                  (mattk->aatyp == AT_EXPL) ? "an explosion" : "some noises",
                  farq ? " in the distance" : "");
@@ -106,17 +77,36 @@ register struct monst *magr, *mdef;
 struct attack *mattk;
 {
     const char *fmt;
-    char buf[BUFSZ], mdef_name[BUFSZ];
+    char buf[BUFSZ];
+    boolean showit = FALSE;
+
+    /* unhiding or unmimicking happens even if hero can't see it
+       because the formerly concealed monster is now in action */
+    if (M_AP_TYPE(mdef)) {
+        seemimic(mdef);
+        showit |= vis;
+    } else if (mdef->mundetected) {
+        mdef->mundetected = 0;
+        showit |= vis;
+    }
+    if (M_AP_TYPE(magr)) {
+        seemimic(magr);
+        showit |= vis;
+    } else if (magr->mundetected) {
+        magr->mundetected = 0;
+        showit |= vis;
+    }
 
     if (vis) {
         if (!canspotmon(magr))
             map_invisible(magr->mx, magr->my);
+        else if (showit)
+            newsym(magr->mx, magr->my);
         if (!canspotmon(mdef))
             map_invisible(mdef->mx, mdef->my);
-        if (M_AP_TYPE(mdef))
-            seemimic(mdef);
-        if (M_AP_TYPE(magr))
-            seemimic(magr);
+        else if (showit)
+            newsym(mdef->mx, mdef->my);
+
 #if 0 /*JP*/
         fmt = (could_seduce(magr, mdef, mattk) && !magr->mcan)
                   ? "%s pretends to be friendly to"
@@ -128,9 +118,9 @@ struct attack *mattk;
 #endif
         Sprintf(buf, fmt, Monnam(magr));
 #if 0 /*JP*/
-        pline("%s %s.", buf, mon_nam_too(mdef_name, mdef, magr));
+        pline("%s %s.", buf, mon_nam_too(mdef, magr));
 #else
-        pline(buf, mon_nam_too(mdef_name, mdef, magr));
+        pline(buf, mon_nam_too(mdef, magr));
 #endif
     } else
         noises(magr, mattk);
@@ -299,7 +289,7 @@ boolean quietly;
     place_monster(magr, tx, ty); /* put down at target spot */
     place_monster(mdef, fx, fy);
     if (vis && !quietly)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s moves %s out of %s way!", Monnam(magr), mon_nam(mdef),
               is_rider(pa) ? "the" : mhis(magr));
 #else
@@ -466,15 +456,15 @@ register struct monst *magr, *mdef;
                      || mdef->data == &mons[PM_BROWN_PUDDING])
                     && (otmp && (objects[otmp->otyp].oc_material == IRON
                                  || objects[otmp->otyp].oc_material == METAL))
-                    && mdef->mhp > 1
-                    && !mdef->mcan) {
+                    && mdef->mhp > 1 && !mdef->mcan) {
                     struct monst *mclone;
+
                     if ((mclone = clone_mon(mdef, 0, 0)) != 0) {
                         if (vis && canspotmon(mdef)) {
                             char buf[BUFSZ];
 
                             Strcpy(buf, Monnam(mdef));
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                             pline("%s divides as %s hits it!", buf,
                                   mon_nam(magr));
 #else
@@ -515,6 +505,18 @@ register struct monst *magr, *mdef;
             break;
 
         case AT_ENGL:
+            if (mdef->data == &mons[PM_SHADE]) { /* no silver teeth... */
+                if (vis)
+#if 0 /*JP:T*/
+                    pline("%s attempt to engulf %s is futile.",
+                          s_suffix(Monnam(magr)), mon_nam(mdef));
+#else
+                    pline("%sは%sを飲み込もうとしたがむだだった．",
+                          Monnam(magr), mon_nam(mdef));
+#endif
+                strike = 0;
+                break;
+            }
             if (u.usteed && mdef == u.usteed) {
                 strike = 0;
                 break;
@@ -591,20 +593,44 @@ hitmm(magr, mdef, mattk)
 register struct monst *magr, *mdef;
 struct attack *mattk;
 {
+    boolean weaponhit = ((mattk->aatyp == AT_WEAP
+                          || (mattk->aatyp == AT_CLAW && otmp))),
+            silverhit = (weaponhit && otmp
+                         && objects[otmp->otyp].oc_material == SILVER),
+            showit = FALSE;
+
+    /* unhiding or unmimicking happens even if hero can't see it
+       because the formerly concealed monster is now in action */
+    if (M_AP_TYPE(mdef)) {
+        seemimic(mdef);
+        showit |= vis;
+    } else if (mdef->mundetected) {
+        mdef->mundetected = 0;
+        showit |= vis;
+    }
+    if (M_AP_TYPE(magr)) {
+        seemimic(magr);
+        showit |= vis;
+    } else if (magr->mundetected) {
+        magr->mundetected = 0;
+        showit |= vis;
+    }
+
     if (vis) {
         int compat;
-        char buf[BUFSZ], mdef_name[BUFSZ];
+        char buf[BUFSZ];
 
         if (!canspotmon(magr))
             map_invisible(magr->mx, magr->my);
+        else if (showit)
+            newsym(magr->mx, magr->my);
         if (!canspotmon(mdef))
             map_invisible(mdef->mx, mdef->my);
-        if (M_AP_TYPE(mdef))
-            seemimic(mdef);
-        if (M_AP_TYPE(magr))
-            seemimic(magr);
+        else if (showit)
+            newsym(mdef->mx, mdef->my);
+
         if ((compat = could_seduce(magr, mdef, mattk)) && !magr->mcan) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(buf, "%s %s", Monnam(magr),
                     mdef->mcansee ? "smiles at" : "talks to");
             pline("%s %s %s.", buf, mon_nam(mdef),
@@ -615,6 +641,8 @@ struct attack *mattk;
             pline(buf, mon_nam(mdef),
                   compat == 2 ? "魅力的に" : "誘惑的に");
 #endif
+        } else if (shade_miss(magr, mdef, otmp, FALSE, TRUE)) {
+            return MM_MISS; /* bypass mdamagem() */
         } else {
             char magr_name[BUFSZ];
 
@@ -663,13 +691,43 @@ struct attack *mattk;
 /*JP
                 Sprintf(buf, "%s hits", magr_name);
 */
-                Sprintf(buf,"%sの%%sへの攻撃は命中した．", magr_name);
+                Sprintf(buf, "%sの%%sへの攻撃は命中した．", magr_name);
             }
 #if 0 /*JP*/
-            pline("%s %s.", buf, mon_nam_too(mdef_name, mdef, magr));
+            pline("%s %s.", buf, mon_nam_too(mdef, magr));
 #else
-            pline(buf, mon_nam_too(mdef_name, mdef, magr));
+            pline(buf, mon_nam_too(mdef, magr));
 #endif
+
+            if (mon_hates_silver(mdef) && silverhit) {
+                char *mdef_name = mon_nam_too(mdef, magr);
+
+                /* note: mon_nam_too returns a modifiable buffer; so
+                   does s_suffix, but it returns a single static buffer
+                   and we might be calling it twice for this message */
+                Strcpy(magr_name, s_suffix(magr_name));
+                if (!noncorporeal(mdef->data) && !amorphous(mdef->data)) {
+                    if (mdef != magr) {
+                        mdef_name = s_suffix(mdef_name);
+                    } else {
+                        (void) strsubst(mdef_name, "himself", "his own");
+                        (void) strsubst(mdef_name, "herself", "her own");
+                        (void) strsubst(mdef_name, "itself", "its own");
+                    }
+/*JP
+                    Strcat(mdef_name, " flesh");
+*/
+                    Strcat(mdef_name, "の肉");
+                }
+
+#if 0 /*JP:T*/
+                pline("%s %s sears %s!", magr_name, /*s_suffix(magr_name), */
+                      simpleonames(otmp), mdef_name);
+#else
+                pline("%sの%sが%sを焼いた！", magr_name, /*s_suffix(magr_name), */
+                      simpleonames(otmp), mdef_name);
+#endif
+            }
         }
     } else
         noises(magr, mattk);
@@ -689,7 +747,7 @@ struct attack *mattk;
         if (mdef->data->mlet == S_MIMIC
             && M_AP_TYPE(mdef) != M_AP_NOTHING)
             seemimic(mdef);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(buf, "%s gazes at", Monnam(magr));
         pline("%s %s...", buf,
               canspotmon(mdef) ? mon_nam(mdef) : "something");
@@ -718,7 +776,7 @@ struct attack *mattk;
         if (mdef->mcansee) {
             if (mon_reflects(magr, (char *) 0)) {
                 if (canseemon(magr))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     (void) mon_reflects(magr,
                                       "The gaze is reflected away by %s %s.");
 #else
@@ -729,7 +787,7 @@ struct attack *mattk;
             }
             if (mdef->minvis && !perceives(magr->data)) {
                 if (canseemon(magr)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline(
                       "%s doesn't seem to notice that %s gaze was reflected.",
                           Monnam(magr), mhis(magr));
@@ -805,7 +863,7 @@ register struct attack *mattk;
         /* [this two-part formatting dates back to when only one x_monnam
            result could be included in an expression because the next one
            would overwrite first's result -- that's no longer the case] */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(buf, "%s swallows", Monnam(magr));
         pline("%s %s.", buf, mon_nam(mdef));
 #else
@@ -821,7 +879,7 @@ register struct attack *mattk;
         if (vis) {
             /* 'it' -- previous form is no longer available and
                using that would be excessively verbose */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s expels %s.", Monnam(magr),
                   canspotmon(mdef) ? "it" : something);
 #else
@@ -924,7 +982,10 @@ struct attack *mattk;
         /* mondead() -> m_detach() -> m_unleash() always suppresses
            the m_unleash() slack message, so deliver it here instead */
         if (was_leashed)
+/*JP
             Your("leash falls slack.");
+*/
+            Your("紐がたるんで落ちた．");
     }
     if (magr->mtame) /* give this one even if it was visible */
 /*JP
@@ -946,8 +1007,9 @@ register struct attack *mattk;
     struct obj *obj;
     char buf[BUFSZ];
     struct permonst *pa = magr->data, *pd = mdef->data;
-    int armpro, num, tmp = d((int) mattk->damn, (int) mattk->damd),
-                     res = MM_MISS;
+    int armpro, num,
+        tmp = d((int) mattk->damn, (int) mattk->damd),
+        res = MM_MISS;
     boolean cancelled;
 
     if ((touch_petrifies(pd) /* or flesh_petrifies() */
@@ -1057,7 +1119,7 @@ register struct attack *mattk;
         if (magr->mcan)
             break;
         if (canseemon(mdef))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s %s for a moment.", Monnam(mdef),
                   makeplural(stagger(pd, "stagger")));
 #else
@@ -1076,15 +1138,20 @@ register struct attack *mattk;
     case AD_HEAL:
     case AD_PHYS:
  physical:
-        if (mattk->aatyp == AT_KICK && thick_skinned(pd)) {
+        obj = (mattk->aatyp == AT_WEAP || mattk->aatyp == AT_CLAW) ? otmp : 0;
+        if (shade_miss(magr, mdef, obj, FALSE, TRUE)) {
             tmp = 0;
-        } else if (mattk->aatyp == AT_WEAP) {
+        } else if (mattk->aatyp == AT_KICK && thick_skinned(pd)) {
+            tmp = 0;
+        } else if (mattk->aatyp == AT_WEAP
+                   || (mattk->aatyp == AT_CLAW && otmp)) {
             if (otmp) {
                 struct obj *marmg;
 
                 if (otmp->otyp == CORPSE
                     && touch_petrifies(&mons[otmp->corpsenm]))
                     goto do_stone;
+
                 tmp += dmgval(otmp, mdef);
                 if ((marmg = which_armor(magr, W_ARMG)) != 0
                     && marmg->otyp == GAUNTLETS_OF_POWER)
@@ -1203,7 +1270,7 @@ register struct attack *mattk;
         }
         if (resists_acid(mdef)) {
             if (vis && canseemon(mdef))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s is covered in %s, but it seems harmless.",
                       Monnam(mdef), hliquid("acid"));
 #else
@@ -1430,7 +1497,7 @@ register struct attack *mattk;
                 were_change(mdef);
             if (pd == &mons[PM_CLAY_GOLEM]) {
                 if (vis && canseemon(mdef)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("Some writing vanishes from %s head!",
                           s_suffix(mon_nam(mdef)));
 #else
@@ -1632,7 +1699,7 @@ register struct attack *mattk;
         if ((mdef->misc_worn_check & W_ARMH) && rn2(8)) {
             if (vis && canspotmon(magr) && canseemon(mdef)) {
                 Strcpy(buf, s_suffix(Monnam(mdef)));
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s helmet blocks %s attack to %s head.", buf,
                       s_suffix(mon_nam(magr)), mhis(mdef));
 #else
@@ -1910,7 +1977,7 @@ int mdead;
                         return (mdead | mhit);
                     Strcpy(buf, Monnam(magr));
                     if (canseemon(magr))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         pline("%s is frozen by %s gaze!", buf,
                               s_suffix(mon_nam(mdef)));
 #else
@@ -1958,7 +2025,7 @@ int mdead;
             if (!magr->mstun) {
                 magr->mstun = 1;
                 if (canseemon(magr))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s %s...", Monnam(magr),
                           makeplural(stagger(magr->data, "stagger")));
 #else

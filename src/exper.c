@@ -1,11 +1,11 @@
-/* NetHack 3.6	exper.c	$NHDT-Date: 1553296396 2019/03/22 23:13:16 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.32 $ */
+/* NetHack 3.6	exper.c	$NHDT-Date: 1562114352 2019/07/03 00:39:12 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.33 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2007. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -19,6 +19,8 @@ long
 newuexp(lev)
 int lev;
 {
+    if (lev < 1) /* for newuexp(u.ulevel - 1) when u.ulevel is 1 */
+        return 0L;
     if (lev < 10)
         return (10L * (1L << lev));
     if (lev < 20)
@@ -182,6 +184,11 @@ register int exper, rexp;
         u.uexp = newexp;
         if (flags.showexp)
             context.botl = TRUE;
+        /* even when experience points aren't being shown, experience level
+           might be highlighted with a percentage highlight rule and that
+           percentage depends upon experience points */
+        if (!context.botl && exp_percent_changing())
+            context.botl = TRUE;
     }
     /* newrexp will always differ from oldrexp unless they're LONG_MAX */
     if (newrexp != oldrexp) {
@@ -313,13 +320,13 @@ boolean incr; /* true iff via incremental experience growth */
             u.uexp = newuexp(u.ulevel);
         }
         ++u.ulevel;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("Welcome %sto experience level %d.",
-              u.ulevelmax < u.ulevel ? "" : "back ",
+              (u.ulevelmax < u.ulevel) ? "" : "back ",
               u.ulevel);
 #else
         pline("%sレベル%dにようこそ．",
-              u.ulevelmax < u.ulevel ? "" : "再び",
+              (u.ulevelmax < u.ulevel) ? "" : "再び",
               u.ulevel);
 #endif
         if (u.ulevelmax < u.ulevel)

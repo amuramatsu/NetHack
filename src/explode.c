@@ -4,7 +4,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -147,7 +147,7 @@ int expltype;
             adtyp = AD_MAGM;
             break;
         case 1:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             str = (olet == BURNING_OIL) ? "burning oil"
                      : (olet == SCROLL_CLASS) ? "tower of flame" : "fireball";
 #else
@@ -165,7 +165,7 @@ int expltype;
             adtyp = AD_COLD;
             break;
         case 4:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             str = (olet == WAND_CLASS) ? "death field"
                                        : "disintegration field";
 #else
@@ -466,12 +466,12 @@ int expltype;
 /*JP
                                 adj = "overwhelmed by pure energy";
 */
-                            adj = "浄化の力を浴びた";
+                                adj = "浄化の力を浴びた";
                             else
 /*JP
                                 adj = "perforated";
 */
-                            adj = "穴をあけられた";
+                                adj = "穴をあけられた";
                             break;
                         case AD_ELEC:
 /*JP
@@ -570,7 +570,7 @@ int expltype;
                          * would be "you killed <mdef>" so give our own.
                          */
                         if (cansee(mtmp->mx, mtmp->my) || canspotmon(mtmp))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                             pline("%s is %s!", Monnam(mtmp),
                                   xkflg ? "burned completely"
                                         : nonliving(mtmp->data) ? "destroyed"
@@ -662,7 +662,7 @@ int expltype;
                     Strcat(killer.name, "で");
 #endif
                 } else if (type >= 0 && olet != SCROLL_CLASS) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     killer.format = NO_KILLER_PREFIX;
                     Sprintf(killer.name, "caught %sself in %s own %s", uhim(),
                             uhis(), str);
@@ -704,7 +704,7 @@ int expltype;
     }
 
     if (shopdamage) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pay_for_damage((adtyp == AD_FIRE) ? "burn away"
                           : (adtyp == AD_COLD) ? "shatter"
                              : (adtyp == AD_DISN) ? "disintegrate"
@@ -776,6 +776,16 @@ struct obj *obj; /* only scatter this obj        */
                    obj->ox, obj->oy, sx, sy);
 
     while ((otmp = (individual_object ? obj : level.objects[sx][sy])) != 0) {
+        if (otmp == uball || otmp == uchain) {
+            boolean waschain = (otmp == uchain);
+/*JP
+            pline_The("chain shatters!");
+*/
+            pline("鎖はばらばらになった！");
+            unpunish();
+            if (waschain)
+                continue;
+        }
         if (otmp->quan > 1L) {
             qtmp = otmp->quan - 1L;
             if (qtmp > LARGEST_INT)
@@ -933,6 +943,9 @@ struct obj *obj; /* only scatter this obj        */
         newsym(x, y);
     }
     newsym(sx, sy);
+    if (sx == u.ux && sy == u.uy && u.uundetected
+        && hides_under(youmonst.data))
+        (void) hideunder(&youmonst);
     return total;
 }
 

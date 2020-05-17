@@ -1,11 +1,11 @@
-/* NetHack 3.6	minion.c	$NHDT-Date: 1544998886 2018/12/16 22:21:26 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.40 $ */
+/* NetHack 3.6	minion.c	$NHDT-Date: 1575245071 2019/12/02 00:04:31 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.44 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2008. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -86,11 +86,13 @@ struct monst *mon;
     if (is_dprince(ptr) || (ptr == &mons[PM_WIZARD_OF_YENDOR])) {
         dtype = (!rn2(20)) ? dprince(atyp) : (!rn2(4)) ? dlord(atyp)
                                                        : ndemon(atyp);
-        cnt = (!rn2(4) && is_ndemon(&mons[dtype])) ? 2 : 1;
+        cnt = ((dtype != NON_PM)
+               && !rn2(4) && is_ndemon(&mons[dtype])) ? 2 : 1;
     } else if (is_dlord(ptr)) {
         dtype = (!rn2(50)) ? dprince(atyp) : (!rn2(20)) ? dlord(atyp)
                                                         : ndemon(atyp);
-        cnt = (!rn2(4) && is_ndemon(&mons[dtype])) ? 2 : 1;
+        cnt = ((dtype != NON_PM)
+               && !rn2(4) && is_ndemon(&mons[dtype])) ? 2 : 1;
     } else if (is_ndemon(ptr)) {
         dtype = (!rn2(20)) ? dlord(atyp) : (!rn2(6)) ? ndemon(atyp)
                                                      : monsndx(ptr);
@@ -99,7 +101,8 @@ struct monst *mon;
         dtype = (is_lord(ptr) && !rn2(20))
                     ? llord()
                     : (is_lord(ptr) || !rn2(6)) ? lminion() : monsndx(ptr);
-        cnt = (!rn2(4) && !is_lord(&mons[dtype])) ? 2 : 1;
+        cnt = ((dtype != NON_PM)
+               && !rn2(4) && !is_lord(&mons[dtype])) ? 2 : 1;
     } else if (ptr == &mons[PM_ANGEL]) {
         /* non-lawful angels can also summon */
         if (!rn2(6)) {
@@ -115,7 +118,8 @@ struct monst *mon;
         } else {
             dtype = PM_ANGEL;
         }
-        cnt = (!rn2(4) && !is_lord(&mons[dtype])) ? 2 : 1;
+        cnt = ((dtype != NON_PM)
+               && !rn2(4) && !is_lord(&mons[dtype])) ? 2 : 1;
     }
 
     if (dtype == NON_PM)
@@ -152,7 +156,10 @@ struct monst *mon;
                     (atyp != u.ualign.type) ^ !mtmp->mpeaceful;
             }
             if (is_demon(ptr) && canseemon(mtmp))
+/*JP
                 pline("%s appears in a cloud of smoke!", Amonnam(mtmp));
+*/
+                pline("%sが煙の中から現れた！", Amonnam(mtmp));
         }
         cnt--;
     }
@@ -212,15 +219,24 @@ boolean talk;
     }
     if (mon) {
         if (talk) {
+            if (!Deaf)
 /*JP
-            pline_The("voice of %s booms:", align_gname(alignment));
+                pline_The("voice of %s booms:", align_gname(alignment));
 */
-            pline("%sの声が響いた:", align_gname(alignment));
+                pline("%sの声が響いた:", align_gname(alignment));
+            else
+#if 0 /*JP:T*/
+                You_feel("%s booming voice:",
+                         s_suffix(align_gname(alignment)));
+#else
+                You_feel("%sの響く声を感じた:",
+                         s_suffix(align_gname(alignment)));
+#endif
 /*JP
             verbalize("Thou shalt pay for thine indiscretion!");
 */
             verbalize("汝，無分別なる行いの罰を受けるべし！");
-            if (!Blind)
+            if (canspotmon(mon))
 /*JP
                 pline("%s appears before you.", Amonnam(mon));
 */
@@ -277,21 +293,26 @@ register struct monst *mtmp;
         newsym(mtmp->mx, mtmp->my);
     }
     if (youmonst.data->mlet == S_DEMON) { /* Won't blackmail their own. */
-#if 0 /*JP*/
-        pline("%s says, \"Good hunting, %s.\"", Amonnam(mtmp),
-              flags.female ? "Sister" : "Brother");
+        if (!Deaf)
+#if 0 /*JP:T*/
+            pline("%s says, \"Good hunting, %s.\"", Amonnam(mtmp),
+                  flags.female ? "Sister" : "Brother");
 #else
         pline("%sは言った「よう兄%s！」．そして消えた．", Amonnam(mtmp),
               flags.female ? "妹" : "弟");
 #endif
+        else if (canseemon(mtmp))
+/*JP
+            pline("%s says something.", Amonnam(mtmp));
+*/
+            pline("%sは何かを言った．", Amonnam(mtmp));
         if (!tele_restrict(mtmp))
             (void) rloc(mtmp, TRUE);
         return 1;
     }
     cash = money_cnt(invent);
-    demand =
-        (cash * (rnd(80) + 20 * Athome))
-        / (100 * (1 + (sgn(u.ualign.type) == sgn(mtmp->data->maligntyp))));
+    demand = (cash * (rnd(80) + 20 * Athome))
+           / (100 * (1 + (sgn(u.ualign.type) == sgn(mtmp->data->maligntyp))));
 
     if (!demand || multi < 0) { /* you have no gold or can't move */
         mtmp->mpeaceful = 0;
@@ -301,18 +322,30 @@ register struct monst *mtmp;
         /* make sure that the demand is unmeetable if the monster
            has the Amulet, preventing monster from being satisfied
            and removed from the game (along with said Amulet...) */
-        if (mon_has_amulet(mtmp))
-            demand = cash + (long) rn1(1000, 40);
+        /* [actually the Amulet is safe; it would be dropped when
+           mongone() gets rid of the monster; force combat anyway;
+           also make it unmeetable if the player is Deaf, to simplify
+           handling that case as player-won't-pay] */
+        if (mon_has_amulet(mtmp) || Deaf)
+            /* 125: 5*25 in case hero has maximum possible charisma */
+            demand = cash + (long) rn1(1000, 125);
 
-#if 0 /*JP*/
-        pline("%s demands %ld %s for safe passage.", Amonnam(mtmp), demand,
-              currency(demand));
+        if (!Deaf)
+#if 0 /*JP:T*/
+            pline("%s demands %ld %s for safe passage.",
+                  Amonnam(mtmp), demand, currency(demand));
 #else
-        pline("%sは通行料として%ld%s要求した．", Amonnam(mtmp), demand,
-              currency(demand));
+            pline("%sは通行料として%ld%s要求した．",
+                  Amonnam(mtmp), demand, currency(demand));
 #endif
+        else if (canseemon(mtmp))
+/*JP
+            pline("%s seems to be demanding something.", Amonnam(mtmp));
+*/
+            pline("%sは何かを要求しているようだ．", Amonnam(mtmp));
 
-        if ((offer = bribe(mtmp)) >= demand) {
+        offer = 0L;
+        if (!Deaf && ((offer = bribe(mtmp)) >= demand)) {
 /*JP
             pline("%s vanishes, laughing about cowardly mortals.",
 */
@@ -447,7 +480,7 @@ aligntyp atyp; /* A_NONE is used for 'any alignment' */
     struct permonst *ptr;
 
     /*
-     * 3.6.2:  [fix #H2204, 22-Dec-2010, eight years later...]
+     * 3.6.2:  [fixed #H2204, 22-Dec-2010, eight years later...]
      * pick a correctly aligned demon in one try.  This used to
      * use mkclass() to choose a random demon type and keep trying
      * (up to 20 times) until it got one with the desired alignment.
@@ -513,10 +546,16 @@ gain_guardian_angel()
     Hear_again(); /* attempt to cure any deafness now (divine
                      message will be heard even if that fails) */
     if (Conflict) {
+        if (!Deaf)
 /*JP
-        pline("A voice booms:");
+            pline("A voice booms:");
 */
-        pline("声が響いた:");
+            pline("声が響いた:");
+        else
+/*JP
+            You_feel("a booming voice:");
+*/
+            You_feel("響く声を感じた:");
 /*JP
         verbalize("Thy desire for conflict shall be fulfilled!");
 */
@@ -524,10 +563,16 @@ gain_guardian_angel()
         /* send in some hostile angels instead */
         lose_guardian_angel((struct monst *) 0);
     } else if (u.ualign.record > 8) { /* fervent */
+        if (!Deaf)
 /*JP
-        pline("A voice whispers:");
+            pline("A voice whispers:");
 */
-        pline("ささやき声が聞こえた:");
+            pline("ささやき声が聞こえた:");
+        else
+/*JP
+            You_feel("a soft voice:");
+*/
+            You_feel("やわらかい声を感じた:");
 /*JP
         verbalize("Thou hast been worthy of me!");
 */
@@ -538,6 +583,14 @@ gain_guardian_angel()
             && (mtmp = mk_roamer(&mons[PM_ANGEL], u.ualign.type, mm.x, mm.y,
                                  TRUE)) != 0) {
             mtmp->mstrategy &= ~STRAT_APPEARMSG;
+            /* guardian angel -- the one case mtame doesn't imply an
+             * edog structure, so we don't want to call tamedog().
+             * [Note: this predates mon->mextra which allows a monster
+             * to have both emin and edog at the same time.]
+             */
+            mtmp->mtame = 10;
+            /* for 'hilite_pet'; after making tame, before next message */
+            newsym(mtmp->mx, mtmp->my);
             if (!Blind)
 /*JP
                 pline("An angel appears near you.");
@@ -548,11 +601,6 @@ gain_guardian_angel()
                 You_feel("the presence of a friendly angel near you.");
 */
                 You("近くに友好的な天使の存在を感じた．");
-            /* guardian angel -- the one case mtame doesn't
-             * imply an edog structure, so we don't want to
-             * call tamedog().
-             */
-            mtmp->mtame = 10;
             /* make him strong enough vs. endgame foes */
             mtmp->m_lev = rn1(8, 15);
             mtmp->mhp = mtmp->mhpmax =

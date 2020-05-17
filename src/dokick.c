@@ -1,10 +1,10 @@
-/* NetHack 3.6	dokick.c	$NHDT-Date: 1551920353 2019/03/07 00:59:13 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.131 $ */
+/* NetHack 3.6	dokick.c	$NHDT-Date: 1575245057 2019/12/02 00:04:17 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.136 $ */
 /* Copyright (c) Izchak Miller, Mike Stephenson, Steve Linhart, 1989. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -191,7 +191,7 @@ xchar x, y;
             map_invisible(x, y);
         else
             newsym(x, y);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         There("is %s here.",
               canspotmon(mon) ? a_monnam(mon) : "something hidden");
 #else
@@ -382,7 +382,7 @@ register struct obj *gold;
                 robbed -= value;
                 if (robbed < 0L)
                     robbed = 0L;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline_The("amount %scovers %s recent losses.",
                           !robbed ? "" : "partially ", mhis(mtmp));
 #else
@@ -395,7 +395,7 @@ register struct obj *gold;
             } else {
                 if (mtmp->mpeaceful) {
                     ESHK(mtmp)->credit += value;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You("have %ld %s in credit.", ESHK(mtmp)->credit,
                         currency(ESHK(mtmp)->credit));
 #else
@@ -426,7 +426,7 @@ register struct obj *gold;
                out of the vault.  If he did do that, player
                could try fighting, then weasle out of being
                killed by throwing his/her gold when losing. */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             verbalize(
                 umoney
                     ? "Drop the rest and follow me."
@@ -560,7 +560,7 @@ xchar x, y; /* coordinates where object was before the impact, not after */
             You("%ld%s分の損害をひきおこした！", loss, currency(loss));
             make_angry_shk(shkp, x, y);
         } else {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("owe %s %ld %s for objects destroyed.", mon_nam(shkp), loss,
                 currency(loss));
 #else
@@ -640,7 +640,7 @@ xchar x, y;
 
     if (!uarmf && kickedobj->otyp == CORPSE
         && touch_petrifies(&mons[kickedobj->corpsenm]) && !Stone_resistance) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("kick %s with your bare %s.",
             corpse_xname(kickedobj, (const char *) 0, CXN_PFX_THE),
             makeplural(body_part(FOOT)));
@@ -720,7 +720,7 @@ xchar x, y;
 */
                 pline("びくともしない．");
             else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %sn't come loose.",
                       The(distant_name(kickedobj, xname)),
                       otense(kickedobj, "do"));
@@ -736,7 +736,7 @@ xchar x, y;
 */
             pline("何かが緩んでとれた．");
         else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s %s loose.", The(distant_name(kickedobj, xname)),
                   otense(kickedobj, "come"));
 #else
@@ -818,7 +818,7 @@ xchar x, y;
             kickedobj = splitobj(kickedobj, 1L);
         } else {
             if (rn2(20)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 static NEARDATA const char *const flyingcoinmsg[] = {
                     "scatter the coins", "knock coins all over the place",
                     "send coins flying in all directions",
@@ -854,7 +854,7 @@ xchar x, y;
     }
 
     if (slide && !Blind)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("Whee!  %s %s across the %s.", Doname2(kickedobj),
               otense(kickedobj, "slide"), surface(x, y));
 #else
@@ -1048,7 +1048,7 @@ dokick()
 
         if (wl == BOTH_SIDES)
             bp = makeplural(bp);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("%s%s %s in no shape for kicking.",
              (wl == LEFT_SIDE) ? "left " : (wl == RIGHT_SIDE) ? "right " : "",
              bp, (wl == BOTH_SIDES) ? "are" : "is");
@@ -1267,7 +1267,7 @@ dokick()
         if (maploc->typ == SDOOR) {
             if (!Levitation && rn2(30) < avrg_attrib) {
                 cvt_sdoor_to_door(maploc); /* ->typ = DOOR */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("Crash!  %s a secret door!",
                       /* don't "kick open" when it's locked
                          unless it also happens to be trapped */
@@ -1360,7 +1360,7 @@ dokick()
                 return 1;
             } else if (!rn2(4)) {
                 if (dunlev(&u.uz) < dunlevs_in_dungeon(&u.uz)) {
-                    fall_through(FALSE);
+                    fall_through(FALSE, 0);
                     return 1;
                 } else
                     goto ouch;
@@ -1374,9 +1374,9 @@ dokick()
             You("kick %s.", (Blind ? something : "the altar"));
 */
             You("%sを蹴った．", (Blind ? "何か" : "祭壇"));
+            altar_wrath(x, y);
             if (!rn2(3))
                 goto ouch;
-            altar_wrath(x, y);
             exercise(A_DEX, TRUE);
             return 1;
         }
@@ -1419,7 +1419,7 @@ dokick()
             (void) mksobj_at(ROCK, x, y, TRUE, FALSE);
             del_engr_at(x, y);
             if (Blind)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("Crack!  %s broke!", Something);
 #else
                 pline("ゴツン！何かが壊れた！");
@@ -1441,7 +1441,7 @@ dokick()
             /* nothing, fruit or trouble? 75:23.5:1.5% */
             if (rn2(3)) {
                 if (!rn2(6) && !(mvitals[PM_KILLER_BEE].mvflags & G_GONE))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You_hear("a low buzzing."); /* a warning */
 #else
                     You_hear("ぶーんという音を聞いた．"); /* a warning */
@@ -1471,7 +1471,7 @@ dokick()
                      * may not refer to the correct object */
                     treefruit = mksobj(frtype, TRUE, FALSE);
                     treefruit->quan = nfruit - nfall;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%ld %s got caught in the branches.",
                           nfruit - nfall, xname(treefruit));
 #else
@@ -1565,14 +1565,25 @@ dokick()
                 exercise(A_DEX, TRUE);
                 return 1;
             } else if (!rn2(3)) {
-#if 0 /*JP*/
-                pline("Flupp!  %s.",
-                      (Blind ? "You hear a sloshing sound"
-                             : "Muddy waste pops up from the drain"));
+                if (Blind && Deaf)
+                    Sprintf(buf, " %s", body_part(FACE));
+                else
+                    buf[0] = '\0';
+#if 0 /*JP:T*/
+                pline("%s%s%s.", !Deaf ? "Flupp! " : "",
+                      !Blind
+                          ? "Muddy waste pops up from the drain"
+                          : !Deaf
+                              ? "You hear a sloshing sound"  /* Deaf-aware */
+                              : "Something splashes you in the", buf);
 #else
-                pline("うわ！%s．",
-                      (Blind ? "あなたは，バチャバチャする音を聞いた"
-                             : "排水口からどろどろの廃棄物が出てくる"));
+                /*JP:TODO:「顔にかかった」の語順調整 */
+                pline("%s%s．", !Deaf ? "うわ！" : "",
+                      !Blind
+                          ? "排水口からどろどろの廃棄物が出てくる"
+                          : !Deaf
+                              ? "あなたは，バチャバチャする音を聞いた"  /* Deaf-aware */
+                              : "何かがあなたにかかった");
 #endif
                 if (!(maploc->looted & S_LRING)) { /* once per sink */
                     if (!Blind)
@@ -1884,7 +1895,7 @@ xchar dlev;          /* if !0 send to dlev near player */
             pline("近くにあった%sが%s落ちた．", what, gate_str);
 #endif
         else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s adjacent %s %s.",
                   dct == 1L ? "One of the" : "Some of the",
                   dct == 1L ? "objects falls" : what, gate_str);
@@ -1926,7 +1937,7 @@ xchar dlev;          /* if !0 send to dlev near player */
         }
         if (ESHK(shkp)->debit > debit) {
             long amt = (ESHK(shkp)->debit - debit);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("owe %s %ld %s for goods lost.", Monnam(shkp), amt,
                 currency(amt));
 #else
@@ -2204,7 +2215,11 @@ register struct obj *otmp;
 register boolean nodrop;
 long num;
 {
+#if 0 /*JP*/
     char *optr = 0, obuf[BUFSZ], xbuf[BUFSZ];
+#else
+    char obuf[BUFSZ], xbuf[BUFSZ];
+#endif
 
 #if 0 /*JP*/
     if (otmp->otyp == CORPSE) {
@@ -2220,7 +2235,7 @@ long num;
 #endif
 
     if (num) { /* means: other objects are impacted */
-        /* 3.6.2: use a separate buffer for the suffix to avoid risk of
+        /* As of 3.6.2: use a separate buffer for the suffix to avoid risk of
            overrunning obuf[] (let pline() handle truncation if necessary) */
 #if 0 /*JP*/
         Sprintf(xbuf, " %s %s object%s", otense(otmp, "hit"),
@@ -2275,7 +2290,7 @@ xchar x, y;
 
     if (((ttmp = t_at(x, y)) != 0 && ttmp->tseen)
         && is_hole(ttmp->ttyp)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         gate_str = (ttmp->ttyp == TRAPDOOR) ? "through the trap door"
                                             : "through the hole";
 #else

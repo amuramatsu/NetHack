@@ -5,7 +5,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -70,7 +70,7 @@ char *buf;
             Sprintf(eos(buf), "%s%s", c++ ? "," : "", NetHack_git_sha);
 #endif
 #if defined(NETHACK_GIT_BRANCH)
-#if defined(BETA)
+#if (NH_DEVEL_STATUS != NH_STATUS_RELEASED)
         if (NetHack_git_branch)
             Sprintf(eos(buf), "%sbranch:%s",
                     c++ ? "," : "", NetHack_git_branch);

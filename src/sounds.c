@@ -1,10 +1,10 @@
-/* NetHack 3.6	sounds.c	$NHDT-Date: 1542765362 2018/11/21 01:56:02 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.81 $ */
+/* NetHack 3.6	sounds.c	$NHDT-Date: 1570844005 2019/10/12 01:33:25 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.83 $ */
 /*      Copyright (c) 1989 Janet Walz, Mike Threepoint */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -42,7 +42,7 @@ dosounds()
     hallu = Hallucination ? 1 : 0;
 
     if (level.flags.nfountains && !rn2(400)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         static const char *const fountain_msg[4] = {
             "bubbling water.", "water falling on coins.",
             "the splashing of a naiad.", "a soda fountain!",
@@ -55,7 +55,7 @@ dosounds()
         You_hear1(fountain_msg[rn2(3) + hallu]);
     }
     if (level.flags.nsinks && !rn2(300)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         static const char *const sink_msg[3] = {
             "a slow drip.", "a gurgling noise.", "dishes being washed!",
 #else
@@ -68,7 +68,7 @@ dosounds()
         You_hear1(sink_msg[rn2(2) + hallu]);
     }
     if (level.flags.has_court && !rn2(200)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         static const char *const throne_msg[4] = {
             "the tones of courtly conversation.",
             "a sceptre pounded in judgment.",
@@ -99,7 +99,7 @@ dosounds()
         }
     }
     if (level.flags.has_swamp && !rn2(200)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         static const char *const swamp_msg[3] = {
             "hear mosquitoes!", "smell marsh gas!", /* so it's a smell...*/
             "hear Donald Duck!",
@@ -139,7 +139,7 @@ dosounds()
 #endif /* AZTEC_C_WORKAROUND */
                 {
                     if (gold_in_vault)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         You_hear(!hallu
                                      ? "someone counting money."
                                      : "the quarterback calling the play.");
@@ -192,7 +192,7 @@ dosounds()
                     You_hear("興奮した雄バチの音を聞いた．");
                     break;
                 case 2:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You_hear("bees in your %sbonnet!",
                              uarmh ? "" : "(nonexistent) ");
 #else
@@ -223,7 +223,7 @@ dosounds()
                     You("不自然なくらい静かなのに気づいた．");
                     break;
                 case 1:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline_The("%s on the back of your %s %s up.", hair,
                               body_part(NECK), vtense(hair, "stand"));
 #else
@@ -232,7 +232,7 @@ dosounds()
 #endif
                     break;
                 case 2:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline_The("%s on your %s %s to stand up.", hair,
                               body_part(HEAD), vtense(hair, "seem"));
 #else
@@ -247,7 +247,7 @@ dosounds()
     }
     if (level.flags.has_barracks && !rn2(200)) {
         static const char *const barracks_msg[4] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             "blades being honed.", "loud snoring.", "dice being thrown.",
             "General MacArthur!",
 #else
@@ -277,7 +277,7 @@ dosounds()
     }
     if (level.flags.has_zoo && !rn2(200)) {
         static const char *const zoo_msg[3] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             "a sound reminiscent of an elephant stepping on a peanut.",
             "a sound reminiscent of a seal barking.", "Doctor Dolittle!",
 #else
@@ -305,7 +305,7 @@ dosounds()
         if (tended_shop(sroom)
             && !index(u.ushops, (int) (ROOM_INDEX(sroom) + ROOMOFFSET))) {
             static const char *const shop_msg[3] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 "someone cursing shoplifters.",
                 "the chime of a cash register.", "Neiman and Marcus arguing!",
 #else
@@ -340,7 +340,7 @@ dosounds()
                care if telepathy or extended detection reveals that the
                priest is not currently standing on the altar; he's mobile). */
             static const char *const temple_msg[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 "*someone praising %s.", "*someone beseeching %s.",
                 "#an animal carcass being offered in sacrifice.",
                 "*a strident plea for donations.",
@@ -385,7 +385,7 @@ dosounds()
         /* and don't produce silly effects when she's clearly visible */
         if (mtmp && (hallu || !canseemon(mtmp))) {
             static const char *const ora_msg[5] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 "a strange wind.",     /* Jupiter at Dodona */
                 "convulsive ravings.", /* Apollo at Delphi */
                 "snoring snakes.",     /* AEsculapius at Epidaurus */
@@ -406,7 +406,7 @@ dosounds()
 }
 
 static const char *const h_sounds[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "beep",   "boing",   "sing",   "belche", "creak",   "cough",
     "rattle", "ululate", "pop",    "jingle", "sniffle", "tinkle",
     "eep",    "clatter", "hum",    "sizzle", "twitter", "wheeze",
@@ -470,62 +470,62 @@ register struct monst *mtmp;
 /*JP
         ret = "hiss";
 */
-            ret = "シーッと鳴いた";
+        ret = "シーッと鳴いた";
         break;
     case MS_BARK:
     case MS_GROWL:
 /*JP
         ret = "growl";
 */
-            ret = "はげしく吠えた";
+        ret = "はげしく吠えた";
         break;
     case MS_ROAR:
 /*JP
         ret = "roar";
 */
-            ret = "吠えた";
+        ret = "吠えた";
         break;
     case MS_BUZZ:
 /*JP
         ret = "buzz";
 */
-            ret = "ブーッと鳴いた";
+        ret = "ブーッと鳴いた";
         break;
     case MS_SQEEK:
 /*JP
         ret = "squeal";
 */
-            ret = "キーキー鳴いた";
+        ret = "キーキー鳴いた";
         break;
     case MS_SQAWK:
 /*JP
         ret = "screech";
 */
-            ret = "金切り声を立てた";
+        ret = "金切り声を立てた";
         break;
     case MS_NEIGH:
 /*JP
         ret = "neigh";
 */
-            ret = "いなないた";
+        ret = "いなないた";
         break;
     case MS_WAIL:
 /*JP
         ret = "wail";
 */
-            ret = "悲しく鳴いた";
+        ret = "悲しく鳴いた";
         break;
     case MS_SILENT:
 /*JP
         ret = "commotion";
 */
-                ret = "興奮した";
+        ret = "興奮した";
         break;
     default:
 /*JP
         ret = "scream";
 */
-                ret = "金切り声をあげた";
+        ret = "金切り声をあげた";
     }
     return ret;
 }
@@ -575,7 +575,7 @@ register struct monst *mtmp;
 /*JP
             yelp_verb = (!Deaf) ? "yowl" : "arch";
 */
-            yelp_verb = (!Deaf) ? "悲しく鳴いた" : "arch";
+            yelp_verb = (!Deaf) ? "悲しく鳴いた" : "弓なりになった";
             break;
         case MS_BARK:
         case MS_GROWL:
@@ -717,7 +717,7 @@ register struct monst *mtmp;
         *verbl_msg = 0,                 /* verbalize() */
         *verbl_msg_mcan = 0;            /* verbalize() if cancelled */
     struct permonst *ptr = mtmp->data;
-    int msound = ptr->msound;
+    int msound = ptr->msound, gnomeplan = 0;
 
     /* presumably nearness and sleep checks have already been made */
     if (Deaf)
@@ -733,8 +733,9 @@ register struct monst *mtmp;
         msound = mons[genus(monsndx(ptr), 1)].msound;
     /* some normally non-speaking types can/will speak if hero is similar */
     else if (msound == MS_ORC         /* note: MS_ORC is same as MS_GRUNT */
-             && (same_race(ptr, youmonst.data)           /* current form, */
-                 || same_race(ptr, &mons[Race_switch]))) /* unpoly'd form */
+             && ((same_race(ptr, youmonst.data)          /* current form, */
+                  || same_race(ptr, &mons[Race_switch])) /* unpoly'd form */
+                 || Hallucination))
         msound = MS_HUMANOID;
     /* silliness, with slight chance to interfere with shopping */
     else if (Hallucination && mon_is_gecko(mtmp))
@@ -791,18 +792,18 @@ register struct monst *mtmp;
 
         if (mtmp->mtame) {
             if (kindred) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(verbuf, "Good %s to you Master%s",
                         isnight ? "evening" : "day",
                         isnight ? "!" : ".  Why do we not rest?");
 #else
                 Sprintf(verbuf, "ご主人様，%s%s",
                         isnight ? "こんばんは" : "こんにちは",
-                        isnight ? "!" : "．お休みになりませんか？");
+                        isnight ? "！" : "．お休みになりませんか？");
 #endif
                 verbl_msg = verbuf;
             } else {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(verbuf, "%s%s",
                         nightchild ? "Child of the night, " : "",
                         midnight()
@@ -823,7 +824,7 @@ register struct monst *mtmp;
             }
         } else if (mtmp->mpeaceful) {
             if (kindred && isnight) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(verbuf, "Good feeding %s!",
                         flags.female ? "sister" : "brother");
 #else
@@ -842,7 +843,6 @@ register struct monst *mtmp;
 */
                 verbl_msg = "私は薬．．しか飲まない．";
         } else {
-            int vampindex;
             static const char *const vampmsg[] = {
                 /* These first two (0 and 1) are specially handled below */
 /*JP
@@ -855,6 +855,8 @@ register struct monst *mtmp;
                 "存分に%sを追撃させてもらおう！",
                 /* other famous vampire quotes can follow here if desired */
             };
+            int vampindex;
+
             if (kindred)
                 verbl_msg =
 /*JP
@@ -890,7 +892,7 @@ register struct monst *mtmp;
     } break;
     case MS_WERE:
         if (flags.moonphase == FULL_MOON && (night() ^ !rn2(13))) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s throws back %s head and lets out a blood curdling %s!",
                   Monnam(mtmp), mhis(mtmp),
                   ptr == &mons[PM_HUMAN_WERERAT] ? "shriek" : "howl");
@@ -1113,7 +1115,7 @@ register struct monst *mtmp;
 /*JP
                 verbl_msg = "I'm free!";
 */
-                    verbl_msg = "やっと自由になった！";
+                verbl_msg = "やっと自由になった！";
         } else {
             if (ptr != &mons[PM_PRISONER])
 /*JP
@@ -1130,7 +1132,7 @@ register struct monst *mtmp;
         if (!mtmp->mpeaceful) {
             switch (rn2(4)) {
             case 0:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s boasts about %s gem collection.", Monnam(mtmp),
                       mhis(mtmp));
 #else
@@ -1227,6 +1229,23 @@ register struct monst *mtmp;
             pline_msg = "discusses hunting.";
 */
             pline_msg = "猟について議論した．";
+        else if (is_gnome(ptr) && Hallucination && (gnomeplan = rn2(4)) % 2)
+            /* skipped for rn2(4) result of 0 or 2;
+               gag from an early episode of South Park called "Gnomes";
+               initially, Tweek (introduced in that episode) is the only
+               one aware of the tiny gnomes after spotting them sneaking
+               about; they are embarked upon a three-step business plan;
+               a diagram of the plan shows:
+                         Phase 1         Phase 2      Phase 3
+                   Collect underpants       ?          Profit
+               and they never verbalize step 2 so we don't either */
+#if 0 /*JP:T*/
+            verbl_msg = (gnomeplan == 1) ? "Phase one, collect underpants."
+                                         : "Phase three, profit!";
+#else
+            verbl_msg = (gnomeplan == 1) ? "その１，パンツを集める．"
+                                         : "その３，収益化！";
+#endif
         else
             switch (monsndx(ptr)) {
             case PM_HOBBIT:
@@ -1307,14 +1326,14 @@ register struct monst *mtmp;
     } break;
     case MS_ARREST:
         if (mtmp->mpeaceful)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             verbalize("Just the facts, %s.", flags.female ? "Ma'am" : "Sir");
 #else
             verbalize("事実だけが知りたいんですよ，%s．", flags.female ? "奥さん" : "旦那");
 #endif
         else {
             static const char *const arrest_msg[3] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 "Anything you say can be used against you.",
                 "You're under arrest!", "Stop in the name of the Law!",
 #else
@@ -1400,7 +1419,7 @@ register struct monst *mtmp;
         static const char
             *const soldier_foe_msg[3] =
                 {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                   "Resistance is useless!", "You're dog meat!", "Surrender!",
 #else
                     "抵抗しても無駄だ！",
@@ -1409,7 +1428,7 @@ register struct monst *mtmp;
 #endif
                 },
                    *const soldier_pax_msg[3] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                        "What lousy pay we're getting here!",
                        "The food's not fit for Orcs!",
                        "My feet hurt, I've been on them all day!",
@@ -1612,7 +1631,7 @@ dochat()
         && (otmp = vobj_at(tx, ty)) != 0 && otmp->otyp == STATUE) {
         /* Talking to a statue */
         if (!Blind) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline_The("%s seems not to notice you.",
                       /* if hallucinating, you can't tell it's a statue */
                       Hallucination ? rndmonnam((char *) 0) : "statue");

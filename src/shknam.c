@@ -7,7 +7,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -499,7 +499,7 @@ boolean mkspecl;
     int atype;
 
     /* 3.6 tribute */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     if (mkspecl && (!strcmp(shp->name, "rare books")
                     || !strcmp(shp->name, "second-hand bookstore"))) {
 #else
