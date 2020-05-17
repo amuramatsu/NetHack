@@ -1,11 +1,11 @@
-/* NetHack 3.6	do_name.c	$NHDT-Date: 1555627306 2019/04/18 22:41:46 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.145 $ */
+/* NetHack 3.6	do_name.c	$NHDT-Date: 1582364431 2020/02/22 09:40:31 $  $NHDT-Branch: NetHack-3.7 $:$NHDT-Revision: 1.174 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Pasi Kallinen, 2018. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -61,7 +61,7 @@ boolean FDECL((*gp_getvalidf), (int, int));
   [2] "use XXX to move the cursor to %s"
   */
 static const char *const gloc_descr[NUM_GLOCS][4] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { "any monsters", "monster", "next/previous monster", "monsters" },
     { "any items", "item", "next/previous object", "objects" },
     { "any doors", "door", "next/previous door or doorway", "doors or doorways" },
@@ -82,7 +82,7 @@ static const char *const gloc_descr[NUM_GLOCS][4] = {
 };
 
 static const char *const gloc_filtertxt[NUM_GFILTER] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "",
     " in view",
     " in this area"
@@ -102,7 +102,7 @@ int gloc;
 {
     char sbuf[BUFSZ];
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(sbuf, "Use '%s'/'%s' to %s%s%s.",
             k1, k2,
             iflags.getloc_usemenu ? "get a menu of "
@@ -126,7 +126,7 @@ getpos_help(force, goal)
 boolean force;
 const char *goal;
 {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     static const char *const fastmovemode[2] = { "8 units at a time",
                                                  "skipping same glyphs" };
 #else
@@ -137,7 +137,7 @@ const char *goal;
     boolean doing_what_is;
     winid tmpwin = create_nhwindow(NHW_MENU);
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(sbuf,
             "Use '%c', '%c', '%c', '%c' to move the cursor to %s.", /* hjkl */
             Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E, goal);
@@ -147,7 +147,7 @@ const char *goal;
             Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E, goal);
 #endif
     putstr(tmpwin, 0, sbuf);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(sbuf,
             "Use 'H', 'J', 'K', 'L' to fast-move the cursor, %s.",
             fastmovemode[iflags.getloc_moveskip]);
@@ -161,7 +161,7 @@ const char *goal;
     putstr(tmpwin, 0, "Or enter a background symbol (ex. '<').");
 */
     putstr(tmpwin, 0, "背景のシンボルを入力するとその位置に移動する(例：'<')．");
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(sbuf, "Use '%s' to move the cursor on yourself.",
            visctrl(Cmd.spkeys[NHKF_GETPOS_SELF]));
 #else
@@ -197,7 +197,7 @@ const char *goal;
                              visctrl(Cmd.spkeys[NHKF_GETPOS_INTERESTING_PREV]),
                              GLOC_INTERESTING);
     }
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(sbuf, "Use '%s' to change fast-move mode to %s.",
             visctrl(Cmd.spkeys[NHKF_GETPOS_MOVESKIP]),
             fastmovemode[!iflags.getloc_moveskip]);
@@ -208,7 +208,7 @@ const char *goal;
 #endif
     putstr(tmpwin, 0, sbuf);
     if (!iflags.terrainmode || (iflags.terrainmode & TER_DETECT) == 0) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(sbuf, "Use '%s' to toggle menu listing for possible targets.",
                 visctrl(Cmd.spkeys[NHKF_GETPOS_MENU]));
 #else
@@ -216,7 +216,7 @@ const char *goal;
                 visctrl(Cmd.spkeys[NHKF_GETPOS_MENU]));
 #endif
         putstr(tmpwin, 0, sbuf);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(sbuf,
                 "Use '%s' to change the mode of limiting possible targets.",
                 visctrl(Cmd.spkeys[NHKF_GETPOS_LIMITVIEW]));
@@ -231,7 +231,7 @@ const char *goal;
         char kbuf[BUFSZ];
 
         if (getpos_getvalid) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(sbuf, "Use '%s' or '%s' to move to valid locations.",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_VALID_NEXT]),
                     visctrl(Cmd.spkeys[NHKF_GETPOS_VALID_PREV]));
@@ -261,7 +261,7 @@ const char *goal;
 #endif
         putstr(tmpwin, 0, sbuf);
         if (iflags.cmdassist) { /* assisting the '/' command, I suppose... */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(sbuf,
                     (iflags.getpos_coords == GPCOORDS_NONE)
          ? "(Set 'whatis_coord' option to include coordinates with '%s' text.)"
@@ -279,7 +279,7 @@ const char *goal;
            getpos call, but only matter for dowhatis (and doquickwhatis) */
         doing_what_is = (goal == what_is_an_unknown_object);
         if (doing_what_is) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(kbuf, "'%s' or '%s' or '%s' or '%s'",
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]),
                     visctrl(Cmd.spkeys[NHKF_GETPOS_PICK_Q]),
@@ -612,7 +612,7 @@ boolean fulldir;
         Sprintf(buf, "%s", directionname(dst));
     } else {
         static const char *dirnames[4][2] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             { "n", "north" },
             { "s", "south" },
             { "w", "west" },
@@ -701,7 +701,7 @@ int cx, cy;
     if (do_screen_description(cc, TRUE, sym, tmpbuf, &firstmatch,
                               (struct permonst **) 0)) {
         (void) coord_desc(cx, cy, tmpbuf, iflags.getpos_coords);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         custompline(SUPPRESS_HISTORY,
                     "%s%s%s%s%s", firstmatch, *tmpbuf ? " " : "", tmpbuf,
                     (iflags.autodescribe
@@ -740,7 +740,7 @@ int gloc;
 
     if (gcount < 2) { /* gcount always includes the hero */
         free((genericptr_t) garr);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("cannot %s %s.",
             iflags.getloc_filter == GFILTER_VIEW ? "see" : "detect",
             gloc_descr[gloc][0]);
@@ -858,7 +858,7 @@ const char *goal;
 */
         goal = "目的地";
     if (flags.verbose) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("(For instructions type a '%s')",
               visctrl(Cmd.spkeys[NHKF_GETPOS_HELP]));
 #else
@@ -1005,7 +1005,7 @@ const char *goal;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_LIMITVIEW]) {
             static const char *const view_filters[NUM_GFILTER] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 "Not limiting targets",
                 "Limiting targets to those in sight",
                 "Limiting targets to those in same area"
@@ -1055,7 +1055,7 @@ const char *goal;
             goto nxtc;
         } else if (c == Cmd.spkeys[NHKF_GETPOS_MOVESKIP]) {
             iflags.getloc_moveskip = !iflags.getloc_moveskip;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%skipping over similar terrain when fastmoving the cursor.",
                   iflags.getloc_moveskip ? "S" : "Not s");
 #else
@@ -1168,7 +1168,7 @@ const char *goal;
 */
                         Strcpy(note, "中断した");
                     else /* hjkl */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         Sprintf(note, "use '%c', '%c', '%c', '%c' or '%s'",
                                 Cmd.move_W, Cmd.move_S, Cmd.move_N, Cmd.move_E,
                                 visctrl(Cmd.spkeys[NHKF_GETPOS_PICK]));
@@ -1342,7 +1342,7 @@ char *monnambuf, *usrbuf;
         /* catch trying to name "the {priest,Angel} of Crom" as "Crom" */
         || ((p = strstri(monnambuf, " of ")) != 0
             && fuzzymatch(usrbuf, p + 4, " -_", TRUE))) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s is already called %s.",
               upstart(strcpy(pronounbuf, mhe(mtmp))), monnambuf);
 #else
@@ -1365,7 +1365,7 @@ char *monnambuf, *usrbuf;
 STATIC_OVL void
 do_mname()
 {
-    char buf[BUFSZ] = DUMMY, monnambuf[BUFSZ], qbuf[QBUFSZ];
+    char buf[BUFSZ], monnambuf[BUFSZ], qbuf[QBUFSZ];
     coord cc;
     int cx, cy;
     struct monst *mtmp = 0;
@@ -1383,9 +1383,9 @@ do_mname()
     if (getpos(&cc, FALSE, "the monster you want to name") < 0
 */
     if (getpos(&cc, FALSE, "あなたが名づけたい怪物") < 0
-        || (cx = cc.x) < 0)
+        || !isok(cc.x, cc.y))
         return;
-    cy = cc.y;
+    cx = cc.x, cy = cc.y;
 
     if (cx == u.ux && cy == u.uy) {
         if (u.usteed && canspotmon(u.usteed)) {
@@ -1419,6 +1419,12 @@ do_mname()
 */
     Sprintf(qbuf, "%sを何と呼びますか？",
             distant_monnam(mtmp, ARTICLE_THE, monnambuf));
+    buf[0] = '\0';
+#ifdef EDIT_GETLIN
+    /* if there's an existing name, make it be the default answer */
+    if (has_mname(mtmp))
+        Strcpy(buf, MNAME(mtmp));
+#endif
     getlin(qbuf, buf);
     if (!*buf || *buf == '\033')
         return;
@@ -1431,6 +1437,9 @@ do_mname()
      *
      * Don't say the name is being rejected if it happens to match
      * the existing name.
+     *
+     * TODO: should have an alternate message when the attempt is to
+     * remove existing name without assigning a new one.
      */
     if ((mtmp->data->geno & G_UNIQ) && !mtmp->ispriest) {
         if (!alreadynamed(mtmp, monnambuf, buf))
@@ -1468,7 +1477,7 @@ void
 do_oname(obj)
 register struct obj *obj;
 {
-    char *bufp, buf[BUFSZ] = DUMMY, bufcpy[BUFSZ], qbuf[QBUFSZ];
+    char *bufp, buf[BUFSZ], bufcpy[BUFSZ], qbuf[QBUFSZ];
     const char *aname;
     short objtyp;
 
@@ -1481,12 +1490,19 @@ register struct obj *obj;
         return;
     }
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(qbuf, "What do you want to name %s ",
             is_plural(obj) ? "these" : "this");
     (void) safe_qbuf(qbuf, qbuf, "?", obj, xname, simpleonames, "item");
 #else
-    (void) safe_qbuf(qbuf, "", "を何と名づけますか？", obj, xname, simpleonames, "item");
+    (void) safe_qbuf(qbuf, "", "を何と名づけますか？", obj, xname,
+                     simpleonames, "それ");
+#endif
+    buf[0] = '\0';
+#ifdef EDIT_GETLIN
+    /* if there's an existing name, make it be the default answer */
+    if (has_oname(obj))
+        Strcpy(buf, ONAME(obj));
 #endif
     getlin(qbuf, buf);
     if (!*buf || *buf == '\033')
@@ -1770,11 +1786,12 @@ void
 docall(obj)
 struct obj *obj;
 {
-    char buf[BUFSZ] = DUMMY, qbuf[QBUFSZ];
+    char buf[BUFSZ], qbuf[QBUFSZ];
     char **str1;
 
     if (!obj->dknown)
         return; /* probably blind */
+    flush_screen(1); /* buffered updates might matter to player's response */
 
     if (obj->oclass == POTION_CLASS && obj->fromsink)
         /* kludge, meaning it's sink water */
@@ -1784,19 +1801,26 @@ struct obj *obj;
         Sprintf(qbuf, "%s液体:",
                 OBJ_DESCR(objects[obj->otyp]));
     else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         (void) safe_qbuf(qbuf, "Call ", ":", obj,
                          docall_xname, simpleonames, "thing");
 #else
         (void) safe_qbuf(qbuf, "", "に何と名前を付ける？", obj,
                          docall_xname, simpleonames, "これ");
 #endif
+    /* pointer to old name */
+    str1 = &(objects[obj->otyp].oc_uname);
+    buf[0] = '\0';
+#ifdef EDIT_GETLIN
+    /* if there's an existing name, make it be the default answer */
+    if (*str1)
+        Strcpy(buf, *str1);
+#endif
     getlin(qbuf, buf);
     if (!*buf || *buf == '\033')
         return;
 
     /* clear old name */
-    str1 = &(objects[obj->otyp].oc_uname);
     if (*str1)
         free((genericptr_t) *str1);
 
@@ -1832,7 +1856,7 @@ namefloorobj()
     /* "dot for under/over you" only makes sense when the cursor hasn't
        been moved off the hero's '@' yet, but there's no way to adjust
        the help text once getpos() has started */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(buf, "object on map (or '.' for one %s you)",
             (u.uundetected && hides_under(youmonst.data)) ? "over" : "under");
 #else
@@ -1850,7 +1874,7 @@ namefloorobj()
     }
     if (!obj) {
         /* "under you" is safe here since there's no object to hide under */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("There doesn't seem to be any object %s.",
               (cc.x == u.ux && cc.y == u.uy) ? "under you" : "there");
 #else
@@ -2110,8 +2134,8 @@ boolean called;
     has_adjectives = (buf[0] != '\0');
 #endif
 
-    /* Put the actual monster name or type into the buffer now */
-    /* Be sure to remember whether the buffer starts with a name */
+    /* Put the actual monster name or type into the buffer now.
+       Remember whether the buffer starts with a personal name. */
     if (do_hallu) {
         char rnamecode;
         char *rname = rndmonnam(&rnamecode);
@@ -2343,7 +2367,7 @@ char *outbuf;
        its own obfuscation) */
     if (mon->data == &mons[PM_HIGH_PRIEST] && !Hallucination
         && Is_astralevel(&u.uz) && distu(mon->mx, mon->my) > 2) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Strcpy(outbuf, article == ARTICLE_THE ? "the " : "");
         Strcat(outbuf, mon->female ? "high priestess" : "high priest");
 #else
@@ -2355,22 +2379,91 @@ char *outbuf;
     return outbuf;
 }
 
+/* returns mon_nam(mon) relative to other_mon; normal name unless they're
+   the same, in which case the reference is to {him|her|it} self */
+char *
+mon_nam_too(mon, other_mon)
+struct monst *mon, *other_mon;
+{
+    char *outbuf;
+
+    if (mon != other_mon) {
+        outbuf = mon_nam(mon);
+    } else {
+        outbuf = nextmbuf();
+#if 0 /*JP*/
+        switch (pronoun_gender(mon, FALSE)) {
+        case 0:
+            Strcpy(outbuf, "himself");
+            break;
+        case 1:
+            Strcpy(outbuf, "herself");
+            break;
+        default:
+            Strcpy(outbuf, "itself");
+            break;
+        }
+#else
+        Strcpy(outbuf, "自分自身");
+#endif
+    }
+    return outbuf;
+}
+
+/* for debugging messages, where data might be suspect and we aren't
+   taking what the hero does or doesn't know into consideration */
+char *
+minimal_monnam(mon, ckloc)
+struct monst *mon;
+boolean ckloc;
+{
+    struct permonst *ptr;
+    char *outbuf = nextmbuf();
+
+    if (!mon) {
+        Strcpy(outbuf, "[Null monster]");
+    } else if ((ptr = mon->data) == 0) {
+        Strcpy(outbuf, "[Null mon->data]");
+    } else if (ptr < &mons[0]) {
+        Sprintf(outbuf, "[Invalid mon->data %s < %s]",
+                fmt_ptr((genericptr_t) mon->data),
+                fmt_ptr((genericptr_t) &mons[0]));
+    } else if (ptr >= &mons[NUMMONS]) {
+        Sprintf(outbuf, "[Invalid mon->data %s >= %s]",
+                fmt_ptr((genericptr_t) mon->data),
+                fmt_ptr((genericptr_t) &mons[NUMMONS]));
+    } else if (ckloc && ptr == &mons[PM_LONG_WORM]
+               && level.monsters[mon->mx][mon->my] != mon) {
+        Sprintf(outbuf, "%s <%d,%d>",
+                mons[PM_LONG_WORM_TAIL].mname, mon->mx, mon->my);
+    } else {
+        Sprintf(outbuf, "%s%s <%d,%d>",
+                mon->mtame ? "tame " : mon->mpeaceful ? "peaceful " : "",
+                mon->data->mname, mon->mx, mon->my);
+        if (mon->cham != NON_PM)
+            Sprintf(eos(outbuf), "{%s}", mons[mon->cham].mname);
+    }
+    return outbuf;
+}
+
 /* fake monsters used to be in a hard-coded array, now in a data file */
 STATIC_OVL char *
 bogusmon(buf, code)
 char *buf, *code;
 {
+    static const char bogon_codes[] = "-_+|="; /* see dat/bonusmon.txt */
     char *mname = buf;
 
+    if (code)
+        *code = '\0';
+    /* might fail (return empty buf[]) if the file isn't available */
     get_rnd_text(BOGUSMONFILE, buf, rn2_on_display_rng);
-    /* strip prefix if present */
-    if (!letter(*mname)) {
+    if (!*mname) {
+        Strcpy(buf, "bogon");
+    } else if (index(bogon_codes, *mname)) { /* strip prefix if present */
         if (code)
             *code = *mname;
         ++mname;
-    } else {
-        if (code)
-            *code = '\0';
     }
     return mname;
 }
@@ -2433,7 +2526,7 @@ roguename()
 }
 
 static NEARDATA const char *const hcolors[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "ultraviolet", "infrared", "bluish-orange", "reddish-green", "dark white",
     "light black", "sky blue-pink", "salty", "sweet", "sour", "bitter",
     "striped", "spiral", "swirly", "plaid", "checkered", "argyle", "paisley",
@@ -2476,7 +2569,7 @@ rndcolor()
 }
 
 static NEARDATA const char *const hliquids[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "yoghurt", "oobleck", "clotted blood", "diluted water", "purified water",
     "instant coffee", "tea", "herbal infusion", "liquid rainbow",
     "creamy foam", "mulled wine", "bouillon", "nectar", "grog", "flubber",

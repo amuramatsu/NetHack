@@ -1,11 +1,11 @@
-/* NetHack 3.6	sit.c	$NHDT-Date: 1544442714 2018/12/10 11:51:54 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.59 $ */
+/* NetHack 3.6	sit.c	$NHDT-Date: 1559670609 2019/06/04 17:50:09 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.61 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -99,12 +99,12 @@ dosit()
 
     if (OBJ_AT(u.ux, u.uy)
         /* ensure we're not standing on the precipice */
-        && !uteetering_at_seen_pit(trap)) {
+        && !(uteetering_at_seen_pit(trap) || uescaped_shaft(trap))) {
         register struct obj *obj;
 
         obj = level.objects[u.ux][u.uy];
         if (youmonst.data->mlet == S_DRAGON && obj->oclass == COIN_CLASS) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("coil up around your %shoard.",
                 (obj->quan + money_cnt(invent) < u.ulevel * 1000) ? "meager "
                                                                   : "");
@@ -286,7 +286,7 @@ dosit()
                 (void) adjattrib(rn2(A_MAX), 1, FALSE);
                 break;
             case 3:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("A%s electric shock shoots through your body!",
                       (Shock_resistance) ? "n" : " massive");
 #else
@@ -341,7 +341,7 @@ dosit()
                 pline("A voice echoes:");
 */
                 pline("声が響いた:");
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 verbalize("Thy audience hath been summoned, %s!",
                           flags.female ? "Dame" : "Sire");
 #else
@@ -358,7 +358,7 @@ dosit()
                 pline("A voice echoes:");
 */
                 pline("声が響いた:");
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 verbalize("By thine Imperious order, %s...",
                           flags.female ? "Dame" : "Sire");
 #else
@@ -472,7 +472,7 @@ dosit()
         struct obj *uegg;
 
         if (!flags.female) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s can't lay eggs!",
                   Hallucination
                       ? "You may think you are a platypus, but a male still"
@@ -515,7 +515,7 @@ dosit()
         /* this sets hatch timers if appropriate */
         set_corpsenm(uegg, egg_type_from_parent(u.umonnum, FALSE));
         uegg->known = uegg->dknown = 1;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("%s an egg.", eggs_in_water(youmonst.data) ? "spawn" : "lay");
 #else
         You("卵を産んだ．");
@@ -607,14 +607,14 @@ rndcurse()
         else
             curse(otmp);
         if (!Blind) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s %s.", Yobjnam2(otmp, "glow"),
                   hcolor(otmp->cursed ? NH_BLACK : (const char *) "brown"));
 #else
             pline("%sは%s輝いた．", xname(otmp),
                   jconj_adj(hcolor(otmp->cursed ? NH_BLACK : (const char *)"茶色の")));
 #endif
-            otmp->bknown = TRUE;
+            otmp->bknown = 1; /* ok to bypass set_bknown() here */
         }
     }
 }
@@ -689,7 +689,7 @@ attrcurse()
     case 7:
         if (HSee_invisible & INTRINSIC) {
             HSee_invisible &= ~INTRINSIC;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("%s!", Hallucination ? "tawt you taw a puttie tat"
                                      : "thought you saw something");
 #else

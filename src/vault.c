@@ -5,7 +5,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -84,7 +84,8 @@ boolean forceshow;
             } else if (!in_fcorridor(grd, u.ux, u.uy)) {
                 if (mtmp->mtame)
                     yelp(mtmp);
-                (void) rloc(mtmp, FALSE);
+                if (!rloc(mtmp, TRUE))
+                    m_into_limbo(mtmp);
             }
         }
         lev = &levl[fcx][fcy];
@@ -412,7 +413,7 @@ invault()
         reset_faint(); /* if fainted - wake up */
         gsensed = !canspotmon(guard);
         if (!gsensed)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("Suddenly one of the Vault's %s enters!",
                   makeplural(guard->data->mname));
 #else
@@ -443,7 +444,7 @@ invault()
             if (U_AP_TYPE == M_AP_OBJECT
                 && youmonst.mappearance != GOLD_PIECE)
                 if (!Deaf)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     verbalize("Hey!  Who left that %s in here?",
                               mimic_obj_name(&youmonst));
 #else
@@ -484,7 +485,7 @@ invault()
         buf[0] = '\0';
         trycount = 5;
         do {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             getlin(Deaf ? "You are required to supply your name. -"
                         : "\"Hello stranger, who are you?\" -", buf);
 #else
@@ -504,7 +505,7 @@ invault()
             adjalign(-1); /* Liar! */
         }
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         if (!strcmpi(buf, "Croesus") || !strcmpi(buf, "Kroisos")
             || !strcmpi(buf, "Creosote")) { /* Discworld */
 #else
@@ -556,7 +557,7 @@ invault()
             return;
         }
         if (Deaf)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s doesn't %srecognize you.", noit_Monnam(guard),
                     (Blind) ? "" : "appear to ");
 #else
@@ -844,7 +845,7 @@ int goldx, goldy; /* <gold->ox, gold->oy> */
         Strcpy(monnambuf, Monnam(grd));
         if (!strcmpi(monnambuf, "It"))
             Strcpy(monnambuf, "Someone");
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s%s picks up the gold%s.", monnambuf,
               (grd->mpeaceful && EGD(grd)->warncnt > 5)
                  ? " calms down and" : "",
@@ -903,9 +904,10 @@ register struct monst *grd;
         if (!u_in_vault
             && (grd_in_vault || (in_fcorridor(grd, grd->mx, grd->my)
                                  && !in_fcorridor(grd, u.ux, u.uy)))) {
-            (void) rloc(grd, FALSE);
+            (void) rloc(grd, TRUE);
             wallify_vault(grd);
-            (void) clear_fcorr(grd, TRUE);
+            if (!in_fcorridor(grd, grd->mx, grd->my))
+                (void) clear_fcorr(grd, TRUE);
             goto letknow;
         }
         if (!in_fcorridor(grd, grd->mx, grd->my))
@@ -917,7 +919,7 @@ register struct monst *grd;
 
     if (egrd->witness) {
         if (!Deaf)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             verbalize("How dare you %s that gold, scoundrel!",
                       (egrd->witness & GD_EATGOLD) ? "consume" : "destroy");
 #else
@@ -934,7 +936,7 @@ register struct monst *grd;
     if (egrd->fcend == 1) {
         if (u_in_vault && (u_carry_gold || um_dist(grd->mx, grd->my, 1))) {
             if (egrd->warncnt == 3 && !Deaf)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 verbalize("I repeat, %sfollow me!",
                           u_carry_gold
                               ? (!umoney ? "drop that hidden money and "
@@ -977,7 +979,7 @@ register struct monst *grd;
                 grd->mpeaceful = 0;
  letknow:
                 if (!cansee(grd->mx, grd->my) || !mon_visible(grd))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You_hear("%s.",
                              m_carrying(grd, TIN_WHISTLE)
                                  ? "the shrill sound of a guard's whistle"
@@ -989,7 +991,7 @@ register struct monst *grd;
                                  : "怒りの叫び");
 #endif
                 else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     You(um_dist(grd->mx, grd->my, 2)
                             ? "see %s approaching."
                             : "are confronted by %s.",
@@ -1271,7 +1273,7 @@ boolean silently;
 
     if (u.uinvault) {
         if (!silently)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Your("%ld %s goes into the Magic Memory Vault.",
                  umoney, currency(umoney));
 #else
@@ -1292,7 +1294,7 @@ boolean silently;
             pline("%sはあなたの金貨を倉庫に送った．", Monnam(grd));
         gx = rooms[EGD(grd)->vroom].lx + rn2(2);
         gy = rooms[EGD(grd)->vroom].ly + rn2(2);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(buf, "To Croesus: here's the gold recovered from %s the %s.",
                 plname, mons[u.umonster].mname);
 #else

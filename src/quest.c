@@ -4,7 +4,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -156,7 +156,7 @@ boolean talk;
 
     if (wizard && talk) {
         if (u.ualign.type != original_alignment) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("are currently %s instead of %s.", align_str(u.ualign.type),
                 align_str(original_alignment));
 #else
@@ -169,7 +169,7 @@ boolean talk;
 */
             You("転向している．");
         } else if (u.ualign.record < MIN_QUEST_ALIGN) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("are currently %d and require %d.", u.ualign.record,
                 MIN_QUEST_ALIGN);
 #else

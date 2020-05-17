@@ -1,11 +1,11 @@
-/* NetHack 3.6	weapon.c	$NHDT-Date: 1548209744 2019/01/23 02:15:44 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.69 $ */
+/* NetHack 3.6	weapon.c	$NHDT-Date: 1559998716 2019/06/08 12:58:36 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.70 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2011. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 /*
@@ -51,7 +51,7 @@ STATIC_VAR NEARDATA const short skill_names_indices[P_NUM_SKILLS] = {
 
 /* note: entry [0] isn't used */
 STATIC_VAR NEARDATA const char *const odd_skill_names[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "no skill", "bare hands", /* use barehands_or_martial[] instead */
     "two weapon combat", "riding", "polearms", "saber", "hammer", "whip",
     "attack spells", "healing spells", "divination spells",
@@ -65,7 +65,7 @@ STATIC_VAR NEARDATA const char *const odd_skill_names[] = {
 };
 /* indexed vis `is_martial() */
 STATIC_VAR NEARDATA const char *const barehands_or_martial[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     "bare handed combat", "martial arts"
 #else
     "素手", "体術"
@@ -86,7 +86,7 @@ STATIC_OVL void
 give_may_advance_msg(skill)
 int skill;
 {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     You_feel("more confident in your %sskills.",
              (skill == P_NONE) ? ""
                  : (skill <= P_LAST_WEAPON) ? "weapon "
@@ -884,7 +884,7 @@ register struct monst *mon;
 #else
                     pline("%sは武器を手にしようとしたが，", mon_nam(mon));
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s cannot wield that %s.", mon_nam(mon),
                           xname(obj));
 #else
@@ -910,12 +910,22 @@ register struct monst *mon;
         setmnotwielded(mon, mw_tmp);
         mon->weapon_check = NEED_WEAPON;
         if (canseemon(mon)) {
+            boolean newly_welded;
+
 /*JP
             pline("%s wields %s!", Monnam(mon), doname(obj));
 */
             pline("%sは%sを装備した！", Monnam(mon), doname(obj));
-            if (mwelded(mw_tmp)) {
-#if 0 /*JP*/
+            /* 3.6.3: mwelded() predicate expects the object to have its
+               W_WEP bit set in owormmask, but the pline here and for
+               artifact_light don't want that because they'd have '(weapon
+               in hand/claw)' appended; so we set it for the mwelded test
+               and then clear it, until finally setting it for good below */
+            obj->owornmask |= W_WEP;
+            newly_welded = mwelded(obj);
+            obj->owornmask &= ~W_WEP;
+            if (newly_welded) {
+#if 0 /*JP:T*/
                 pline("%s %s to %s %s!", Tobjnam(obj, "weld"),
                       is_plural(obj) ? "themselves" : "itself",
                       s_suffix(mon_nam(mon)), mbodypart(mon, HAND));
@@ -930,7 +940,7 @@ register struct monst *mon;
         if (artifact_light(obj) && !obj->lamplit) {
             begin_burn(obj, FALSE);
             if (canseemon(mon))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %s in %s %s!", Tobjnam(obj, "shine"),
                       arti_light_description(obj), s_suffix(mon_nam(mon)),
                       mbodypart(mon, HAND));
@@ -938,6 +948,19 @@ register struct monst *mon;
                 pline("%sは%sの%sの中で%s輝いた！",
                       xname(obj), mon_nam(mon),
                       mbodypart(mon, HAND), arti_light_description(obj));
+#endif
+            /* 3.6.3: artifact might be getting wielded by invisible monst */
+            else if (cansee(mon->mx, mon->my))
+#if 0 /*JP*/
+                pline("Light begins shining %s.",
+                      (distu(mon->mx, mon->my) <= 5 * 5)
+                          ? "nearby"
+                          : "in the distance");
+#else
+                pline("明かりが%sで輝きはじめた．",
+                      (distu(mon->mx, mon->my) <= 5 * 5)
+                          ? "近く"
+                          : "遠く");
 #endif
         }
         obj->owornmask = W_WEP;
@@ -1037,7 +1060,7 @@ boolean verbose;
     /* new state is only reported if it's an increase */
     if (newspe > obj->spe) {
         if (verbose) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             const char *wetness = (newspe < 3)
                                      ? (!obj->spe ? "damp" : "damper")
                                      : (!obj->spe ? "wet" : "wetter");
@@ -1048,7 +1071,7 @@ boolean verbose;
 #endif
 
             if (carried(obj))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s gets %s.", Yobjnam2(obj, (const char *) 0),
                       wetness);
 #else
@@ -1056,7 +1079,7 @@ boolean verbose;
                       wetness);
 #endif
             else if (mcarried(obj) && canseemon(obj->ocarry))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %s gets %s.", s_suffix(Monnam(obj->ocarry)),
                       xname(obj), wetness);
 #else
@@ -1086,7 +1109,7 @@ boolean verbose;
     if (newspe < obj->spe) {
         if (verbose) {
             if (carried(obj))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s dries%s.", Yobjnam2(obj, (const char *) 0),
                       !newspe ? " out" : "");
 #else
@@ -1094,7 +1117,7 @@ boolean verbose;
                       !newspe ? "乾ききった" : "乾いた");
 #endif
             else if (mcarried(obj) && canseemon(obj->ocarry))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s %s drie%s.", s_suffix(Monnam(obj->ocarry)),
                       xname(obj), !newspe ? " out" : "");
 #else
@@ -1256,7 +1279,7 @@ int skill;
     P_SKILL(skill)++;
     u.skill_record[u.skills_advanced++] = skill;
     /* subtly change the advance message to indicate no more advancement */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     You("are now %s skilled in %s.",
         P_SKILL(skill) >= P_MAX_SKILL(skill) ? "most" : "more",
         P_NAME(skill));
@@ -1331,7 +1354,7 @@ enhance_weapon_skill()
         if (eventually_advance > 0 || maxxed_cnt > 0) {
             any = zeroany;
             if (eventually_advance > 0) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(buf, "(Skill%s flagged by \"*\" may be enhanced %s.)",
                         plur(eventually_advance),
                         (u.ulevel < MAXULEV)
@@ -1347,7 +1370,7 @@ enhance_weapon_skill()
                          MENU_UNSELECTED);
             }
             if (maxxed_cnt > 0) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(buf,
                  "(Skill%s flagged by \"#\" cannot be enhanced any further.)",
                         plur(maxxed_cnt));
@@ -1418,7 +1441,7 @@ enhance_weapon_skill()
                          MENU_UNSELECTED);
             }
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Strcpy(buf, (to_advance > 0) ? "Pick a skill to advance:"
                                      : "Current skills:");
 #else
@@ -1824,7 +1847,7 @@ register struct obj *obj;
     if (artifact_light(obj) && obj->lamplit) {
         end_burn(obj, FALSE);
         if (canseemon(mon))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s in %s %s %s shining.", The(xname(obj)),
                   s_suffix(mon_nam(mon)), mbodypart(mon, HAND),
                   otense(obj, "stop"));

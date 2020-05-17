@@ -1,9 +1,9 @@
-/* NetHack 3.6	write.c	$NHDT-Date: 1450261366 2015/12/16 10:22:46 $  $NHDT-Branch: NetHack-3.6.0 $:$NHDT-Revision: 1.17 $ */
+/* NetHack 3.6	write.c	$NHDT-Date: 1573346194 2019/11/10 00:36:34 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.20 $ */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -120,12 +120,12 @@ register struct obj *pen;
         You("書くためには手が必要だ！");
         return 0;
     } else if (Glib) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s from your %s.", Tobjnam(pen, "slip"),
-              makeplural(body_part(FINGER)));
+              fingers_or_gloves(FALSE));
 #else
         pline("%sが%sから滑りおちた．", xname(pen),
-              body_part(FINGER));
+              fingers_or_gloves(FALSE));
 #endif
         dropx(pen);
         return 1;
@@ -137,7 +137,7 @@ register struct obj *pen;
         return 0;
     /* can't write on a novel (unless/until it's been converted into a blank
        spellbook), but we want messages saying so to avoid "spellbook" */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     typeword = (paper->otyp == SPE_NOVEL)
                   ? "book"
                   : (paper->oclass == SPBOOK_CLASS)
@@ -409,7 +409,7 @@ found:
     /* success */
     if (new_obj->oclass == SPBOOK_CLASS) {
         /* acknowledge the change in the object's description... */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline_The("spellbook warps strangely, then turns %s.",
                   new_book_description(new_obj->otyp, namebuf));
 #else

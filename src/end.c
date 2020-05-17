@@ -1,4 +1,4 @@
-/* NetHack 3.6	end.c	$NHDT-Date: 1557094801 2019/05/05 22:20:01 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.170 $ */
+/* NetHack 3.6	end.c	$NHDT-Date: 1575245059 2019/12/02 00:04:19 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.181 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Robert Patrick Rankin, 2012. */
 /* NetHack may be freely redistributed.  See license for details. */
@@ -49,6 +49,7 @@ static void FDECL(done_hangup, (int));
 STATIC_DCL void FDECL(disclose, (int, BOOLEAN_P));
 STATIC_DCL void FDECL(get_valuables, (struct obj *));
 STATIC_DCL void FDECL(sort_valuables, (struct valuable_data *, int));
+STATIC_DCL void NDECL(done_object_cleanup);
 STATIC_DCL void FDECL(artifact_score, (struct obj *, BOOLEAN_P, winid));
 STATIC_DCL void FDECL(really_done, (int)) NORETURN;
 STATIC_DCL void FDECL(savelife, (int));
@@ -256,8 +257,8 @@ NH_panictrace_gdb()
 #ifdef PANICTRACE_GDB
     /* A (more) generic method to get a stack trace - invoke
      * gdb on ourself. */
-    char *gdbpath = GDBVAR;
-    char *greppath = GREPVAR;
+    const char *gdbpath = GDBVAR;
+    const char *greppath = GREPVAR;
     char buf[BUFSZ];
     FILE *gdb;
 
@@ -266,8 +267,8 @@ NH_panictrace_gdb()
     if (greppath == NULL || greppath[0] == 0)
         return FALSE;
 
-    sprintf(buf, "%s -n -q %s %d 2>&1 | %s '^#'", gdbpath, ARGV0, getpid(),
-            greppath);
+    sprintf(buf, "%s -n -q %s %d 2>&1 | %s '^#'",
+            gdbpath, ARGV0, getpid(), greppath);
     gdb = popen(buf, "w");
     if (gdb) {
         raw_print("Generating more information you may report:\n");
@@ -482,7 +483,7 @@ int how;
                set up fake mptr for type_is_pname/the_unique_pm */
             mptr = &mons[mtmp->mappearance];
             fakenm = mptr->mname;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         } else if (alt && strstri(realnm, "vampire")
                    && !strcmp(fakenm, "vampire bat")) {
             /* special case: use "vampire in bat form" in preference
@@ -510,7 +511,7 @@ int how;
         Strcpy(shape, fakenm);
 #endif
         /* omit "called" to avoid excessive verbosity */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(eos(buf),
                 alt ? "%s in %s form"
                     : mimicker ? "%s disguised as %s"
@@ -598,7 +599,6 @@ int how;
               怪物による場合は "に殺された" を補う。
          */
         killer.format = KILLED_SUFFIX;
-        done(DIED);
     }
 #endif
     done(how);
@@ -689,7 +689,7 @@ VA_DECL(const char *, str)
         raw_print("\nError save file being written.\n");
 #else /* !NOTIFY_NETHACK_BUGS */
     if (!wizard) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         const char *maybe_rebuild = !program_state.something_worth_saving
                                      ? "."
                                      : "\nand it may be possible to rebuild.";
@@ -706,7 +706,7 @@ VA_DECL(const char *, str)
             raw_printf("To report this error, contact %s%s",
                        sysopt.fmtd_wizard_list, maybe_rebuild);
         else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             raw_printf("Report error to \"%s\"%s", WIZARD_NAME,
                        maybe_rebuild);
 #else
@@ -730,7 +730,11 @@ VA_DECL(const char *, str)
     {
         char buf[BUFSZ];
 
+#if !defined(NO_VSNPRINTF)
+        (void) vsnprintf(buf, sizeof buf, str, VA_ARGS);
+#else
         Vsprintf(buf, str, VA_ARGS);
+#endif
         raw_print(buf);
         paniclog("panic", buf);
     }
@@ -895,7 +899,7 @@ boolean taken;
 
     if (invent && !done_stopprint) {
         if (taken)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(qbuf, "Do you want to see what you had when you %s?",
                     (how == QUIT) ? "quit" : "died");
 #else
@@ -921,7 +925,7 @@ boolean taken;
 
     if (!done_stopprint) {
         ask = should_query_disclose_option('a', &defquery);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         c = ask ? yn_function("Do you want to see your attributes?", ynqchars,
                               defquery)
                 : defquery;
@@ -950,7 +954,7 @@ boolean taken;
 
     if (!done_stopprint) {
         ask = should_query_disclose_option('c', &defquery);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         c = ask ? yn_function("Do you want to see your conduct?", ynqchars,
                               defquery)
                 : defquery;
@@ -967,7 +971,7 @@ boolean taken;
 
     if (!done_stopprint) {
         ask = should_query_disclose_option('o', &defquery);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         c = ask ? yn_function("Do you want to see the dungeon overview?",
                               ynqchars, defquery)
                 : defquery;
@@ -1097,7 +1101,7 @@ int size; /* max value is less than 20 */
 #if 0
 /*
  * odds_and_ends() was used for 3.6.0 and 3.6.1.
- * Schroedinger's Cat is handled differently starting with 3.6.2.
+ * Schroedinger's Cat is handled differently as of 3.6.2.
  */
 STATIC_DCL boolean FDECL(odds_and_ends, (struct obj *, int));
 
@@ -1125,6 +1129,62 @@ int what;
 }
 #endif
 
+/* deal with some objects which may be in an abnormal state at end of game */
+STATIC_OVL void
+done_object_cleanup()
+{
+    int ox, oy;
+
+    /* might have been killed while using a disposable item, so make sure
+       it's gone prior to inventory disclosure and creation of bones */
+    inven_inuse(TRUE);
+    /*
+     * Hero can die when throwing an object (by hitting an adjacent
+     * gas spore, for instance, or being hit by mis-returning Mjollnir),
+     * or while in transit (from falling down stairs).  If that happens,
+     * some object(s) might be in limbo rather than on the map or in
+     * any inventory.  Saving bones with an active light source in limbo
+     * would trigger an 'object not local' panic.
+     *
+     * We used to use dealloc_obj() on thrownobj and kickedobj but
+     * that keeps them out of bones and could leave uball in a confused
+     * state (gone but still attached).  Place them on the map but
+     * bypass flooreffects().  That could lead to minor anomalies in
+     * bones, like undamaged paper at water or lava locations or piles
+     * not being knocked down holes, but it seems better to get this
+     * game over with than risk being tangled up in more and more details.
+     */
+    ox = u.ux + u.dx, oy = u.uy + u.dy;
+    if (!isok(ox, oy) || !accessible(ox, oy))
+        ox = u.ux, oy = u.uy;
+    /* put thrown or kicked object on map (for bones); location might
+       be incorrect (perhaps killed by divine lightning when throwing at
+       a temple priest?) but this should be better than just vanishing
+       (fragile stuff should be taken care of before getting here) */
+    if (thrownobj && thrownobj->where == OBJ_FREE) {
+        place_object(thrownobj, ox, oy);
+        stackobj(thrownobj), thrownobj = 0;
+    }
+    if (kickedobj && kickedobj->where == OBJ_FREE) {
+        place_object(kickedobj, ox, oy);
+        stackobj(kickedobj), kickedobj = 0;
+    }
+    /* if Punished hero dies during level change or dies or quits while
+       swallowed, uball and uchain will be in limbo; put them on floor
+       so bones will have them and object list cleanup finds them */
+    if (uchain && uchain->where == OBJ_FREE) {
+        /* placebc(); */
+        lift_covet_and_placebc(override_restriction);
+    }
+    /* persistent inventory window now obsolete since disclosure uses
+       a normal popup one; avoids "Bad fruit #n" when saving bones */
+    if (iflags.perm_invent) {
+        iflags.perm_invent = FALSE;
+        update_inventory(); /* make interface notice the change */
+    }
+    return;
+}
+
 /* called twice; first to calculate total, then to list relevant items */
 STATIC_OVL void
 artifact_score(list, counting, endwin)
@@ -1149,7 +1209,7 @@ winid endwin;
                 discover_object(otmp->otyp, TRUE, FALSE);
                 otmp->known = otmp->dknown = otmp->bknown = otmp->rknown = 1;
                 /* assumes artifacts don't have quan > 1 */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(pbuf, "%s%s (worth %ld %s and %ld points)",
                         the_unique_obj(otmp) ? "The " : "",
                         otmp->oartifact ? artifact_name(xname(otmp), &dummy)
@@ -1284,7 +1344,7 @@ int how;
         }
     }
     /* explore and wizard modes offer player the option to keep playing */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     if (!survive && (wizard || discover) && how <= GENOCIDED
         && !paranoid_query(ParanoidDie, "Die?")) {
 #else
@@ -1295,6 +1355,7 @@ int how;
         pline("OK, so you don't %s.", (how == CHOKING) ? "choke" : "die");
 */
         You("死ななかった．");
+        iflags.last_msg = PLNMSG_OK_DONT_DIE;
         savelife(how);
         survive = TRUE;
     }
@@ -1335,21 +1396,21 @@ int how;
     /* render vision subsystem inoperative */
     iflags.vision_inited = 0;
 
-    /* might have been killed while using a disposable item, so make sure
-       it's gone prior to inventory disclosure and creation of bones data */
-    inven_inuse(TRUE);
-    /* maybe not on object lists; if an active light source, would cause
-       big trouble (`obj_is_local' panic) for savebones() -> savelev() */
-    if (thrownobj && thrownobj->where == OBJ_FREE)
-        dealloc_obj(thrownobj);
-    if (kickedobj && kickedobj->where == OBJ_FREE)
-        dealloc_obj(kickedobj);
+    /* maybe use up active invent item(s), place thrown/kicked missile,
+       deal with ball and chain possibly being temporarily off the map */
+    if (!program_state.panicking)
+        done_object_cleanup();
+    /* in case we're panicking; normally cleared by done_object_cleanup() */
+    iflags.perm_invent = FALSE;
 
     /* remember time of death here instead of having bones, rip, and
        topten figure it out separately and possibly getting different
        time or even day if player is slow responding to --More-- */
     urealtime.finish_time = endtime = getnow();
     urealtime.realtime += (long) (endtime - urealtime.start_timing);
+    /* collect these for end of game disclosure (not used during play) */
+    iflags.at_night = night();
+    iflags.at_midnight = midnight();
 
     dump_open_log(endtime);
     /* Sometimes you die on the first move.  Life's not fair.
@@ -1478,10 +1539,8 @@ int how;
         int mnum = u.umonnum;
 
         if (!Upolyd) {
-            /* Base corpse on race when not poly'd since original
-             * u.umonnum is based on role, and all role monsters
-             * are human.
-             */
+            /* Base corpse on race when not poly'd since original u.umonnum
+               is based on role, and all role monsters are human. */
             mnum = (flags.female && urace.femalenum != NON_PM)
                        ? urace.femalenum
                        : urace.malenum;
@@ -1529,7 +1588,7 @@ int how;
         /* give this feedback even if bones aren't going to be created,
            so that its presence or absence doesn't tip off the player to
            new bones or their lack; it might be a lie if makemon fails */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("%s as %s...",
              (u.ugrave_arise != PM_GREEN_SLIME)
                  ? "body rises from the dead"
@@ -1612,7 +1671,7 @@ int how;
         /* don't bother counting to see whether it should be plural */
     }
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     Sprintf(pbuf, "%s %s the %s...", Goodbye(), plname,
             (how != ASCENDED)
                 ? (const char *) ((flags.female && urole.name.f)
@@ -1695,7 +1754,7 @@ int how;
 */
             Strcat(pbuf, "は");
         }
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Sprintf(eos(pbuf), "%s with %ld point%s,",
                 how == ASCENDED ? "went to your reward"
                                  : "escaped from the dungeon",
@@ -1733,7 +1792,7 @@ int how;
                     if (has_oname(otmp))
                         free_oname(otmp);
                     otmp->quan = count;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     Sprintf(pbuf, "%8ld %s (worth %ld %s),", count,
                             xname(otmp), count * (long) objects[typ].oc_cost,
                             currency(2L));
@@ -1744,7 +1803,7 @@ int how;
 #endif
                     obfree(otmp, (struct obj *) 0);
                 } else {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     Sprintf(pbuf, "%8ld worthless piece%s of colored glass,",
                             count, plur(count));
 #else
@@ -1761,7 +1820,7 @@ int how;
         if (u.uz.dnum == 0 && u.uz.dlevel <= 0) {
             /* level teleported out of the dungeon; `how' is DIED,
                due to falling or to "arriving at heaven prematurely" */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(pbuf, "You %s beyond the confines of the dungeon",
                     (u.uz.dlevel < 0) ? "passed away" : ends[how]);
 #else
@@ -1782,7 +1841,7 @@ int how;
 */
             Sprintf(pbuf, "あなたは%s", where);
             if (!In_endgame(&u.uz) && !Is_knox(&u.uz))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(eos(pbuf), " on dungeon level %d",
                         In_quest(&u.uz) ? dunlev(&u.uz) : depth(&u.uz));
 #else
@@ -1849,9 +1908,12 @@ boolean identified, all_containers, reportempty;
 
     for (box = list; box; box = box->nobj) {
         if (Is_container(box) || box->otyp == STATUE) {
-            box->cknown = 1; /* we're looking at the contents now */
-            if (identified)
-                box->lknown = 1;
+            if (!box->cknown || (identified && !box->lknown)) {
+                box->cknown = 1; /* we're looking at the contents now */
+                if (identified)
+                    box->lknown = 1;
+                update_inventory();
+            }
             if (box->otyp == BAG_OF_TRICKS) {
                 continue; /* wrong type of container */
             } else if (box->cobj) {
@@ -2195,7 +2257,7 @@ boolean ask;
                     Sprintf(buf, "%s", mons[i].mname);
 #endif
                     if (nkilled > 1) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         switch (nkilled) {
                         case 2:
                             Sprintf(eos(buf), " (twice)");
@@ -2341,7 +2403,7 @@ boolean ask;
             done_stopprint++;
         if (c == 'y') {
             klwin = create_nhwindow(NHW_MENU);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(buf, "%s%s species:",
                     (ngenocided) ? "Genocided" : "Extinct",
                     (nextinct && ngenocided) ? " or extinct" : "");

@@ -1,10 +1,10 @@
-/* NetHack 3.6	steed.c	$NHDT-Date: 1545441042 2018/12/22 01:10:42 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.62 $ */
+/* NetHack 3.6	steed.c	$NHDT-Date: 1575245090 2019/12/02 00:04:50 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.68 $ */
 /* Copyright (c) Kevin Hugo, 1998-1999. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -252,7 +252,7 @@ boolean force;      /* Quietly force this animal */
 
     /* Is the player in the right form? */
     if (Hallucination && !force) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("Maybe you should find a designated driver.");
 #else
         pline("おそらくあなたは指定ドライバーを探すべきだろう．");
@@ -311,7 +311,7 @@ boolean force;      /* Quietly force this animal */
     }
     if (mtmp->data == &mons[PM_LONG_WORM]
         && (u.ux + u.dx != mtmp->mx || u.uy + u.dy != mtmp->my)) {
-        /* 3.6.2:  test_move(below) is used to check for trying to mount
+        /* As of 3.6.2:  test_move(below) is used to check for trying to mount
            diagonally into or out of a doorway or through a tight squeeze;
            attempting to mount a tail segment when hero was not adjacent
            to worm's head could trigger an impossible() in worm_cross()
@@ -371,7 +371,7 @@ boolean force;      /* Quietly force this animal */
     if (mtmp->mtrapped) {
         struct trap *t = t_at(mtmp->mx, mtmp->my);
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You_cant("mount %s while %s's trapped in %s.", mon_nam(mtmp),
                  mhe(mtmp), an(defsyms[trap_to_defsym(t->ttyp)].explanation));
 #else
@@ -384,7 +384,7 @@ boolean force;      /* Quietly force this animal */
     if (!force && !Role_if(PM_KNIGHT) && !(--mtmp->mtame)) {
         /* no longer tame */
         newsym(mtmp->mx, mtmp->my);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s resists%s!", Monnam(mtmp),
               mtmp->mleashed ? " and its leash comes off" : "");
 #else
@@ -422,7 +422,7 @@ boolean force;      /* Quietly force this animal */
         return (FALSE);
     }
     if (!force && uarm && is_metallic(uarm) && greatest_erosion(uarm)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Your("%s armor is too stiff to be able to mount %s.",
              uarm->oeroded ? "rusty" : "corroded", mon_nam(mtmp));
 #else
@@ -537,19 +537,19 @@ kick_steed()
                 u.usteed->mcanmove = 1;
             }
             if (u.usteed->msleeping || !u.usteed->mcanmove)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s stirs.", He);
 #else
                 pline("%sは身じろぎした．", He);
 #endif
             else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s rouses %sself!", He, mhim(u.usteed));
 #else
                 pline("%sは奮起した！", He);
 #endif
         } else
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s does not respond.", He);
 #else
             pline("%sは反応しない．", He);
@@ -692,14 +692,14 @@ int reason; /* Player was thrown off etc. */
     case DISMOUNT_BYCHOICE:
     default:
         if (otmp && otmp->cursed) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             You("can't.  The saddle %s cursed.",
                 otmp->bknown ? "is" : "seems to be");
 #else
             You("降りられない．鞍は呪われている%s．",
                 otmp->bknown ? "" : "ようだ");
 #endif
-            otmp->bknown = TRUE;
+            otmp->bknown = 1; /* ok to skip set_bknown() here */
             return;
         }
         if (!have_spot) {
@@ -800,7 +800,7 @@ int reason; /* Player was thrown off etc. */
                         adjalign(-1);
                     }
                 } else if (is_lava(u.ux, u.uy)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("%s is pulled into the %s!", Monnam(mtmp),
                           hliquid("lava"));
 #else
@@ -945,23 +945,39 @@ place_monster(mon, x, y)
 struct monst *mon;
 int x, y;
 {
+    struct monst *othermon;
+    const char *monnm, *othnm;
+    char buf[QBUFSZ];
+
+    buf[0] = '\0';
     /* normal map bounds are <1..COLNO-1,0..ROWNO-1> but sometimes
        vault guards (either living or dead) are parked at <0,0> */
     if (!isok(x, y) && (x != 0 || y != 0 || !mon->isgd)) {
-        impossible("trying to place monster at <%d,%d>", x, y);
+        describe_level(buf);
+        impossible("trying to place %s at <%d,%d> mstate:%lx on %s",
+                   minimal_monnam(mon, TRUE), x, y, mon->mstate, buf);
         x = y = 0;
     }
     if (mon == u.usteed
         /* special case is for convoluted vault guard handling */
         || (DEADMONSTER(mon) && !(mon->isgd && x == 0 && y == 0))) {
-        impossible("placing %s onto map?",
-                   (mon == u.usteed) ? "steed" : "defunct monster");
+        describe_level(buf);
+        impossible("placing %s onto map, mstate:%lx, on %s?",
+                   (mon == u.usteed) ? "steed" : "defunct monster",
+                   mon->mstate, buf);
         return;
     }
-    if (level.monsters[x][y])
-        impossible("placing monster over another at <%d,%d>?", x, y);
+    if ((othermon = level.monsters[x][y]) != 0) {
+        describe_level(buf);
+        monnm = minimal_monnam(mon, FALSE);
+        othnm = (mon != othermon) ? minimal_monnam(othermon, TRUE) : "itself";
+        impossible("placing %s over %s at <%d,%d>, mstates:%lx %lx on %s?",
+                   monnm, othnm, x, y, othermon->mstate, mon->mstate, buf);
+    }
     mon->mx = x, mon->my = y;
     level.monsters[x][y] = mon;
+    mon->mstate &= ~(MON_OFFMAP | MON_MIGRATING | MON_LIMBO | MON_BUBBLEMOVE
+                     | MON_ENDGAME_FREE | MON_ENDGAME_MIGR);
 }
 
 /*steed.c*/

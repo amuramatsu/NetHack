@@ -1,10 +1,10 @@
-/* NetHack 3.6	attrib.c	$NHDT-Date: 1553363417 2019/03/23 17:50:17 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.65 $ */
+/* NetHack 3.6	attrib.c	$NHDT-Date: 1575245050 2019/12/02 00:04:10 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.66 $ */
 /*      Copyright 1988, 1989, 1990, 1992, M. Stephenson           */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 
@@ -15,25 +15,25 @@
 
 /* part of the output on gain or loss of attribute */
 static const char
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     *const plusattr[] = { "strong", "smart", "wise",
                           "agile",  "tough", "charismatic" },
 #else
     *const plusattr[] = { "強い", "賢明だ", "賢い",
                           "機敏だ", "頑丈だ", "魅力的だ" },
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     *const minusattr[] = { "weak",    "stupid",
                            "foolish", "clumsy",
                            "fragile", "repulsive" };
 #else
     *const minusattr[] = { "弱い", "愚かだ",
                            "間抜けだ", "不器用だ",
-                           "ひ弱だ","醜い" };
+                           "ひ弱だ", "醜い" };
 #endif
 /* also used by enlightenment for non-abbreviated status info */
 const char
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     *const attrname[] = { "strength", "intelligence", "wisdom",
                           "dexterity", "constitution", "charisma" };
 #else
@@ -120,7 +120,7 @@ static const struct innate {
 /*JP
                  { 17, &(HTeleport_control), "controlled", "uncontrolled" },
 */
-                 { 17, &(HTeleport_control), "制御力を得た","制御力を失った" },
+                 { 17, &(HTeleport_control), "制御力を得た", "制御力を失った" },
                  { 0, 0, 0, 0 } },
 
 /*JP
@@ -180,7 +180,7 @@ static const struct innate {
 /*JP
                  { 17, &(HTeleport_control), "controlled", "uncontrolled" },
 */
-                 { 17, &(HTeleport_control), "制御力を得た","制御力を失った" },
+                 { 17, &(HTeleport_control), "制御力を得た", "制御力を失った" },
                  { 0, 0, 0, 0 } },
 
   /* Intrinsics conferred by race */
@@ -250,7 +250,7 @@ int msgflg; /* positive => no message, zero => message, and */
              * taken below the minimum, reduce max value (peak reached)
              * instead.  That means that restore ability and repeated
              * applications of unicorn horn will not be able to recover
-             * all the lost value.  Starting will 3.6.2, we only take away
+             * all the lost value.  As of 3.6.2, we only take away
              * some (average half, possibly zero) of the excess from max
              * instead of all of it, but without intervening recovery, it
              * can still eventually drop to the minimum allowed.  After
@@ -274,7 +274,7 @@ int msgflg; /* positive => no message, zero => message, and */
     if (ACURR(ndx) == old_acurr) {
         if (msgflg == 0 && flags.verbose) {
             if (ABASE(ndx) == old_abase && AMAX(ndx) == old_amax) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("You're %s as %s as you can get.",
                       abonflg ? "currently" : "already", attrstr);
 #else
@@ -284,7 +284,7 @@ int msgflg; /* positive => no message, zero => message, and */
             } else {
                 /* current stayed the same but base value changed, or
                    base is at minimum and reduction caused max to drop */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Your("innate %s has %s.", attrname[ndx],
                      (incr > 0) ? "improved" : "declined");
 #else
@@ -352,32 +352,32 @@ static const struct poison_effect_message {
     void VDECL((*delivery_func), (const char *, ...));
     const char *effect_msg;
 } poiseff[] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { You_feel, "weaker" },             /* A_STR */
 #else
     { You_feel, "弱くなった" },         /* A_STR */
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { Your, "brain is on fire" },       /* A_INT */
 #else
     { You, "頭に血がのぼった" },        /* A_INT */
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { Your, "judgement is impaired" },  /* A_WIS */
 #else
     { You, "判断力を失った" },          /* A_WIS */
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { Your, "muscles won't obey you" }, /* A_DEX */
 #else
     { You, "思うように動けない" },      /* A_DEX */
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { You_feel, "very sick" },          /* A_CON */
 #else
     { You_feel, "とても気分が悪くなった" }, /* A_CON */
 #endif
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { You, "break out in hives" }       /* A_CHA */
 #else
     { You, "じんましんがあらわれた" }   /* A_CHA */
@@ -430,7 +430,7 @@ boolean thrown_weapon; /* thrown weapons are less deadly */
     /* inform player about being poisoned unless that's already been done;
        "blast" has given a "blast of poison gas" message; "poison arrow",
        "poison dart", etc have implicitly given poison messages too... */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     if (strcmp(reason, "blast") && !strstri(reason, "poison")) {
 #else
     if (strcmp(reason, "風") && strcmp(reason, "息") && !strstri(reason, "毒")) {
@@ -440,7 +440,7 @@ boolean thrown_weapon; /* thrown weapons are less deadly */
 #endif
 
         /* avoid "The" Orcus's sting was poisoned... */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s%s %s poisoned!",
               isupper((uchar) *reason) ? "" : "The ", reason,
               plural ? "were" : "was");
@@ -690,7 +690,7 @@ exerper()
 /* exercise/abuse text (must be in attribute order, not botl order);
    phrased as "You must have been [][0]." or "You haven't been [][1]." */
 static NEARDATA const char *const exertext[A_MAX][2] = {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
     { "exercising diligently", "exercising properly" },           /* Str */
     { 0, 0 },                                                     /* Int */
     { "very observant", "paying attention" },                     /* Wis */
@@ -780,7 +780,7 @@ exerchk()
                 /* if you actually changed an attrib - zero accumulation */
                 AEXE(i) = ax = 0;
                 /* then print an explanation */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 You("%s %s.",
                     (mod_val > 0) ? "must have been" : "haven't been",
                     exertext[i][(mod_val > 0) ? 0 : 1]);
@@ -1071,7 +1071,7 @@ int propidx; /* special cases can have negative values */
 */
                 Strcpy(buf, "現在の姿によって");
             else if (propidx == FAST && Very_fast)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(buf, because_of,
                         ((HFast & TIMEOUT) != 0L) ? "a potion or spell"
                           : ((EFast & W_ARMF) != 0L && uarmf->dknown
@@ -1400,7 +1400,7 @@ int reason; /* 0==conversion, 1==helm-of-OA on, 2==helm-of-OA off */
         /* worn helm of opposite alignment might block change */
         if (!uarmh || uarmh->otyp != HELM_OF_OPPOSITE_ALIGNMENT)
             u.ualign.type = u.ualignbase[A_CURRENT];
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         You("have a %ssense of a new direction.",
             (u.ualign.type != oldalign) ? "sudden " : "");
 #else
@@ -1416,7 +1416,7 @@ int reason; /* 0==conversion, 1==helm-of-OA on, 2==helm-of-OA off */
 */
             You("%s寝返った．", Hallucination ? "荒っぽく" : "あっさりと");
         else if (reason == 2)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Your("mind is %s.", Hallucination
                                     ? "much of a muchness"
                                     : "back in sync with your body");

@@ -1,11 +1,11 @@
-/* NetHack 3.6	monmove.c	$NHDT-Date: 1557094802 2019/05/05 22:20:02 $  $NHDT-Branch: NetHack-3.6.2-beta01 $:$NHDT-Revision: 1.113 $ */
+/* NetHack 3.6	monmove.c	$NHDT-Date: 1575245074 2019/12/02 00:04:34 $  $NHDT-Branch: NetHack-3.6 $:$NHDT-Revision: 1.116 $ */
 /* Copyright (c) Stichting Mathematisch Centrum, Amsterdam, 1985. */
 /*-Copyright (c) Michael Allison, 2006. */
 /* NetHack may be freely redistributed.  See license for details. */
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -74,7 +74,7 @@ const char *shout;
             /* Sidenote on "A watchman angrily waves her arms!"
              * Female being called watchman is correct (career name).
              */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s angrily %s %s %s!",
                 Amonnam(mon),
                 nolimbs(mon->data) ? "shakes" : "waves",
@@ -334,10 +334,18 @@ boolean fleemsg;
                 pline("%sはしりごみしているようだ．", Monnam(mtmp));
             } else if (flees_light(mtmp)) {
                 if (rn2(10) || Deaf)
+#if 0 /*JP*/
                     pline("%s flees from the painful light of %s.",
                           Monnam(mtmp), bare_artifactname(uwep));
+#else
+                    pline("%sは%sの光におびえた．",
+                          Monnam(mtmp), bare_artifactname(uwep));
+#endif
                 else
+/*JP
                     verbalize("Bright light!");
+*/
+                    verbalize("輝く光！");
             } else
 /*JP
                 pline("%s turns to flee.", Monnam(mtmp));
@@ -508,7 +516,7 @@ register struct monst *mtmp;
     if (nearby && mdat->msound == MS_BRIBE && mtmp->mpeaceful && !mtmp->mtame
         && !u.uswallow) {
         if (mtmp->mux != u.ux || mtmp->muy != u.uy) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s whispers at thin air.",
                   cansee(mtmp->mux, mtmp->muy) ? Monnam(mtmp) : "It");
 #else
@@ -569,7 +577,7 @@ register struct monst *mtmp;
 
             if (m_sen || (Blind_telepat && rn2(2)) || !rn2(10)) {
                 int dmg;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("It locks on to your %s!",
                       m_sen ? "telepathy" : Blind_telepat ? "latent telepathy"
                                                           : "mind");
@@ -1399,7 +1407,7 @@ register int after;
                 if ((here->doormask & (D_LOCKED | D_CLOSED)) != 0
                     && amorphous(ptr)) {
                     if (flags.verbose && canseemon(mtmp))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                         pline("%s %s under the door.", Monnam(mtmp),
                               (ptr == &mons[PM_FOG_CLOUD]
                                || ptr->mlet == S_LIGHT) ? "flows" : "oozes");
@@ -1506,7 +1514,7 @@ register int after;
                         add_damage(mtmp->mx, mtmp->my, 0L);
                 }
             } else if (levl[mtmp->mx][mtmp->my].typ == IRONBARS) {
-                /* 3.6.2: was using may_dig() but it doesn't handle bars */
+                /* As of 3.6.2: was using may_dig() but it doesn't handle bars */
                 if (!(levl[mtmp->mx][mtmp->my].wall_info & W_NONDIGGABLE)
                     && (dmgtype(ptr, AD_RUST) || dmgtype(ptr, AD_CORR))) {
                     if (canseemon(mtmp))
@@ -1723,8 +1731,8 @@ register struct monst *mtmp;
  */
 boolean
 undesirable_disp(mtmp, x, y)
-struct monst *mtmp;
-xchar x, y;
+struct monst *mtmp; /* barging creature */
+xchar x, y; /* spot 'mtmp' is considering moving to */
 {
     boolean is_pet = (mtmp && mtmp->mtame && !mtmp->isminion);
     struct trap *trap = t_at(x, y);
@@ -1742,6 +1750,18 @@ xchar x, y;
                && (mtmp->mtrapseen & (1 << (trap->ttyp - 1))) != 0) {
         return TRUE;
     }
+
+    /* oversimplification:  creatures that bargethrough can't swap places
+       when target monster is in rock or closed door or water (in particular,
+       avoid moving to spots where mondied() won't leave a corpse; doesn't
+       matter whether barger is capable of moving to such a target spot if
+       it were unoccupied) */
+    if (!accessible(x, y)
+        /* mondied() allows is_pool() as an exception to !accessible(),
+           but we'll only do that if 'mtmp' is already at a water location
+           so that we don't swap a water critter onto land */
+        && !(is_pool(x, y) && is_pool(mtmp->mx, mtmp->my)))
+        return TRUE;
 
     return FALSE;
 }
@@ -1829,7 +1849,7 @@ boolean domsg;
     }
 
     if (reslt && domsg) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("You %s %s where %s was.",
               !canseemon(mon) ? "now detect" : "observe",
               noname_monnam(mon, ARTICLE_A), oldmtype);

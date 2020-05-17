@@ -19,7 +19,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -389,10 +389,7 @@ const char *verb;
 {
     static char wholebuf[80];
 
-#if 1 /*JP*/
-    Strcpy(wholebuf, is_u(etmp) ? "あなた" : Monnam(etmp->emon));
-    return wholebuf;
-#else
+#if 0 /*JP*/
     Strcpy(wholebuf, is_u(etmp) ? "You" : Monnam(etmp->emon));
     if (!verb || !*verb)
         return wholebuf;
@@ -401,6 +398,9 @@ const char *verb;
         Strcat(wholebuf, verb);
     else
         Strcat(wholebuf, vtense((char *) 0, verb));
+    return wholebuf;
+#else
+    Strcpy(wholebuf, is_u(etmp) ? "あなた" : Monnam(etmp->emon));
     return wholebuf;
 #endif
 }
@@ -459,7 +459,7 @@ int xkill_flags, how;
             /* So, you didn't die */
             if (!e_survives_at(etmp, etmp->ex, etmp->ey)) {
                 if (enexto(&xy, etmp->ex, etmp->ey, etmp->edata)) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     pline("A %s force teleports you away...",
                           Hallucination ? "normal" : "strange");
 #else
@@ -595,7 +595,7 @@ struct entity *etmp;
 
     if (automiss(etmp) && e_survives_at(etmp, oldx, oldy)) {
         if (e_inview && (at_portcullis || IS_DRAWBRIDGE(crm->typ)))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline_The("%s passes through %s!",
                       at_portcullis ? "portcullis" : "drawbridge",
                       e_nam(etmp));

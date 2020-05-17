@@ -4,7 +4,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -123,6 +123,8 @@ pick_move:
     }
 
     if (nix != omx || niy != omy) {
+        if (MON_AT(nix, niy))
+            return 0;
         remove_monster(omx, omy);
         place_monster(mtmp, nix, niy);
         newsym(nix, niy);
@@ -131,7 +133,7 @@ pick_move:
 #if 0 /* dead code; maybe someday someone will track down why... */
         if (ib) {
             if (cansee(mtmp->mx, mtmp->my))
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s picks up %s.", Monnam(mtmp),
                       distant_name(ib, doname));
 #else
@@ -469,7 +471,7 @@ int roomno;
                Moloch so suppress the "of Moloch" for him here too */
             if (sanctum && !Hallucination)
                 priest->ispriest = 0;
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s intones:",
                   canseemon(priest) ? Monnam(priest) : "A nearby voice");
 #else
@@ -505,7 +507,7 @@ int roomno;
                 msg1 = "おまえはこの神聖な場所を汚している！";
             }
         } else if (moves >= epri_p->enter_time) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(buf, "Pilgrim, you enter a %s place!",
                     !shrined ? "desecrated" : "sacred");
 #else
@@ -541,7 +543,7 @@ int roomno;
 /*JP
                 msg2 = (u.ualign.record >= ALGN_PIOUS) ? "a" : "an unusual";
 */
-                msg2 = (u.ualign.record >= ALGN_PIOUS) ? "a" : "いつになく";
+                msg2 = (u.ualign.record >= ALGN_PIOUS) ? "" : "いつになく";
                 this_time = &epri_p->peaceful_time;
                 other_time = &epri_p->hostile_time;
             }
@@ -680,7 +682,7 @@ register struct monst *priest;
         };
 
         if (!priest->mcanmove || priest->msleeping) {
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             pline("%s breaks out of %s reverie!", Monnam(priest),
                   mhis(priest));
 #else
@@ -710,7 +712,7 @@ register struct monst *priest;
             long pmoney = money_cnt(priest->minvent);
             if (pmoney > 0L) {
                 /* Note: two bits is actually 25 cents.  Hmm. */
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 pline("%s gives you %s for an ale.", Monnam(priest),
                       (pmoney == 1L) ? "one bit" : "two bits");
 #else
@@ -946,7 +948,7 @@ struct monst *priest;
               a_gname_at(ax, ay));
         break;
     case 1:
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         pline("%s voice booms:  \"How darest thou harm my servant!\"",
               s_suffix(a_gname_at(ax, ay)));
 #else
@@ -1194,7 +1196,7 @@ struct monst *mtmp;
         } else {
             ++nsegs; /* include head in the segment count */
             segndx = wseg_at(mtmp, bhitpos.x, bhitpos.y);
-#if 0 /*JP*/
+#if 0 /*JP:T*/
             Sprintf(eos(info), ", %d%s of %d segments",
                     segndx, ordin(segndx), nsegs);
 #else
@@ -1288,7 +1290,7 @@ struct monst *mtmp;
 */
         Strcat(info, ", 不可視");
     if (mtmp == u.ustuck)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Strcat(info, sticks(youmonst.data) ? ", held by you"
                       : !u.uswallow ? ", holding you"
                          : attacktype_fordmg(u.ustuck->data, AT_ENGL, AD_DGST)
@@ -1367,7 +1369,7 @@ ustatusline()
 */
         Strcat(info, ", 首を絞められている");
     if (Vomiting)
-#if 0 /*JP*/
+#if 0 /*JP:T*/
         Strcat(info, ", nauseated"); /* !"nauseous" */
 #else
         Strcat(info, ", 吐き気がする");

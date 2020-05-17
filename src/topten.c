@@ -5,7 +5,7 @@
 
 /* JNetHack Copyright */
 /* (c) Issei Numata, Naoki Hamada, Shigehiro Miyashita, 1994-2000  */
-/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2019            */
+/* For 3.4-, Copyright (c) SHIRAKATA Kentaro, 2002-2020            */
 /* JNetHack may be freely redistributed.  See license for details. */
 
 #include "hack.h"
@@ -107,12 +107,12 @@ boolean incl_helpless;
 /*JP
         "drowned in ", "burned by ", "dissolved in ", "crushed to death by ",
 */
-         "溺死した","焼死した", "溶岩に溶けた", "押し潰された",
+        "溺死した","焼死した", "溶岩に溶けた", "押し潰された",
         /* STONING, TURNED_SLIME, GENOCIDED, */
 /*JP
         "petrified by ", "turned to slime by ", "killed by ",
 */
-         "石になった", "にスライムにされた", "虐殺された",
+        "石になった", "にスライムにされた", "虐殺された",
         /* PANICKED, TRICKED, QUIT, ESCAPED, ASCENDED */
         "", "", "", "", ""
     };
@@ -632,7 +632,7 @@ time_t when;
                 char pbuf[BUFSZ];
 
                 topten_print("");
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                 Sprintf(pbuf,
              "Since you were in %s mode, the score list will not be checked.",
                         wizard ? "wizard" : "discover");
@@ -749,7 +749,7 @@ time_t when;
                 } else {
                     char pbuf[BUFSZ];
 
-#if 0 /*JP*/
+#if 0 /*JP:T*/
                     Sprintf(pbuf,
                             "You reached the %d%s place on the top %d list.",
                             rank0, ordin(rank0), sysopt.entrymax);
@@ -964,9 +964,7 @@ boolean so;
             Strcat(action, t1->death);
 #endif
             second_line = FALSE;
-#if 1 /*JP*/
-        }
-#else
+#if 0 /*JP*/
         } else if (!strncmp(t1->death, "died of st", 10)) {
             Strcat(linebuf, "starved to death");
             second_line = FALSE;
@@ -981,6 +979,8 @@ boolean so;
             Strcat(linebuf, "turned to stone");
         } else
             Strcat(linebuf, "died");
+#else
+        }
 #endif /*JP*/
 
         if (t1->deathdnum == astral_level.dnum) {
@@ -1192,6 +1192,7 @@ int uid;
  * print selected parts of score list.
  * argc >= 2, with argv[0] untrustworthy (directory names, et al.),
  * and argv[1] starting with "-s".
+ * caveat: some shells might allow argv elements to be arbitrarily long.
  */
 void
 prscore(argc, argv)
